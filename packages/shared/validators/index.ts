@@ -289,6 +289,128 @@ export const searchSchema = z
   })
   .merge(paginationSchema);
 
+// ===== MÓDULOS OPERACIONAIS =====
+
+// Categorias de ocorrências
+export const ocorrenciaCategoriaSchema = z.enum([
+  'barulho',
+  'vazamento',
+  'iluminacao',
+  'limpeza',
+  'seguranca',
+  'area_comum',
+  'elevador',
+  'portaria',
+  'animais',
+  'estacionamento',
+  'outros',
+]);
+
+// Status de ocorrências
+export const ocorrenciaStatusSchema = z.enum([
+  'aberta',
+  'em_analise',
+  'em_andamento',
+  'resolvida',
+  'arquivada',
+]);
+
+// Categorias de chamados
+export const chamadoCategoriaSchema = z.enum([
+  'segunda_via_boleto',
+  'atualizacao_cadastro',
+  'reserva_espaco',
+  'autorizacao_obra',
+  'mudanca',
+  'reclamacao',
+  'sugestao',
+  'duvida',
+  'outros',
+]);
+
+// Status de chamados
+export const chamadoStatusSchema = z.enum([
+  'novo',
+  'em_atendimento',
+  'aguardando_resposta',
+  'resolvido',
+  'fechado',
+]);
+
+// Status de comunicados
+export const comunicadoStatusSchema = z.enum(['rascunho', 'publicado', 'arquivado']);
+
+// ===== OCORRÊNCIAS =====
+
+export const createOcorrenciaSchema = z.object({
+  titulo: z.string().min(5, 'Título deve ter no mínimo 5 caracteres').max(200),
+  descricao: z.string().min(20, 'Descrição deve ter no mínimo 20 caracteres'),
+  categoria: ocorrenciaCategoriaSchema.default('outros'),
+  prioridade: prioritySchema.default('media'),
+  anonimo: z.boolean().default(false),
+  unidade_relacionada_id: z.string().uuid().optional(),
+  local_descricao: z.string().max(200).optional(),
+});
+
+export const updateOcorrenciaSchema = z.object({
+  titulo: z.string().min(5).max(200).optional(),
+  descricao: z.string().min(20).optional(),
+  categoria: ocorrenciaCategoriaSchema.optional(),
+  prioridade: prioritySchema.optional(),
+  status: ocorrenciaStatusSchema.optional(),
+  responsavel_id: z.string().uuid().optional().nullable(),
+  resolucao: z.string().optional(),
+  local_descricao: z.string().max(200).optional(),
+});
+
+// ===== CHAMADOS =====
+
+export const createChamadoSchema = z.object({
+  titulo: z.string().min(5, 'Título deve ter no mínimo 5 caracteres').max(200),
+  descricao: z.string().min(10, 'Descrição deve ter no mínimo 10 caracteres'),
+  categoria: chamadoCategoriaSchema.default('duvida'),
+  prioridade: prioritySchema.default('media'),
+});
+
+export const updateChamadoSchema = z.object({
+  titulo: z.string().min(5).max(200).optional(),
+  descricao: z.string().min(10).optional(),
+  categoria: chamadoCategoriaSchema.optional(),
+  prioridade: prioritySchema.optional(),
+  status: chamadoStatusSchema.optional(),
+  atendente_id: z.string().uuid().optional().nullable(),
+  resposta_final: z.string().optional(),
+});
+
+export const chamadoMensagemSchema = z.object({
+  chamado_id: z.string().uuid(),
+  mensagem: z.string().min(1, 'Mensagem não pode estar vazia'),
+  interno: z.boolean().default(false),
+});
+
+export const avaliarChamadoSchema = z.object({
+  avaliacao_nota: z.number().int().min(1).max(5),
+  avaliacao_comentario: z.string().max(500).optional(),
+});
+
+// ===== FAQ =====
+
+export const createFaqSchema = z.object({
+  pergunta: z.string().min(10, 'Pergunta deve ter no mínimo 10 caracteres').max(500),
+  resposta: z.string().min(20, 'Resposta deve ter no mínimo 20 caracteres'),
+  categoria: z.string().max(100).default('geral'),
+  ordem: z.number().int().default(0),
+  ativo: z.boolean().default(true),
+  destaque: z.boolean().default(false),
+});
+
+export const updateFaqSchema = createFaqSchema.partial();
+
+export const voteFaqSchema = z.object({
+  faq_id: z.string().uuid(),
+  util: z.boolean(),
+});
+
 // ===== TYPE EXPORTS =====
 
 export type Condominio = z.infer<typeof condominioSchema>;
@@ -319,3 +441,22 @@ export type ValidateAtaInput = z.infer<typeof validateAtaSchema>;
 
 export type Pagination = z.infer<typeof paginationSchema>;
 export type SearchParams = z.infer<typeof searchSchema>;
+
+// Módulos Operacionais
+export type OcorrenciaCategoria = z.infer<typeof ocorrenciaCategoriaSchema>;
+export type OcorrenciaStatus = z.infer<typeof ocorrenciaStatusSchema>;
+export type ChamadoCategoria = z.infer<typeof chamadoCategoriaSchema>;
+export type ChamadoStatus = z.infer<typeof chamadoStatusSchema>;
+export type ComunicadoStatus = z.infer<typeof comunicadoStatusSchema>;
+
+export type CreateOcorrencia = z.infer<typeof createOcorrenciaSchema>;
+export type UpdateOcorrencia = z.infer<typeof updateOcorrenciaSchema>;
+
+export type CreateChamado = z.infer<typeof createChamadoSchema>;
+export type UpdateChamado = z.infer<typeof updateChamadoSchema>;
+export type ChamadoMensagem = z.infer<typeof chamadoMensagemSchema>;
+export type AvaliarChamado = z.infer<typeof avaliarChamadoSchema>;
+
+export type CreateFaq = z.infer<typeof createFaqSchema>;
+export type UpdateFaq = z.infer<typeof updateFaqSchema>;
+export type VoteFaq = z.infer<typeof voteFaqSchema>;

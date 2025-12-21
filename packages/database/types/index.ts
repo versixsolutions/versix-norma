@@ -211,6 +211,137 @@ export interface RateLimit {
   window_start: string;
 }
 
+// ===== MÓDULOS OPERACIONAIS =====
+
+export type OcorrenciaStatus = 'aberta' | 'em_analise' | 'em_andamento' | 'resolvida' | 'arquivada';
+export type OcorrenciaCategoria =
+  | 'barulho'
+  | 'vazamento'
+  | 'iluminacao'
+  | 'limpeza'
+  | 'seguranca'
+  | 'area_comum'
+  | 'elevador'
+  | 'portaria'
+  | 'animais'
+  | 'estacionamento'
+  | 'outros';
+
+export type ChamadoStatus =
+  | 'novo'
+  | 'em_atendimento'
+  | 'aguardando_resposta'
+  | 'resolvido'
+  | 'fechado';
+export type ChamadoCategoria =
+  | 'segunda_via_boleto'
+  | 'atualizacao_cadastro'
+  | 'reserva_espaco'
+  | 'autorizacao_obra'
+  | 'mudanca'
+  | 'reclamacao'
+  | 'sugestao'
+  | 'duvida'
+  | 'outros';
+
+export type ComunicadoStatusEnum = 'rascunho' | 'publicado' | 'arquivado';
+
+export interface Ocorrencia {
+  id: string;
+  condominio_id: string;
+  reportado_por: string;
+  anonimo: boolean;
+  unidade_relacionada_id: string | null;
+  local_descricao: string | null;
+  titulo: string;
+  descricao: string;
+  categoria: OcorrenciaCategoria;
+  prioridade: Prioridade;
+  status: OcorrenciaStatus;
+  responsavel_id: string | null;
+  resolucao: string | null;
+  resolvido_em: string | null;
+  resolvido_por: string | null;
+  anexos: Json;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface OcorrenciaHistorico {
+  id: string;
+  ocorrencia_id: string;
+  usuario_id: string | null;
+  status_anterior: OcorrenciaStatus | null;
+  status_novo: OcorrenciaStatus;
+  comentario: string | null;
+  created_at: string;
+}
+
+export interface Chamado {
+  id: string;
+  condominio_id: string;
+  solicitante_id: string;
+  titulo: string;
+  descricao: string;
+  categoria: ChamadoCategoria;
+  prioridade: Prioridade;
+  status: ChamadoStatus;
+  atendente_id: string | null;
+  resposta_final: string | null;
+  resolvido_em: string | null;
+  avaliacao_nota: number | null;
+  avaliacao_comentario: string | null;
+  avaliado_em: string | null;
+  anexos: Json;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface ChamadoMensagem {
+  id: string;
+  chamado_id: string;
+  autor_id: string;
+  mensagem: string;
+  anexos: Json;
+  interno: boolean;
+  created_at: string;
+}
+
+export interface Faq {
+  id: string;
+  condominio_id: string;
+  pergunta: string;
+  resposta: string;
+  categoria: string;
+  ordem: number;
+  ativo: boolean;
+  destaque: boolean;
+  visualizacoes: number;
+  votos_util: number;
+  votos_inutil: number;
+  criado_por: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface FaqVoto {
+  id: string;
+  faq_id: string;
+  usuario_id: string;
+  util: boolean;
+  created_at: string;
+}
+
+export interface ComunicadoLeitura {
+  id: string;
+  comunicado_id: string;
+  usuario_id: string;
+  lido_em: string;
+}
+
 // ===== Database Schema (Supabase format) =====
 export interface Database {
   public: {

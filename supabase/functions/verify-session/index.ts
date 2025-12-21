@@ -6,7 +6,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { handleCors, jsonResponse, type AuthUser } from '../_shared/cors.ts';
-import { getSupabaseClient, getSupabaseAdmin } from '../_shared/supabase.ts';
+import { getSupabaseAdmin, getSupabaseClient } from '../_shared/supabase.ts';
 
 interface VerifyResponse {
   valid: boolean;
