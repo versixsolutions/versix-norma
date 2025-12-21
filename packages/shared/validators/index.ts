@@ -158,6 +158,41 @@ export const registerSchema = z
     path: ['confirmPassword'],
   });
 
+export const registerMoradorSchema = z
+  .object({
+    nome: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').max(200),
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+    telefone: phoneSchema.optional(),
+    codigo_convite: z.string().length(8, 'Código de convite deve ter 8 caracteres').toUpperCase(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Senhas não conferem',
+    path: ['confirmPassword'],
+  });
+
+export const registerSindicoSchema = z
+  .object({
+    nome: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').max(200),
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+    telefone: phoneSchema.optional(),
+    cpf: cpfSchema.optional(),
+    // Dados do condomínio (se novo)
+    condominio_nome: z.string().min(3).max(200).optional(),
+    condominio_cnpj: cnpjSchema.optional(),
+    condominio_endereco: z.string().min(5).max(500).optional(),
+    condominio_cidade: z.string().min(2).max(100).optional(),
+    condominio_estado: z.string().length(2).optional(),
+    condominio_cep: cepSchema.optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Senhas não conferem',
+    path: ['confirmPassword'],
+  });
+
 export const forgotPasswordSchema = z.object({
   email: emailSchema,
 });
@@ -171,6 +206,72 @@ export const resetPasswordSchema = z
     message: 'Senhas não conferem',
     path: ['confirmPassword'],
   });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Senha atual é obrigatória'),
+    newPassword: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Senhas não conferem',
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: 'Nova senha deve ser diferente da atual',
+    path: ['newPassword'],
+  });
+
+// ===== IMPERSONATE =====
+
+export const impersonateSchema = z.object({
+  usuario_alvo_id: z.string().uuid('ID inválido'),
+  motivo: z.string().min(10, 'Motivo deve ter no mínimo 10 caracteres').max(500),
+});
+
+// ===== APPROVE USER =====
+
+export const approveUserSchema = z
+  .object({
+    usuario_id: z.string().uuid('ID inválido'),
+    acao: z.enum(['approve', 'reject']),
+    unidade_id: z.string().uuid('ID inválido').optional(),
+    motivo_rejeicao: z.string().min(10, 'Motivo deve ter no mínimo 10 caracteres').optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.acao === 'reject') {
+        return !!data.motivo_rejeicao;
+      }
+      return true;
+    },
+    {
+      message: 'Motivo obrigatório para rejeição',
+      path: ['motivo_rejeicao'],
+    }
+  );
+
+// ===== VALIDATE ATA =====
+
+export const validateAtaSchema = z
+  .object({
+    ata_id: z.string().uuid('ID inválido'),
+    acao: z.enum(['approve', 'reject']),
+    condominio_id: z.string().uuid('ID inválido').optional(),
+    motivo_rejeicao: z.string().min(20, 'Motivo deve ter no mínimo 20 caracteres').optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.acao === 'reject') {
+        return !!data.motivo_rejeicao;
+      }
+      return true;
+    },
+    {
+      message: 'Motivo obrigatório para rejeição',
+      path: ['motivo_rejeicao'],
+    }
+  );
 
 // ===== API / SEARCH =====
 
@@ -207,6 +308,14 @@ export type UpdateComunicado = z.infer<typeof updateComunicadoSchema>;
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type RegisterMoradorInput = z.infer<typeof registerMoradorSchema>;
+export type RegisterSindicoInput = z.infer<typeof registerSindicoSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type ImpersonateInput = z.infer<typeof impersonateSchema>;
+export type ApproveUserInput = z.infer<typeof approveUserSchema>;
+export type ValidateAtaInput = z.infer<typeof validateAtaSchema>;
 
 export type Pagination = z.infer<typeof paginationSchema>;
 export type SearchParams = z.infer<typeof searchSchema>;
