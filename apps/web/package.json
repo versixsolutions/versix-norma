@@ -1,0 +1,21 @@
+{
+  "name": "@versix/web",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo '⏳ Frontend será implementado no Sprint 9+' && exit 0",
+    "build": "echo '⏳ Frontend será implementado no Sprint 9+' && exit 0",
+    "lint": "echo '✅ Lint OK (placeholder)' && exit 0",
+    "lint:fix": "echo '✅ Lint fix OK (placeholder)' && exit 0",
+    "type-check": "echo '✅ Type check OK (placeholder)' && exit 0",
+    "preview": "echo '⏳ Frontend será implementado no Sprint 9+' && exit 0"
+  },
+  "dependencies": {
+    "@versix/shared": "workspace:*",
+    "@versix/database": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

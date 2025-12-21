@@ -1,0 +1,212 @@
+/**
+ * VERSIX NORMA - Validators (Zod Schemas)
+ *
+ * Schemas de validação compartilhados entre frontend e backend
+ */
+
+import { z } from 'zod';
+import { TIERS, ROLES, STATUS, COMUNICADO_CATEGORIES, PRIORITIES, LIMITS } from '../constants';
+
+// ===== PRIMITIVES =====
+
+export const cpfSchema = z
+  .string()
+  .regex(/^\d{11}$|^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido')
+  .transform((val) => val.replace(/\D/g, ''));
+
+export const cnpjSchema = z
+  .string()
+  .regex(/^\d{14}$|^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido')
+  .transform((val) => val.replace(/\D/g, ''));
+
+export const phoneSchema = z
+  .string()
+  .regex(/^\d{10,11}$|^\(\d{2}\)\s?\d{4,5}-?\d{4}$/, 'Telefone inválido')
+  .transform((val) => val.replace(/\D/g, ''));
+
+export const cepSchema = z
+  .string()
+  .regex(/^\d{8}$|^\d{5}-?\d{3}$/, 'CEP inválido')
+  .transform((val) => val.replace(/\D/g, ''));
+
+export const emailSchema = z.string().email('Email inválido').toLowerCase().trim();
+
+export const passwordSchema = z
+  .string()
+  .min(
+    LIMITS.MIN_PASSWORD_LENGTH,
+    `Senha deve ter no mínimo ${LIMITS.MIN_PASSWORD_LENGTH} caracteres`
+  )
+  .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
+  .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minúscula')
+  .regex(/[0-9]/, 'Senha deve conter pelo menos um número');
+
+// ===== ENUMS =====
+
+export const tierSchema = z.enum([TIERS.STARTER, TIERS.PROFESSIONAL, TIERS.ENTERPRISE]);
+
+export const roleSchema = z.enum([
+  ROLES.SUPERADMIN,
+  ROLES.ADMIN_CONDO,
+  ROLES.SINDICO,
+  ROLES.CONSELHEIRO,
+  ROLES.MORADOR,
+  ROLES.PORTEIRO,
+  ROLES.ZELADOR,
+]);
+
+export const statusSchema = z.enum([
+  STATUS.ACTIVE,
+  STATUS.INACTIVE,
+  STATUS.PENDING,
+  STATUS.SUSPENDED,
+  STATUS.DELETED,
+]);
+
+export const comunicadoCategorySchema = z.enum([
+  COMUNICADO_CATEGORIES.GERAL,
+  COMUNICADO_CATEGORIES.MANUTENCAO,
+  COMUNICADO_CATEGORIES.FINANCEIRO,
+  COMUNICADO_CATEGORIES.SEGURANCA,
+  COMUNICADO_CATEGORIES.EVENTO,
+  COMUNICADO_CATEGORIES.URGENTE,
+]);
+
+export const prioritySchema = z.enum([
+  PRIORITIES.LOW,
+  PRIORITIES.MEDIUM,
+  PRIORITIES.HIGH,
+  PRIORITIES.URGENT,
+]);
+
+// ===== ENTITIES =====
+
+export const condominioSchema = z.object({
+  nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres').max(200),
+  cnpj: cnpjSchema.optional(),
+  endereco: z.string().min(5).max(500),
+  cidade: z.string().min(2).max(100),
+  estado: z.string().length(2),
+  cep: cepSchema,
+  tier: tierSchema.default(TIERS.STARTER),
+  email_contato: emailSchema.optional(),
+  telefone_contato: phoneSchema.optional(),
+});
+
+export const createCondominioSchema = condominioSchema;
+
+export const updateCondominioSchema = condominioSchema.partial();
+
+export const usuarioSchema = z.object({
+  nome: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').max(200),
+  email: emailSchema,
+  cpf: cpfSchema.optional(),
+  telefone: phoneSchema.optional(),
+  role: roleSchema.default(ROLES.MORADOR),
+  status: statusSchema.default(STATUS.PENDING),
+});
+
+export const createUsuarioSchema = usuarioSchema.extend({
+  password: passwordSchema,
+});
+
+export const updateUsuarioSchema = usuarioSchema.partial();
+
+export const unidadeHabitacionalSchema = z.object({
+  identificador: z.string().min(1).max(20), // Ex: "101", "A-101"
+  bloco_id: z.string().uuid().optional(),
+  tipo: z.enum(['apartamento', 'casa', 'sala', 'loja', 'garagem', 'outro']).default('apartamento'),
+  area_m2: z.number().positive().optional(),
+  fracao_ideal: z.number().min(0).max(1).optional(),
+});
+
+export const blocoSchema = z.object({
+  nome: z.string().min(1).max(50), // Ex: "Bloco A", "Torre Norte"
+  andares: z.number().int().positive().optional(),
+});
+
+export const comunicadoSchema = z.object({
+  titulo: z.string().min(5).max(LIMITS.MAX_TITLE_LENGTH),
+  conteudo: z.string().min(10).max(LIMITS.MAX_COMUNICADO_LENGTH),
+  categoria: comunicadoCategorySchema.default(COMUNICADO_CATEGORIES.GERAL),
+  prioridade: prioritySchema.default(PRIORITIES.MEDIUM),
+  publicado: z.boolean().default(false),
+  data_publicacao: z.string().datetime().optional(),
+  data_expiracao: z.string().datetime().optional(),
+  fixado: z.boolean().default(false),
+});
+
+export const createComunicadoSchema = comunicadoSchema;
+export const updateComunicadoSchema = comunicadoSchema.partial();
+
+// ===== AUTH =====
+
+export const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, 'Senha é obrigatória'),
+});
+
+export const registerSchema = z
+  .object({
+    nome: z.string().min(2).max(200),
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Senhas não conferem',
+    path: ['confirmPassword'],
+  });
+
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Senhas não conferem',
+    path: ['confirmPassword'],
+  });
+
+// ===== API / SEARCH =====
+
+export const paginationSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export const searchSchema = z
+  .object({
+    q: z.string().max(200).optional(),
+    status: statusSchema.optional(),
+    sort: z.string().max(50).optional(),
+    order: z.enum(['asc', 'desc']).default('desc'),
+  })
+  .merge(paginationSchema);
+
+// ===== TYPE EXPORTS =====
+
+export type Condominio = z.infer<typeof condominioSchema>;
+export type CreateCondominio = z.infer<typeof createCondominioSchema>;
+export type UpdateCondominio = z.infer<typeof updateCondominioSchema>;
+
+export type Usuario = z.infer<typeof usuarioSchema>;
+export type CreateUsuario = z.infer<typeof createUsuarioSchema>;
+export type UpdateUsuario = z.infer<typeof updateUsuarioSchema>;
+
+export type UnidadeHabitacional = z.infer<typeof unidadeHabitacionalSchema>;
+export type Bloco = z.infer<typeof blocoSchema>;
+
+export type Comunicado = z.infer<typeof comunicadoSchema>;
+export type CreateComunicado = z.infer<typeof createComunicadoSchema>;
+export type UpdateComunicado = z.infer<typeof updateComunicadoSchema>;
+
+export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
+
+export type Pagination = z.infer<typeof paginationSchema>;
+export type SearchParams = z.infer<typeof searchSchema>;
