@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { TIERS, ROLES, STATUS, COMUNICADO_CATEGORIES, PRIORITIES, LIMITS } from '../constants';
+import { COMUNICADO_CATEGORIES, LIMITS, PRIORITIES, ROLES, STATUS, TIERS } from '../constants';
 
 // ===== PRIMITIVES =====
 
@@ -346,7 +346,7 @@ export const createOcorrenciaSchema = z.object({
   titulo: z.string().min(5, 'Título deve ter no mínimo 5 caracteres').max(200),
   descricao: z.string().min(20, 'Descrição deve ter no mínimo 20 caracteres'),
   categoria: ocorrenciaCategoriaSchema.default('outros'),
-  prioridade: prioritySchema.default('media'),
+  prioridade: prioritySchema.default('medium'),
   anonimo: z.boolean().default(false),
   unidade_relacionada_id: z.string().uuid().optional(),
   local_descricao: z.string().max(200).optional(),
@@ -369,7 +369,7 @@ export const createChamadoSchema = z.object({
   titulo: z.string().min(5, 'Título deve ter no mínimo 5 caracteres').max(200),
   descricao: z.string().min(10, 'Descrição deve ter no mínimo 10 caracteres'),
   categoria: chamadoCategoriaSchema.default('duvida'),
-  prioridade: prioritySchema.default('media'),
+  prioridade: prioritySchema.default('medium'),
 });
 
 export const updateChamadoSchema = z.object({
