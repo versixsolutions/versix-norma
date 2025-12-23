@@ -1,60 +1,45 @@
 {
-  "name": "versix-norma",
+  "name": "@versix/web",
   "version": "1.0.1",
   "private": true,
   "type": "module",
-  "description": "Gestão Inteligente de Condomínios - SaaS Multi-tenant",
-  "author": "Versix Solutions",
-  "license": "UNLICENSED",
   "scripts": {
-    "dev": "turbo dev",
-    "dev:web": "turbo dev --filter=@versix/web",
-    "dev:all": "concurrently \"pnpm supabase:start\" \"turbo dev\"",
-    "build": "turbo build",
-    "lint": "turbo lint",
-    "lint:fix": "turbo lint:fix",
-    "type-check": "turbo type-check",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
-    "clean": "turbo clean && rm -rf node_modules .turbo",
-    "doctor": "node scripts/doctor.js",
-    "supabase:start": "supabase start",
-    "supabase:stop": "supabase stop",
-    "supabase:status": "supabase status",
-    "supabase:reset": "supabase db reset",
-    "supabase:gen-types": "supabase gen types typescript --local > packages/database/types/database.ts",
-    "supabase:link": "supabase link --project-ref $SUPABASE_PROJECT_REF",
-    "supabase:push": "supabase db push",
-    "supabase:pull": "supabase db pull",
-    "prepare": "husky"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "preview": "next start",
+    "supabase:reset": "npx supabase db reset"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.45.1",
+    "@versix/shared": "workspace:*",
+    "@versix/database": "workspace:*",
+    "firebase": "^10.12.3",
+    "idb": "^8.0.0",
+    "lucide-react": "^0.395.0",
+    "next": "^14.2.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "workbox-background-sync": "^7.1.0",
+    "workbox-expiration": "^7.1.0",
+    "workbox-precaching": "^7.1.0",
+    "workbox-routing": "^7.1.0",
+    "workbox-strategies": "^7.1.0",
+    "workbox-window": "^7.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^8.50.0",
-    "@typescript-eslint/parser": "^8.50.0",
-    "concurrently": "^8.2.2",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "husky": "^9.0.0",
-    "lint-staged": "^15.2.0",
-    "prettier": "^3.2.0",
-    "prettier-plugin-tailwindcss": "^0.7.2",
-    "turbo": "^2.0.0",
+    "@types/node": "^20.14.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^9.4.0",
+    "eslint-config-next": "^14.2.4",
+    "next-pwa": "^5.6.0",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
     "typescript": "^5.4.0"
-  },
-  "packageManager": "pnpm@8.15.0",
-  "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=8.0.0"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,css,js}": [
-      "prettier --write"
-    ]
   }
 }
