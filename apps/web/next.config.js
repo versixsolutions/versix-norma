@@ -1,35 +1,81 @@
-/** @type {import('next').NextConfig} */
-const withPWA = require('next-pwa')({
+// @ts-check
+import withPWAInit from 'next-pwa';
+
+const withPWA = withPWAInit({
   dest: 'public',
-  // Desabilitar PWA em desenvolvimento para evitar cache indesejado
   disable: process.env.NODE_ENV === 'development',
   register: true,
   skipWaiting: true,
-  // Custom Service Worker path
-  sw: 'sw.js',
-  // Custom runtime caching rules (opcional, mas bom para Next.js)
   runtimeCaching: [
     {
-      urlPattern: /^https?.*/,
+      urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
       handler: 'NetworkFirst',
       options: {
-        cacheName: 'https-calls',
-        networkTimeoutSeconds: 15,
+        cacheName: 'supabase-api',
         expiration: {
-          maxEntries: 150,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 dias
+          maxEntries: 50,
+          maxAgeSeconds: 5 * 60, // 5 minutos
         },
-        cacheableResponse: {
-          statuses: [0, 200],
+      },
+    },
+    {
+      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'images',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 dias
         },
+      },
+    },
+    {
+      urlPattern: /\.(?:js|css)$/i,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'static-resources',
       },
     },
   ],
 });
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@versix/shared', '@versix/database'],
+  swcMinify: true,
+
+  // Configuração de imagens
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
+    ],
+  },
+
+  // Headers de segurança
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
 };
 
-module.exports = withPWA(nextConfig);
+export default withPWA(nextConfig);
