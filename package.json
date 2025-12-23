@@ -11,7 +11,8 @@
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
     "preview": "next start",
-    "supabase:reset": "npx supabase db reset"
+    "supabase:reset": "npx supabase db reset",
+    "lint": "pnpm --filter @versix/web lint"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.45.1",
