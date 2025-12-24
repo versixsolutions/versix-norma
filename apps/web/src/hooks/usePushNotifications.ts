@@ -3,8 +3,8 @@
 // Gerenciamento de permissões e registro de push
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -31,9 +31,7 @@ const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
 // ============================================
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, '+')
-    .replace(/_/g, '/');
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
@@ -60,13 +58,11 @@ export function usePushNotifications() {
   // Verificar suporte e status inicial
   useEffect(() => {
     const checkSupport = async () => {
-      const isSupported = 
-        'serviceWorker' in navigator && 
-        'PushManager' in window &&
-        'Notification' in window;
+      const isSupported =
+        'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 
       if (!isSupported) {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           isSupported: false,
           isLoading: false,
@@ -88,8 +84,8 @@ export function usePushNotifications() {
           isLoading: false,
           error: null,
         });
-      } catch (error) {
-        setState(prev => ({
+      } catch {
+        setState((prev) => ({
           ...prev,
           isSupported: true,
           isLoading: false,
@@ -107,15 +103,15 @@ export function usePushNotifications() {
 
     try {
       const permission = await Notification.requestPermission();
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
         permission: permission as NotificationPermission,
       }));
 
       return permission === 'granted';
-    } catch (error) {
-      setState(prev => ({
+    } catch {
+      setState((prev) => ({
         ...prev,
         error: 'Erro ao solicitar permissão',
       }));
@@ -127,14 +123,14 @@ export function usePushNotifications() {
   const subscribe = useCallback(async (): Promise<boolean> => {
     if (!state.isSupported) return false;
 
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       // Verificar permissão primeiro
       if (Notification.permission === 'default') {
         const granted = await requestPermission();
         if (!granted) {
-          setState(prev => ({
+          setState((prev) => ({
             ...prev,
             isLoading: false,
             error: 'Permissão negada',
@@ -144,7 +140,7 @@ export function usePushNotifications() {
       }
 
       if (Notification.permission === 'denied') {
-        setState(prev => ({
+        setState((prev) => ({
           ...prev,
           isLoading: false,
           error: 'Notificações bloqueadas. Habilite nas configurações do navegador.',
@@ -163,7 +159,7 @@ export function usePushNotifications() {
       // Salvar no backend
       await saveSubscription(subscription);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isSubscribed: true,
         subscription,
@@ -171,9 +167,9 @@ export function usePushNotifications() {
       }));
 
       return true;
-    } catch (error) {
+    } catch {
       console.error('Erro ao inscrever:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
         error: 'Erro ao ativar notificações',
@@ -186,7 +182,7 @@ export function usePushNotifications() {
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     if (!state.subscription) return true;
 
-    setState(prev => ({ ...prev, isLoading: true }));
+    setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
       // Cancelar no push manager
@@ -195,7 +191,7 @@ export function usePushNotifications() {
       // Remover do backend
       await removeSubscription(state.subscription);
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isSubscribed: false,
         subscription: null,
@@ -203,9 +199,9 @@ export function usePushNotifications() {
       }));
 
       return true;
-    } catch (error) {
+    } catch {
       console.error('Erro ao cancelar:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
         error: 'Erro ao desativar notificações',
@@ -226,7 +222,9 @@ export function usePushNotifications() {
 // BACKEND FUNCTIONS
 // ============================================
 async function saveSubscription(subscription: PushSubscription): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) throw new Error('Usuário não autenticado');
 
   const subscriptionData = subscription.toJSON();
@@ -243,7 +241,9 @@ async function saveSubscription(subscription: PushSubscription): Promise<void> {
 }
 
 async function removeSubscription(subscription: PushSubscription): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return;
 
   const subscriptionData = subscription.toJSON();
@@ -254,8 +254,8 @@ async function removeSubscription(subscription: PushSubscription): Promise<void>
     .update({
       push_tokens: supabase.rpc('array_remove_element', {
         arr: 'push_tokens',
-        element: JSON.stringify(subscriptionData)
-      })
+        element: JSON.stringify(subscriptionData),
+      }),
     })
     .eq('usuario_id', user.id);
 }
@@ -272,13 +272,13 @@ function getDeviceType(): string {
 
 function getDeviceName(): string {
   const ua = navigator.userAgent;
-  
+
   // Tentar extrair nome do dispositivo
   const match = ua.match(/\(([^)]+)\)/);
   if (match) {
     return match[1].split(';')[0].trim();
   }
-  
+
   return navigator.platform || 'Unknown Device';
 }
 
@@ -290,7 +290,10 @@ export function useNotificationPermission() {
 
   useEffect(() => {
     if ('Notification' in window) {
-      setPermission(Notification.permission as NotificationPermission);
+      // Evitar setState direto no efeito, usar microtask
+      Promise.resolve().then(() =>
+        setPermission(Notification.permission as NotificationPermission)
+      );
     }
   }, []);
 
@@ -311,34 +314,34 @@ export function useNotificationPermission() {
 export function useLocalNotifications() {
   const { permission, request } = useNotificationPermission();
 
-  const show = useCallback(async (
-    title: string,
-    options?: NotificationOptions
-  ) => {
-    if (permission === 'default') {
-      const result = await request();
-      if (result !== 'granted') return null;
-    }
+  const show = useCallback(
+    async (title: string, options?: NotificationOptions) => {
+      if (permission === 'default') {
+        const result = await request();
+        if (result !== 'granted') return null;
+      }
 
-    if (permission === 'denied') return null;
+      if (permission === 'denied') return null;
 
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification(title, {
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/badge-72x72.png',
-        ...options,
-      });
-      return true;
-    } catch {
-      // Fallback para Notification API
-      const notification = new Notification(title, {
-        icon: '/icons/icon-192x192.png',
-        ...options,
-      });
-      return notification;
-    }
-  }, [permission, request]);
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, {
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/badge-72x72.png',
+          ...options,
+        });
+        return true;
+      } catch {
+        // Fallback para Notification API
+        const notification = new Notification(title, {
+          icon: '/icons/icon-192x192.png',
+          ...options,
+        });
+        return notification;
+      }
+    },
+    [permission, request]
+  );
 
   return { show, permission };
 }
