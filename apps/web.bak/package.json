@@ -13,6 +13,7 @@
     "preview": "next start"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.8.0",
     "@tanstack/react-query": "^5.45.1",
     "@versix/database": "workspace:*",
     "@versix/shared": "workspace:*",

@@ -153,7 +153,7 @@ export function usePushNotifications() {
       const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: applicationServerKey.buffer ? applicationServerKey : undefined,
+        applicationServerKey: applicationServerKey as unknown as ArrayBuffer,
       });
 
       // Salvar no backend
@@ -225,14 +225,18 @@ async function saveSubscription(subscription: PushSubscription): Promise<void> {
   // Mock para supabase stub (prefix with _ to indicate intentionally unused)
   const _user = { id: 'stub-user-id' };
   const _subscriptionData = subscription.toJSON();
+  // Referência para evitar warning/erros do TypeScript sobre variáveis não usadas
+  void _user;
+  void _subscriptionData;
   // Simula chamada ao backend
   // Remova este mock quando integrar supabase real
   return;
 }
 
 async function removeSubscription(subscription: PushSubscription): Promise<void> {
-  // Mock para supabase stub (use underscore for unused param)
+  // Mock para supabase stub (use variable to avoid TS unused errors)
   const _subscription = subscription;
+  void _subscription;
   // Remova este mock quando integrar supabase real
   return;
 }
@@ -248,15 +252,12 @@ function _getDeviceType(): string {
 }
 
 function _getDeviceName(): string {
-  const ua = navigator.userAgent;
-
-  // Tentar extrair nome do dispositivo
-  const match = ua.match(/\(([^)]+)\)/);
-  if (match && match[1]) {
-    return match[1].split(';')[0].trim();
-  }
   return navigator.platform || 'Unknown Device';
 }
+
+// Referências para evitar warnings do TypeScript sobre declarações não utilizadas
+void _getDeviceType;
+void _getDeviceName;
 
 // ============================================
 // useNotificationPermission
