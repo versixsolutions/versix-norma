@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Chamado, StatusChamado, PrioridadeChamado } from '@/types/database';
+import type { Chamado, DBRow, PrioridadeChamado, StatusChamado } from '@/types/database';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // TYPES
 // ============================================
 interface ChamadoComDetalhes extends Chamado {
-  unidade_identificador?: string;
-  responsavel_nome?: string;
+  unidade_identificador?: string | null;
+  responsavel_nome?: string | null;
   total_comentarios: number;
 }
 
@@ -37,9 +37,17 @@ interface UseChamadosReturn {
   loading: boolean;
   error: Error | null;
   refresh: () => Promise<void>;
-  criarChamado: (data: CriarChamadoInput) => Promise<{ success: boolean; id?: string; error?: Error }>;
-  atualizarStatus: (chamadoId: string, status: StatusChamado) => Promise<{ success: boolean; error?: Error }>;
-  adicionarComentario: (chamadoId: string, conteudo: string) => Promise<{ success: boolean; error?: Error }>;
+  criarChamado: (
+    data: CriarChamadoInput
+  ) => Promise<{ success: boolean; id?: string; error?: Error }>;
+  atualizarStatus: (
+    chamadoId: string,
+    status: StatusChamado
+  ) => Promise<{ success: boolean; error?: Error }>;
+  adicionarComentario: (
+    chamadoId: string,
+    conteudo: string
+  ) => Promise<{ success: boolean; error?: Error }>;
   buscarComentarios: (chamadoId: string) => Promise<ComentarioChamado[]>;
 }
 
@@ -52,16 +60,14 @@ interface CriarChamadoInput {
 }
 
 // ============================================
-// HOOK
-// ============================================
-export function useChamados({ 
-  condominioId, 
-  userId, 
-  unidadeId,
-  apenasMinhaUnidade = false 
+export function useChamados({
+  condominioId,
+  userId,
+  unidadeId: _unidadeId,
+  apenasMinhaUnidade = false,
 }: UseChamadosOptions): UseChamadosReturn {
   const supabase = getSupabaseClient();
-  
+
   const [chamados, setChamados] = useState<ChamadoComDetalhes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -75,38 +81,46 @@ export function useChamados({
     try {
       let query = supabase
         .from('chamados')
-        .select(`
+        .select(
+          `
           *,
-          unidades:unidade_id (identificador),
-          responsavel:responsavel_id (nome)
-        `)
+          solicitante:solicitante_id (nome, unidade_id),
+          atendente:atendente_id (nome)
+        `
+        )
         .eq('condominio_id', condominioId)
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (apenasMinhaUnidade && unidadeId) {
-        query = query.eq('unidade_id', unidadeId);
+      if (apenasMinhaUnidade && userId) {
+        query = query.eq('solicitante_id', userId);
       }
 
       const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
 
-      // Contar comentários para cada chamado
       const chamadosComDetalhes: ChamadoComDetalhes[] = await Promise.all(
-        (data || []).map(async (c: any) => {
-          const { count } = await supabase
-            .from('chamados_comentarios')
-            .select('*', { count: 'exact', head: true })
-            .eq('chamado_id', c.id);
+        (data || []).map(
+          async (
+            c: DBRow<'chamados'> & {
+              solicitante?: { unidade_id?: string };
+              atendente?: { nome?: string };
+            }
+          ) => {
+            const { count } = await supabase
+              .from('chamados_mensagens')
+              .select('*', { count: 'exact', head: true })
+              .eq('chamado_id', c.id);
 
-          return {
-            ...c,
-            unidade_identificador: c.unidades?.identificador,
-            responsavel_nome: c.responsavel?.nome,
-            total_comentarios: count || 0,
-          };
-        })
+            return {
+              ...c,
+              unidade_identificador: c.solicitante?.unidade_id || null,
+              responsavel_nome: c.atendente?.nome || null,
+              total_comentarios: count || 0,
+            };
+          }
+        )
       );
 
       setChamados(chamadosComDetalhes);
@@ -115,7 +129,7 @@ export function useChamados({
     } finally {
       setLoading(false);
     }
-  }, [condominioId, unidadeId, apenasMinhaUnidade, supabase]);
+  }, [condominioId, apenasMinhaUnidade, supabase, userId]);
 
   useEffect(() => {
     fetchChamados();
@@ -156,13 +170,12 @@ export function useChamados({
         .from('chamados')
         .insert({
           condominio_id: condominioId,
-          usuario_id: userId,
-          unidade_id: data.unidade_id || unidadeId || null,
+          solicitante_id: userId,
           categoria: data.categoria,
           titulo: data.titulo,
           descricao: data.descricao,
           prioridade: data.prioridade || 'media',
-          status: 'aberto',
+          status: 'novo',
         })
         .select('id')
         .single();
@@ -178,16 +191,13 @@ export function useChamados({
 
   const atualizarStatus = async (chamadoId: string, status: StatusChamado) => {
     try {
-      const updateData: any = { status };
-      
+      const updateData: Partial<{ status: StatusChamado; data_resolucao?: string }> = { status };
+
       if (status === 'resolvido') {
         updateData.data_resolucao = new Date().toISOString();
       }
 
-      const { error } = await supabase
-        .from('chamados')
-        .update(updateData)
-        .eq('id', chamadoId);
+      const { error } = await supabase.from('chamados').update(updateData).eq('id', chamadoId);
 
       if (error) throw error;
 
@@ -204,14 +214,12 @@ export function useChamados({
     }
 
     try {
-      const { error } = await supabase
-        .from('chamados_comentarios')
-        .insert({
-          chamado_id: chamadoId,
-          usuario_id: userId,
-          conteudo,
-          is_interno: false,
-        });
+      const { error } = await supabase.from('chamados_mensagens').insert({
+        chamado_id: chamadoId,
+        autor_id: userId,
+        mensagem: conteudo,
+        interno: false,
+      });
 
       if (error) throw error;
 
@@ -225,29 +233,41 @@ export function useChamados({
   const buscarComentarios = async (chamadoId: string): Promise<ComentarioChamado[]> => {
     try {
       const { data, error } = await supabase
-        .from('chamados_comentarios')
-        .select(`
+        .from('chamados_mensagens')
+        .select(
+          `
           *,
-          usuarios:usuario_id (nome)
-        `)
+          usuarios:autor_id (nome)
+        `
+        )
         .eq('chamado_id', chamadoId)
-        .eq('is_interno', false)
+        .eq('interno', false)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      return (data || []).map((c: any) => ({
-        ...c,
-        usuario_nome: c.usuarios?.nome || 'Usuário',
-      }));
+      return (data || []).map(
+        (c: DBRow<'chamados_mensagens'> & { usuarios?: { nome?: string } }) => ({
+          id: c.id,
+          chamado_id: c.chamado_id,
+          usuario_id: c.autor_id,
+          usuario_nome: c.usuarios?.nome || 'Usuário',
+          conteudo: c.mensagem,
+          is_interno: c.interno,
+          created_at: c.created_at,
+        })
+      );
     } catch (err) {
       console.error('Erro ao buscar comentários:', err);
       return [];
     }
   };
 
-  const meusChamados = chamados.filter((c) => c.usuario_id === userId);
-  const abertos = chamados.filter((c) => c.status === 'aberto' || c.status === 'em_andamento').length;
+  const meusChamados = chamados.filter((c) => c.solicitante_id === userId);
+  const abertos = chamados.filter(
+    (c) =>
+      c.status === 'novo' || c.status === 'em_atendimento' || c.status === 'aguardando_resposta'
+  ).length;
 
   return {
     chamados,

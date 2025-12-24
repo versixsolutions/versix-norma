@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Comunicado } from '@/types/database';
+import type { Comunicado, DBRow } from '@/types/database';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -30,9 +30,12 @@ interface UseComunicadosReturn {
 // ============================================
 // HOOK
 // ============================================
-export function useComunicados({ condominioId, userId }: UseComunicadosOptions): UseComunicadosReturn {
+export function useComunicados({
+  condominioId,
+  userId,
+}: UseComunicadosOptions): UseComunicadosReturn {
   const supabase = getSupabaseClient();
-  
+
   const [comunicados, setComunicados] = useState<ComunicadoComLeitura[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -47,10 +50,12 @@ export function useComunicados({ condominioId, userId }: UseComunicadosOptions):
       // Buscar comunicados
       const { data: comunicadosData, error: comError } = await supabase
         .from('comunicados')
-        .select(`
+        .select(
+          `
           *,
           usuarios:created_by (nome)
-        `)
+        `
+        )
         .eq('condominio_id', condominioId)
         .gte('data_publicacao', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()) // últimos 90 dias
         .or(`data_expiracao.is.null,data_expiracao.gte.${new Date().toISOString()}`)
@@ -70,11 +75,13 @@ export function useComunicados({ condominioId, userId }: UseComunicadosOptions):
         leituras = leiturasData?.map((l) => l.comunicado_id) || [];
       }
 
-      const comunicadosComLeitura = (comunicadosData || []).map((c: any) => ({
-        ...c,
-        lido: leituras.includes(c.id),
-        autor_nome: c.usuarios?.nome,
-      }));
+      const comunicadosComLeitura = (comunicadosData || []).map(
+        (c: DBRow<'comunicados'> & { usuarios?: { nome?: string } }) => ({
+          ...c,
+          lido: leituras.includes(c.id),
+          autor_nome: c.usuarios?.nome,
+        })
+      );
 
       setComunicados(comunicadosComLeitura);
     } catch (err) {
@@ -117,19 +124,13 @@ export function useComunicados({ condominioId, userId }: UseComunicadosOptions):
     if (!userId) return;
 
     try {
-      await supabase
-        .from('comunicados_leituras')
-        .upsert({
-          comunicado_id: comunicadoId,
-          usuario_id: userId,
-          lido_em: new Date().toISOString(),
-        });
+      await supabase.from('comunicados_leituras').upsert({
+        comunicado_id: comunicadoId,
+        usuario_id: userId,
+        lido_em: new Date().toISOString(),
+      });
 
-      setComunicados((prev) =>
-        prev.map((c) =>
-          c.id === comunicadoId ? { ...c, lido: true } : c
-        )
-      );
+      setComunicados((prev) => prev.map((c) => (c.id === comunicadoId ? { ...c, lido: true } : c)));
     } catch (err) {
       console.error('Erro ao marcar como lido:', err);
     }
@@ -140,22 +141,18 @@ export function useComunicados({ condominioId, userId }: UseComunicadosOptions):
 
     try {
       const naoLidosIds = comunicados.filter((c) => !c.lido).map((c) => c.id);
-      
+
       if (naoLidosIds.length === 0) return;
 
-      await supabase
-        .from('comunicados_leituras')
-        .upsert(
-          naoLidosIds.map((id) => ({
-            comunicado_id: id,
-            usuario_id: userId,
-            lido_em: new Date().toISOString(),
-          }))
-        );
-
-      setComunicados((prev) =>
-        prev.map((c) => ({ ...c, lido: true }))
+      await supabase.from('comunicados_leituras').upsert(
+        naoLidosIds.map((id) => ({
+          comunicado_id: id,
+          usuario_id: userId,
+          lido_em: new Date().toISOString(),
+        }))
       );
+
+      setComunicados((prev) => prev.map((c) => ({ ...c, lido: true })));
     } catch (err) {
       console.error('Erro ao marcar todos como lidos:', err);
     }
