@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useAuthContext, AuthGuard } from '@/contexts/AuthContext';
+import { useFinancial } from '@/hooks/useFinancial';
+import { useComunicados } from '@/hooks/useComunicados';
 import { SOSButton } from '@/components/features/SOSButton';
 import { NormaChat } from '@/components/features/NormaChat';
 import { NotificationPanel } from '@/components/features/NotificationPanel';
@@ -17,20 +21,32 @@ import { ProfilePage } from '@/components/pages/ProfilePage';
 import { BottomNav } from '@/components/features/BottomNav';
 import { SkeletonPulse, SkeletonGrid } from '@/components/ui/Skeleton';
 
-export default function HomePage() {
+function HomeContent() {
+  const router = useRouter();
+  const { profile, isAuthenticated, loading: authLoading } = useAuthContext();
+  
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState('home');
-  const [isLoading, setIsLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showNormaChat, setShowNormaChat] = useState(false);
 
+  // Hooks de dados
+  const { dashboard, loading: financialLoading } = useFinancial({
+    condominioId: profile?.condominio_atual?.id || null,
+  });
+
+  const { naoLidos } = useComunicados({
+    condominioId: profile?.condominio_atual?.id || null,
+    userId: profile?.id || null,
+  });
+
+  // Redirect se não autenticado
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   // Reset scroll state when changing tabs
   useEffect(() => {
@@ -42,10 +58,22 @@ export default function HomePage() {
     setIsScrolled(scrollTop > 50);
   };
 
+  // Dados do usuário
+  const userName = profile?.nome?.split(' ')[0] || 'Usuário';
+  const userInitials = profile?.nome
+    ? profile.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
+    : 'US';
+  const condominioNome = profile?.condominio_atual?.nome || 'Condomínio';
+  const unidadeId = profile?.condominios?.find(
+    c => c.condominio_id === profile?.condominio_atual?.id
+  )?.unidade_id || null;
+
+  const isLoading = authLoading || financialLoading;
+
   const renderContent = () => {
     switch (activeNav) {
       case 'transparency':
-        return <TransparencyPage onScroll={handleScroll} />;
+        return <TransparencyPage onScroll={handleScroll} dashboard={dashboard} />;
       case 'community':
         return <CommunityPage onScroll={handleScroll} />;
       case 'services':
@@ -58,7 +86,7 @@ export default function HomePage() {
             className="flex-1 overflow-y-auto hide-scroll pb-32 pt-6 relative z-0 space-y-8"
             onScroll={handleScroll}
           >
-            {isLoading ? <SkeletonPulse /> : <FinancialPulse />}
+            {isLoading ? <SkeletonPulse /> : <FinancialPulse dashboard={dashboard} />}
             {isLoading ? <SkeletonGrid /> : <QuickAccess />}
             <MuralDigital />
             <MarketplaceCarousel />
@@ -94,12 +122,10 @@ export default function HomePage() {
           <div className="relative z-10 px-6 h-full flex flex-col">
             {/* Top Bar */}
             <div className="flex justify-between items-center relative h-12 shrink-0">
-              {/* SOS Button */}
               <div className="transition-all duration-300">
                 <SOSButton />
               </div>
 
-              {/* Title */}
               <h1
                 className={`absolute top-1/2 text-white font-display font-bold text-2xl tracking-widest drop-shadow-md transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap pointer-events-none ${
                   isScrolled
@@ -112,7 +138,6 @@ export default function HomePage() {
 
               {/* Right Icons */}
               <div className="flex items-center gap-3 relative z-10">
-                {/* Norma Chat Icon (only when scrolled) */}
                 <div
                   className={`relative p-2 rounded-full hover:bg-white/20 transition-all cursor-pointer backdrop-blur-sm ${
                     isScrolled ? 'opacity-100 block' : 'opacity-0 hidden'
@@ -122,21 +147,23 @@ export default function HomePage() {
                   <span className="material-symbols-outlined text-white text-xl">smart_toy</span>
                 </div>
 
-                {/* Notifications */}
                 <div
                   className="relative p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer backdrop-blur-sm"
                   onClick={() => setShowNotifications(!showNotifications)}
                 >
                   <span className="material-symbols-outlined text-white text-xl">notifications</span>
-                  <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-primary" />
+                  {naoLidos > 0 && (
+                    <span className="absolute top-1 right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-primary text-white text-[10px] font-bold flex items-center justify-center">
+                      {naoLidos > 9 ? '9+' : naoLidos}
+                    </span>
+                  )}
                 </div>
 
-                {/* Avatar */}
                 <div
                   className="w-10 h-10 rounded-full border-2 border-white/30 overflow-hidden shadow-sm cursor-pointer hover:border-white/50 transition-colors bg-secondary flex items-center justify-center"
                   onClick={() => setShowAvatarMenu(!showAvatarMenu)}
                 >
-                  <span className="text-white font-bold text-sm">IS</span>
+                  <span className="text-white font-bold text-sm">{userInitials}</span>
                 </div>
               </div>
             </div>
@@ -150,11 +177,11 @@ export default function HomePage() {
               }`}
             >
               <h2 className="text-white font-display font-bold text-3xl tracking-tight drop-shadow-sm">
-                Olá, Igor!
+                Olá, {userName}!
               </h2>
               <div className="flex items-center mt-1 ml-0.5 opacity-90 text-blue-200">
                 <span className="material-symbols-outlined text-sm mr-1">location_on</span>
-                <p className="text-sm font-medium">Condomínio Pinheiro Park</p>
+                <p className="text-sm font-medium">{condominioNome}</p>
               </div>
             </div>
 
@@ -165,7 +192,7 @@ export default function HomePage() {
               }`}
             >
               <input
-                className="w-full pl-4 pr-12 py-3 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-secondary focus:bg-white dark:focus:bg-gray-800 shadow-lg transition-all text-sm"
+                className="w-full pl-4 pr-12 py-3 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-secondary focus:bg-white dark:focus:bg-gray-800 shadow-lg transition-all text-sm cursor-pointer"
                 placeholder="Pergunte à Norma sobre o regimento..."
                 type="text"
                 onClick={() => setShowNormaChat(true)}
@@ -179,9 +206,18 @@ export default function HomePage() {
         </div>
 
         {/* Modals */}
-        <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
-        <AvatarMenu isOpen={showAvatarMenu} onClose={() => setShowAvatarMenu(false)} />
-        <NormaChat isOpen={showNormaChat} onClose={() => setShowNormaChat(false)} />
+        <NotificationPanel 
+          isOpen={showNotifications} 
+          onClose={() => setShowNotifications(false)} 
+        />
+        <AvatarMenu 
+          isOpen={showAvatarMenu} 
+          onClose={() => setShowAvatarMenu(false)} 
+        />
+        <NormaChat 
+          isOpen={showNormaChat} 
+          onClose={() => setShowNormaChat(false)} 
+        />
 
         {/* Content */}
         {renderContent()}
@@ -190,5 +226,13 @@ export default function HomePage() {
         <BottomNav activeNav={activeNav} setActiveNav={setActiveNav} />
       </div>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <AuthGuard>
+      <HomeContent />
+    </AuthGuard>
   );
 }

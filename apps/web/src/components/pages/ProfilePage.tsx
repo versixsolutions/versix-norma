@@ -2,6 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { toast } from 'sonner';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { useChamados } from '@/hooks/useChamados';
 
 interface ProfilePageProps {
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
@@ -9,6 +12,29 @@ interface ProfilePageProps {
 
 export function ProfilePage({ onScroll }: ProfilePageProps) {
   const router = useRouter();
+  const { profile, logout } = useAuthContext();
+  
+  const unidadeInfo = profile?.condominios?.find(
+    c => c.condominio_id === profile?.condominio_atual?.id
+  );
+
+  const { meusChamados } = useChamados({
+    condominioId: profile?.condominio_atual?.id || null,
+    userId: profile?.id || null,
+    apenasMinhaUnidade: true,
+  });
+
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      toast.success('Até logo!');
+      router.push('/login');
+    }
+  };
+
+  const userInitials = profile?.nome
+    ? profile.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
+    : 'US';
 
   return (
     <div
@@ -17,26 +43,30 @@ export function ProfilePage({ onScroll }: ProfilePageProps) {
     >
       {/* Avatar Section */}
       <div className="flex flex-col items-center pt-2">
-        <div className="w-24 h-24 rounded-full border-4 border-white dark:border-card-dark shadow-lg overflow-hidden mb-3 relative group cursor-pointer">
-          <Image
-            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80"
-            alt="Igor"
-            fill
-            className="w-full h-full object-cover"
-          />
+        <div className="w-24 h-24 rounded-full border-4 border-white dark:border-card-dark shadow-lg overflow-hidden mb-3 relative group cursor-pointer bg-secondary flex items-center justify-center">
+          <span className="text-white font-bold text-3xl">{userInitials}</span>
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <span className="material-symbols-outlined text-white">edit</span>
           </div>
         </div>
-        <h2 className="text-xl font-bold text-primary dark:text-white font-display">Igor Santos</h2>
-        <p className="text-sm text-text-sub font-medium">Condomínio Pinheiro Park</p>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
-            Bloco A - 302
-          </span>
+        <h2 className="text-xl font-bold text-primary dark:text-white font-display">
+          {profile?.nome || 'Usuário'}
+        </h2>
+        <p className="text-sm text-text-sub font-medium">
+          {profile?.condominio_atual?.nome || 'Condomínio'}
+        </p>
+        <div className="flex items-center gap-2 mt-1 flex-wrap justify-center">
+          {unidadeInfo?.unidade_identificador && (
+            <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+              {unidadeInfo.unidade_identificador}
+            </span>
+          )}
           <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span className="material-symbols-outlined text-[10px]">check_circle</span>
-            Adimplente
+            {profile?.status === 'ativo' ? 'Ativo' : profile?.status}
+          </span>
+          <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+            {profile?.condominio_atual?.role || 'morador'}
           </span>
         </div>
       </div>
@@ -57,81 +87,82 @@ export function ProfilePage({ onScroll }: ProfilePageProps) {
         </button>
       </div>
 
-      {/* Unit Info */}
+      {/* User Info */}
       <div className="bg-white dark:bg-card-dark p-5 rounded-home-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <h3 className="text-sm font-bold text-gray-800 dark:text-white uppercase tracking-wide mb-4">
-          Minha Unidade
+          Informações
         </h3>
 
-        {/* Residents */}
-        <div className="mb-5">
-          <p className="text-xs text-text-sub font-bold mb-2">Moradores & Agregados</p>
-          <div className="flex gap-3 overflow-x-auto hide-scroll pb-2">
-            {['Ana (Esposa)', 'Pedro (Filho)', 'Maria (Mãe)'].map((name, i) => (
-              <div key={i} className="flex flex-col items-center gap-1 min-w-[60px]">
-                <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 border-2 border-white dark:border-gray-600 shadow-sm">
-                  <span className="material-symbols-outlined">person</span>
-                </div>
-                <span className="text-[9px] text-center text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                  {name}
-                </span>
-              </div>
-            ))}
-            <div className="flex flex-col items-center gap-1 min-w-[60px] cursor-pointer opacity-60 hover:opacity-100 transition-opacity">
-              <div className="w-12 h-12 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
-                <span className="material-symbols-outlined">add</span>
-              </div>
-              <span className="text-[9px] text-center text-gray-500 font-medium">Adicionar</span>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 py-2 border-b border-gray-50 dark:border-gray-800">
+            <span className="material-symbols-outlined text-gray-400">mail</span>
+            <div>
+              <p className="text-[10px] text-text-sub uppercase">Email</p>
+              <p className="text-sm text-gray-800 dark:text-white">{profile?.email || '-'}</p>
             </div>
           </div>
-        </div>
-
-        {/* Vehicles & Pets */}
-        <div>
-          <p className="text-xs text-text-sub font-bold mb-2">Veículos & Pets</p>
-          <div className="flex gap-2 flex-wrap">
-            <span className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg text-[10px] font-medium text-gray-600 dark:text-gray-300 flex items-center gap-1 border border-gray-100 dark:border-gray-700">
-              <span className="material-symbols-outlined text-sm">directions_car</span>
-              Honda Civic (PIX-9988)
-            </span>
-            <span className="px-3 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg text-[10px] font-medium text-gray-600 dark:text-gray-300 flex items-center gap-1 border border-gray-100 dark:border-gray-700">
-              <span className="material-symbols-outlined text-sm">pets</span>
-              Rex (Golden)
-            </span>
+          <div className="flex items-center gap-3 py-2 border-b border-gray-50 dark:border-gray-800">
+            <span className="material-symbols-outlined text-gray-400">phone</span>
+            <div>
+              <p className="text-[10px] text-text-sub uppercase">Telefone</p>
+              <p className="text-sm text-gray-800 dark:text-white">{profile?.telefone || 'Não informado'}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 py-2">
+            <span className="material-symbols-outlined text-gray-400">badge</span>
+            <div>
+              <p className="text-[10px] text-text-sub uppercase">Documento</p>
+              <p className="text-sm text-gray-800 dark:text-white">{profile?.documento || 'Não informado'}</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Activity Timeline */}
-      <div>
-        <h3 className="text-lg font-bold text-gray-800 dark:text-white font-display mb-4">
-          Últimas Interações
-        </h3>
-        <div className="space-y-4">
-          {[
-            { icon: 'build', color: 'bg-blue-100 text-blue-600', title: 'Chamado Aberto', desc: 'Torneira do jardim vazando.', status: 'Em Análise', time: 'Hoje, 08:30' },
-            { icon: 'how_to_vote', color: 'bg-purple-100 text-purple-600', title: 'Voto Confirmado', desc: 'Assembleia Extraordinária de Pintura.', time: '15/12/2025' },
-            { icon: 'check_circle', color: 'bg-green-100 text-green-600', title: 'Boleto Pago', desc: 'Condomínio Dezembro/2025.', time: '10/12/2025' },
-          ].map((item, i) => (
-            <div key={i} className="flex gap-4 relative">
-              <div className="flex flex-col items-center">
-                <div className={`w-8 h-8 rounded-full ${item.color} flex items-center justify-center shrink-0 z-10`}>
-                  <span className="material-symbols-outlined text-sm">{item.icon}</span>
+      {meusChamados.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-white font-display mb-4">
+            Meus Chamados
+          </h3>
+          <div className="space-y-4">
+            {meusChamados.slice(0, 5).map((chamado, i) => (
+              <div key={chamado.id} className="flex gap-4 relative">
+                <div className="flex flex-col items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${
+                    chamado.status === 'resolvido' ? 'bg-green-100 text-green-600' :
+                    chamado.status === 'em_andamento' ? 'bg-blue-100 text-blue-600' :
+                    'bg-orange-100 text-orange-600'
+                  }`}>
+                    <span className="material-symbols-outlined text-sm">
+                      {chamado.status === 'resolvido' ? 'check_circle' : 
+                       chamado.status === 'em_andamento' ? 'pending' : 'schedule'}
+                    </span>
+                  </div>
+                  {i < meusChamados.length - 1 && (
+                    <div className="w-0.5 h-full bg-gray-200 dark:bg-gray-700 absolute top-8" />
+                  )}
                 </div>
-                {i < 2 && <div className="w-0.5 h-full bg-gray-200 dark:bg-gray-700 absolute top-8" />}
+                <div className="pb-4 flex-1">
+                  <h4 className="text-sm font-bold text-gray-800 dark:text-white">{chamado.titulo}</h4>
+                  <p className="text-xs text-text-sub line-clamp-1">{chamado.descricao}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      chamado.status === 'resolvido' ? 'bg-green-100 text-green-600' :
+                      chamado.status === 'em_andamento' ? 'bg-blue-100 text-blue-600' :
+                      'bg-orange-100 text-orange-600'
+                    }`}>
+                      {chamado.status.replace('_', ' ')}
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      {new Date(chamado.created_at).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="pb-4">
-                <h4 className="text-sm font-bold text-gray-800 dark:text-white">{item.title}</h4>
-                <p className="text-xs text-text-sub">
-                  {item.desc}{' '}
-                  {item.status && <span className="text-amber-500 font-bold">{item.status}</span>}
-                </p>
-                <span className="text-[10px] text-gray-400">{item.time}</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Actions */}
       <div className="pt-2 pb-4 space-y-3">
@@ -140,7 +171,7 @@ export function ProfilePage({ onScroll }: ProfilePageProps) {
           Configurações de Privacidade
         </button>
         <button
-          onClick={() => router.push('/login')}
+          onClick={handleLogout}
           className="w-full py-3 text-brand-danger text-xs font-bold hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors"
         >
           Sair do App

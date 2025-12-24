@@ -4,38 +4,97 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { signup, isAuthenticated, loading: authLoading } = useAuthContext();
+  
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    nome: '',
     email: '',
+    telefone: '',
     password: '',
     confirmPassword: '',
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 50);
   }, []);
 
+  // Redirect se já autenticado
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      router.push('/home');
+    }
+  }, [isAuthenticated, authLoading, router]);
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!formData.nome || !formData.email || !formData.password) {
+      toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
-      alert('As senhas não conferem.');
+      toast.error('As senhas não conferem');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast.error('Você precisa aceitar os termos de uso');
       return;
     }
 
     setLoading(true);
 
-    // TODO: Integrar com Supabase Auth
-    setTimeout(() => {
+    const result = await signup({
+      nome: formData.nome,
+      email: formData.email,
+      password: formData.password,
+      telefone: formData.telefone || undefined,
+    });
+
+    if (result.success) {
+      toast.success('Conta criada! Verifique seu email para confirmar.');
+      router.push('/login');
+    } else {
+      const errorMessage = (result.error as any)?.message || 'Erro ao criar conta';
+      
+      if (errorMessage.includes('already registered')) {
+        toast.error('Este email já está cadastrado');
+      } else {
+        toast.error(errorMessage);
+      }
       setLoading(false);
-      router.push('/onboarding');
-    }, 1000);
+    }
   };
+
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+    return value;
+  };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-primary">
+        <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden relative font-sans">
@@ -71,18 +130,19 @@ export default function SignupPage() {
 
           {/* Signup Form */}
           <form onSubmit={handleSignup} className="w-full max-w-sm space-y-3">
-            {/* Name */}
+            {/* Nome */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                 <span className="material-symbols-outlined text-gray-400 text-xl">person</span>
               </div>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg transition-all text-sm"
-                placeholder="Nome completo"
+                value={formData.nome}
+                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 backdrop-blur-md border-none text-gray-700 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg text-sm"
+                placeholder="Nome completo *"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -95,9 +155,25 @@ export default function SignupPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg transition-all text-sm"
-                placeholder="E-mail"
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 backdrop-blur-md border-none text-gray-700 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg text-sm"
+                placeholder="E-mail *"
                 required
+                disabled={loading}
+              />
+            </div>
+
+            {/* Telefone */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <span className="material-symbols-outlined text-gray-400 text-xl">phone</span>
+              </div>
+              <input
+                type="tel"
+                value={formData.telefone}
+                onChange={(e) => setFormData({ ...formData, telefone: formatPhone(e.target.value) })}
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 backdrop-blur-md border-none text-gray-700 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg text-sm"
+                placeholder="Telefone (opcional)"
+                disabled={loading}
               />
             </div>
 
@@ -110,9 +186,11 @@ export default function SignupPage() {
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg transition-all text-sm"
-                placeholder="Senha"
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 backdrop-blur-md border-none text-gray-700 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg text-sm"
+                placeholder="Senha (mín. 6 caracteres) *"
                 required
+                minLength={6}
+                disabled={loading}
               />
             </div>
 
@@ -125,9 +203,10 @@ export default function SignupPage() {
                 type="password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg transition-all text-sm"
-                placeholder="Confirmar senha"
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/95 backdrop-blur-md border-none text-gray-700 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg text-sm"
+                placeholder="Confirmar senha *"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -136,8 +215,10 @@ export default function SignupPage() {
               <input
                 type="checkbox"
                 id="terms"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
                 className="mt-1 w-4 h-4 rounded border-gray-300 text-secondary focus:ring-secondary"
-                required
+                disabled={loading}
               />
               <label htmlFor="terms" className="text-xs text-blue-100 leading-relaxed">
                 Li e aceito os{' '}
@@ -154,7 +235,7 @@ export default function SignupPage() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !acceptedTerms}
               className="w-full py-4 rounded-xl bg-secondary text-white font-bold shadow-lg hover:bg-secondary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-4"
             >
               {loading ? (
