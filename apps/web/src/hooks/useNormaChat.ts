@@ -73,27 +73,29 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
 
         const mensagensHistoricoRaw = Array.isArray(data.mensagens) ? data.mensagens : [];
 
-        const mensagensHistorico: Message[] = mensagensHistoricoRaw.map((item, i) => {
-          const obj = item as unknown as Record<string, unknown>;
+        const mensagensHistorico: Message[] = mensagensHistoricoRaw.map(
+          (item: unknown, i: number) => {
+            const obj = item as unknown as Record<string, unknown>;
 
-          const text = typeof obj.text === 'string' ? obj.text : '';
-          const sender = obj.sender === 'bot' ? 'bot' : 'user';
-          const citation = typeof obj.citation === 'string' ? obj.citation : undefined;
-          const sources = Array.isArray(obj.sources)
-            ? (obj.sources as Message['sources'])
-            : undefined;
-          const timestamp = obj.timestamp ? new Date(String(obj.timestamp)) : new Date();
+            const text = typeof obj.text === 'string' ? obj.text : '';
+            const sender = obj.sender === 'bot' ? 'bot' : 'user';
+            const citation = typeof obj.citation === 'string' ? obj.citation : undefined;
+            const sources = Array.isArray(obj.sources)
+              ? (obj.sources as Message['sources'])
+              : undefined;
+            const timestamp = obj.timestamp ? new Date(String(obj.timestamp)) : new Date();
 
-          return {
-            id: `hist-${i}`,
-            text,
-            sender,
-            citation,
-            sources,
-            timestamp,
-            status: 'sent',
-          };
-        });
+            return {
+              id: `hist-${i}`,
+              text,
+              sender,
+              citation,
+              sources,
+              timestamp,
+              status: 'sent',
+            };
+          }
+        );
 
         setMessages(mensagensHistorico);
       }
@@ -103,6 +105,54 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
   }, [condominioId, userId, supabase]);
 
   // ============================================
+  // ============================================
+  // SAVE CONVERSATION
+  // ============================================
+  const saveConversation = useCallback(
+    async (msgs: Message[]) => {
+      if (!condominioId || !userId) return;
+
+      const mensagensParaSalvar = msgs.map((m) => ({
+        text: m.text,
+        sender: m.sender,
+        citation: m.citation,
+        sources: m.sources,
+        timestamp: m.timestamp.toISOString(),
+      }));
+
+      try {
+        if (conversaIdRef.current) {
+          // Atualizar conversa existente
+          await supabase
+            .from('conversas_norma')
+            .update({
+              mensagens: mensagensParaSalvar,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', conversaIdRef.current);
+        } else {
+          // Criar nova conversa
+          const { data } = await supabase
+            .from('conversas_norma')
+            .insert({
+              usuario_id: userId,
+              condominio_id: condominioId,
+              mensagens: mensagensParaSalvar,
+            })
+            .select('id')
+            .single();
+
+          if (data) {
+            conversaIdRef.current = data.id;
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao salvar conversa:', err);
+      }
+    },
+    [condominioId, userId, supabase]
+  );
+
   // SEND MESSAGE
   // ============================================
   const sendMessage = useCallback(
