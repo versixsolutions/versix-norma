@@ -3,7 +3,7 @@
 // IndexedDB para dados críticos offline
 // ============================================================
 
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { DBSchema, IDBPDatabase, openDB } from 'idb';
 
 // ============================================
 // SCHEMA
@@ -14,7 +14,7 @@ interface VersixOfflineDB extends DBSchema {
     key: string;
     value: CriticalData;
   };
-  
+
   // Ações pendentes para sync
   'pending-actions': {
     key: string;
@@ -24,27 +24,27 @@ interface VersixOfflineDB extends DBSchema {
       'by-type': string;
     };
   };
-  
+
   // Cache de comunicados
-  'comunicados': {
+  comunicados: {
     key: string;
     value: CachedComunicado;
     indexes: {
       'by-date': string;
     };
   };
-  
+
   // Cache de notificações
-  'notificacoes': {
+  notificacoes: {
     key: string;
     value: CachedNotificacao;
     indexes: {
       'by-lida': number;
     };
   };
-  
+
   // Preferências do usuário
-  'preferences': {
+  preferences: {
     key: string;
     value: UserPreference;
   };
@@ -84,7 +84,7 @@ export interface PendingAction {
   type: 'ocorrencia' | 'chamado' | 'reserva' | 'voto';
   method: 'POST' | 'PUT' | 'DELETE';
   url: string;
-  body: any;
+  body: unknown;
   headers?: Record<string, string>;
   timestamp: number;
   retries: number;
@@ -110,7 +110,7 @@ export interface CachedNotificacao {
 
 export interface UserPreference {
   key: string;
-  value: any;
+  value: unknown;
 }
 
 // ============================================
@@ -123,39 +123,39 @@ let dbInstance: IDBPDatabase<VersixOfflineDB> | null = null;
 
 export async function getDB(): Promise<IDBPDatabase<VersixOfflineDB>> {
   if (dbInstance) return dbInstance;
-  
+
   dbInstance = await openDB<VersixOfflineDB>(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion, newVersion, transaction) {
+    upgrade(db) {
       // Critical Data Store
       if (!db.objectStoreNames.contains('critical-data')) {
         db.createObjectStore('critical-data');
       }
-      
+
       // Pending Actions Store
       if (!db.objectStoreNames.contains('pending-actions')) {
         const pendingStore = db.createObjectStore('pending-actions', {
-          keyPath: 'id'
+          keyPath: 'id',
         });
         pendingStore.createIndex('by-timestamp', 'timestamp');
         pendingStore.createIndex('by-type', 'type');
       }
-      
+
       // Comunicados Store
       if (!db.objectStoreNames.contains('comunicados')) {
         const comunicadosStore = db.createObjectStore('comunicados', {
-          keyPath: 'id'
+          keyPath: 'id',
         });
         comunicadosStore.createIndex('by-date', 'publicadoEm');
       }
-      
+
       // Notificações Store
       if (!db.objectStoreNames.contains('notificacoes')) {
         const notificacoesStore = db.createObjectStore('notificacoes', {
-          keyPath: 'id'
+          keyPath: 'id',
         });
         notificacoesStore.createIndex('by-lida', 'lida');
       }
-      
+
       // Preferences Store
       if (!db.objectStoreNames.contains('preferences')) {
         db.createObjectStore('preferences', { keyPath: 'key' });
@@ -172,7 +172,7 @@ export async function getDB(): Promise<IDBPDatabase<VersixOfflineDB>> {
       dbInstance = null;
     },
   });
-  
+
   return dbInstance;
 }
 
@@ -193,10 +193,10 @@ export async function syncCriticalData(): Promise<void> {
   try {
     const response = await fetch('/api/critical-data');
     if (!response.ok) throw new Error('Falha ao buscar dados');
-    
+
     const data = await response.json();
     await saveCriticalData(data);
-    
+
     console.log('Dados críticos sincronizados');
   } catch (error) {
     console.error('Erro ao sincronizar dados críticos:', error);
@@ -207,23 +207,29 @@ export async function syncCriticalData(): Promise<void> {
 // ============================================
 // PENDING ACTIONS OPERATIONS
 // ============================================
-export async function addPendingAction(action: Omit<PendingAction, 'id' | 'timestamp' | 'retries'>): Promise<string> {
+export async function addPendingAction(
+  action: Omit<PendingAction, 'id' | 'timestamp' | 'retries'>
+): Promise<string> {
   const db = await getDB();
   const id = crypto.randomUUID();
-  
+
   await db.add('pending-actions', {
     ...action,
     id,
     timestamp: Date.now(),
-    retries: 0
+    retries: 0,
   });
-  
+
   // Registrar sync se disponível
   if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
     const registration = await navigator.serviceWorker.ready;
-    await (registration as any).sync.register('sync-offline-actions');
+    await (
+      registration as ServiceWorkerRegistration & {
+        sync: { register: (tag: string) => Promise<void> };
+      }
+    ).sync.register('sync-offline-actions');
   }
-  
+
   return id;
 }
 
@@ -250,18 +256,18 @@ export async function syncPendingActions(): Promise<{ success: number; failed: n
   const actions = await getPendingActions();
   let success = 0;
   let failed = 0;
-  
+
   for (const action of actions) {
     try {
       const response = await fetch(action.url, {
         method: action.method,
         headers: {
           'Content-Type': 'application/json',
-          ...action.headers
+          ...action.headers,
         },
-        body: JSON.stringify(action.body)
+        body: JSON.stringify(action.body),
       });
-      
+
       if (response.ok) {
         await removePendingAction(action.id);
         success++;
@@ -269,12 +275,12 @@ export async function syncPendingActions(): Promise<{ success: number; failed: n
         await updatePendingActionRetries(action.id);
         failed++;
       }
-    } catch (error) {
+    } catch {
       await updatePendingActionRetries(action.id);
       failed++;
     }
   }
-  
+
   return { success, failed };
 }
 
@@ -284,11 +290,8 @@ export async function syncPendingActions(): Promise<{ success: number; failed: n
 export async function cacheComunicados(comunicados: CachedComunicado[]): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('comunicados', 'readwrite');
-  
-  await Promise.all([
-    ...comunicados.map(c => tx.store.put(c)),
-    tx.done
-  ]);
+
+  await Promise.all([...comunicados.map((c) => tx.store.put(c)), tx.done]);
 }
 
 export async function getCachedComunicados(limit = 20): Promise<CachedComunicado[]> {
@@ -312,14 +315,11 @@ export async function markComunicadoAsRead(id: string): Promise<void> {
 export async function cacheNotificacoes(notificacoes: CachedNotificacao[]): Promise<void> {
   const db = await getDB();
   const tx = db.transaction('notificacoes', 'readwrite');
-  
-  await Promise.all([
-    ...notificacoes.map(n => tx.store.put(n)),
-    tx.done
-  ]);
+
+  await Promise.all([...notificacoes.map((n) => tx.store.put(n)), tx.done]);
 }
 
-export async function getCachedNotificacoes(limit = 50): Promise<CachedNotificacao[]> {
+export async function getCachedNotificacoes(): Promise<CachedNotificacao[]> {
   const db = await getDB();
   return db.getAll('notificacoes');
 }
@@ -333,7 +333,8 @@ export async function getUnreadNotificacoesCount(): Promise<number> {
 // ============================================
 // PREFERENCES
 // ============================================
-export async function setPreference(key: string, value: any): Promise<void> {
+
+export async function setPreference<T>(key: string, value: T): Promise<void> {
   const db = await getDB();
   await db.put('preferences', { key, value });
 }
@@ -350,7 +351,7 @@ export async function getPreference<T>(key: string): Promise<T | undefined> {
 export async function clearOldData(maxAge = 7 * 24 * 60 * 60 * 1000): Promise<void> {
   const db = await getDB();
   const cutoff = Date.now() - maxAge;
-  
+
   // Limpar ações pendentes antigas
   const pendingActions = await getPendingActions();
   for (const action of pendingActions) {
@@ -358,7 +359,7 @@ export async function clearOldData(maxAge = 7 * 24 * 60 * 60 * 1000): Promise<vo
       await removePendingAction(action.id);
     }
   }
-  
+
   // Limpar notificações antigas
   const notificacoes = await getCachedNotificacoes();
   const tx = db.transaction('notificacoes', 'readwrite');
@@ -382,14 +383,14 @@ export async function getStorageEstimate(): Promise<{
     const estimate = await navigator.storage.estimate();
     const usage = estimate.usage || 0;
     const quota = estimate.quota || 0;
-    
+
     return {
       usage,
       quota,
-      percentage: quota > 0 ? Math.round((usage / quota) * 100) : 0
+      percentage: quota > 0 ? Math.round((usage / quota) * 100) : 0,
     };
   }
-  
+
   return { usage: 0, quota: 0, percentage: 0 };
 }
 
@@ -398,15 +399,15 @@ export async function getStorageEstimate(): Promise<{
 // ============================================
 export async function exportData(): Promise<string> {
   const db = await getDB();
-  
+
   const data = {
     criticalData: await db.get('critical-data', 'emergency'),
     pendingActions: await db.getAll('pending-actions'),
     comunicados: await db.getAll('comunicados'),
     notificacoes: await db.getAll('notificacoes'),
     preferences: await db.getAll('preferences'),
-    exportedAt: new Date().toISOString()
+    exportedAt: new Date().toISOString(),
   };
-  
+
   return JSON.stringify(data, null, 2);
 }

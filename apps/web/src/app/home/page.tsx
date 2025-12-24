@@ -1,0 +1,194 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { SOSButton } from '@/components/features/SOSButton';
+import { NormaChat } from '@/components/features/NormaChat';
+import { NotificationPanel } from '@/components/features/NotificationPanel';
+import { AvatarMenu } from '@/components/features/AvatarMenu';
+import { FinancialPulse } from '@/components/features/FinancialPulse';
+import { QuickAccess } from '@/components/features/QuickAccess';
+import { MarketplaceCarousel } from '@/components/features/MarketplaceCarousel';
+import { MuralDigital } from '@/components/features/MuralDigital';
+import { TransparencyPage } from '@/components/pages/TransparencyPage';
+import { CommunityPage } from '@/components/pages/CommunityPage';
+import { ServicesPage } from '@/components/pages/ServicesPage';
+import { ProfilePage } from '@/components/pages/ProfilePage';
+import { BottomNav } from '@/components/features/BottomNav';
+import { SkeletonPulse, SkeletonGrid } from '@/components/ui/Skeleton';
+
+export default function HomePage() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeNav, setActiveNav] = useState('home');
+  const [isLoading, setIsLoading] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  const [showNormaChat, setShowNormaChat] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Reset scroll state when changing tabs
+  useEffect(() => {
+    setIsScrolled(false);
+  }, [activeNav]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    setIsScrolled(scrollTop > 50);
+  };
+
+  const renderContent = () => {
+    switch (activeNav) {
+      case 'transparency':
+        return <TransparencyPage onScroll={handleScroll} />;
+      case 'community':
+        return <CommunityPage onScroll={handleScroll} />;
+      case 'services':
+        return <ServicesPage onScroll={handleScroll} />;
+      case 'profile':
+        return <ProfilePage onScroll={handleScroll} />;
+      default:
+        return (
+          <div
+            className="flex-1 overflow-y-auto hide-scroll pb-32 pt-6 relative z-0 space-y-8"
+            onScroll={handleScroll}
+          >
+            {isLoading ? <SkeletonPulse /> : <FinancialPulse />}
+            {isLoading ? <SkeletonGrid /> : <QuickAccess />}
+            <MuralDigital />
+            <MarketplaceCarousel />
+            <div className="h-4" />
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="bg-bg-light dark:bg-bg-dark font-sans text-gray-800 dark:text-gray-100 h-screen flex justify-center overflow-hidden">
+      <div className="w-full max-w-md h-full bg-white dark:bg-bg-dark shadow-2xl relative flex flex-col overflow-hidden">
+        {/* Header */}
+        <div
+          className={`relative z-20 shrink-0 shadow-soft transition-all duration-500 ease-in-out overflow-hidden rounded-b-[2.5rem] ${
+            isScrolled ? 'h-24 pt-8 pb-0' : 'h-64 pt-12 pb-6'
+          }`}
+        >
+          {/* Background Image */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <Image
+              alt="Background"
+              className="w-full h-full object-cover filter brightness-[0.4] contrast-125"
+              src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
+              fill
+              priority
+            />
+            <div className="absolute inset-0 bg-primary/80 mix-blend-multiply" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/50 to-transparent opacity-90" />
+          </div>
+
+          {/* Header Content */}
+          <div className="relative z-10 px-6 h-full flex flex-col">
+            {/* Top Bar */}
+            <div className="flex justify-between items-center relative h-12 shrink-0">
+              {/* SOS Button */}
+              <div className="transition-all duration-300">
+                <SOSButton />
+              </div>
+
+              {/* Title */}
+              <h1
+                className={`absolute top-1/2 text-white font-display font-bold text-2xl tracking-widest drop-shadow-md transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap pointer-events-none ${
+                  isScrolled
+                    ? 'left-14 -translate-y-1/2 translate-x-0 scale-90 origin-left'
+                    : 'left-1/2 -translate-y-1/2 -translate-x-1/2 scale-100 origin-center'
+                }`}
+              >
+                NORMA
+              </h1>
+
+              {/* Right Icons */}
+              <div className="flex items-center gap-3 relative z-10">
+                {/* Norma Chat Icon (only when scrolled) */}
+                <div
+                  className={`relative p-2 rounded-full hover:bg-white/20 transition-all cursor-pointer backdrop-blur-sm ${
+                    isScrolled ? 'opacity-100 block' : 'opacity-0 hidden'
+                  }`}
+                  onClick={() => setShowNormaChat(true)}
+                >
+                  <span className="material-symbols-outlined text-white text-xl">smart_toy</span>
+                </div>
+
+                {/* Notifications */}
+                <div
+                  className="relative p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer backdrop-blur-sm"
+                  onClick={() => setShowNotifications(!showNotifications)}
+                >
+                  <span className="material-symbols-outlined text-white text-xl">notifications</span>
+                  <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-primary" />
+                </div>
+
+                {/* Avatar */}
+                <div
+                  className="w-10 h-10 rounded-full border-2 border-white/30 overflow-hidden shadow-sm cursor-pointer hover:border-white/50 transition-colors bg-secondary flex items-center justify-center"
+                  onClick={() => setShowAvatarMenu(!showAvatarMenu)}
+                >
+                  <span className="text-white font-bold text-sm">IS</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Welcome Section */}
+            <div
+              className={`flex-1 flex flex-col justify-center transition-all duration-300 ${
+                isScrolled
+                  ? 'opacity-0 scale-95 pointer-events-none'
+                  : 'opacity-100 scale-100 delay-100'
+              }`}
+            >
+              <h2 className="text-white font-display font-bold text-3xl tracking-tight drop-shadow-sm">
+                Olá, Igor!
+              </h2>
+              <div className="flex items-center mt-1 ml-0.5 opacity-90 text-blue-200">
+                <span className="material-symbols-outlined text-sm mr-1">location_on</span>
+                <p className="text-sm font-medium">Condomínio Pinheiro Park</p>
+              </div>
+            </div>
+
+            {/* Search Bar */}
+            <div
+              className={`relative mt-auto transition-all duration-500 ease-in-out origin-bottom shrink-0 ${
+                isScrolled ? 'opacity-0 scale-y-0 h-0 overflow-hidden mt-0' : 'opacity-100 scale-y-100 h-auto'
+              }`}
+            >
+              <input
+                className="w-full pl-4 pr-12 py-3 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-secondary focus:bg-white dark:focus:bg-gray-800 shadow-lg transition-all text-sm"
+                placeholder="Pergunte à Norma sobre o regimento..."
+                type="text"
+                onClick={() => setShowNormaChat(true)}
+                readOnly
+              />
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <span className="material-symbols-outlined text-gray-400">smart_toy</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Modals */}
+        <NotificationPanel isOpen={showNotifications} onClose={() => setShowNotifications(false)} />
+        <AvatarMenu isOpen={showAvatarMenu} onClose={() => setShowAvatarMenu(false)} />
+        <NormaChat isOpen={showNormaChat} onClose={() => setShowNormaChat(false)} />
+
+        {/* Content */}
+        {renderContent()}
+
+        {/* Bottom Navigation */}
+        <BottomNav activeNav={activeNav} setActiveNav={setActiveNav} />
+      </div>
+    </div>
+  );
+}

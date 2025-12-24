@@ -1,140 +1,177 @@
-# Versix Norma
+# Supabase CLI
 
-> Gestão Inteligente de Condomínios | SaaS Multi-tenant | PWA Offline-First | IA Integrada
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-```
-██╗   ██╗███████╗██████╗ ███████╗██╗██╗  ██╗
-██║   ██║██╔════╝██╔══██╗██╔════╝██║╚██╗██╔╝
-██║   ██║█████╗  ██████╔╝███████╗██║ ╚███╔╝
-╚██╗ ██╔╝██╔══╝  ██╔══██╗╚════██║██║ ██╔██╗
- ╚████╔╝ ███████╗██║  ██║███████║██║██╔╝ ██╗
-  ╚═══╝  ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝╚═╝  ╚═╝
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-███╗   ██╗ ██████╗ ██████╗ ███╗   ███╗ █████╗
-████╗  ██║██╔═══██╗██╔══██╗████╗ ████║██╔══██╗
-██╔██╗ ██║██║   ██║██████╔╝██╔████╔██║███████║
-██║╚██╗██║██║   ██║██╔══██╗██║╚██╔╝██║██╔══██║
-██║ ╚████║╚██████╔╝██║  ██║██║ ╚═╝ ██║██║  ██║
-╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝
-```
+This repository contains all the functionality for Supabase CLI.
 
-## 🎯 Sobre
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-**Versix Norma** é uma plataforma completa de gestão condominial que combina:
+## Getting started
 
-- 🏢 **Governança Digital** — Assembleias híbridas, votação auditável, transparência financeira
-- 🤖 **IA Assistente (Norma)** — Atendimento 24/7, RAG contextual, multicanal
-- 📱 **PWA Offline-First** — Modo Pânico, push notifications, biometria
-- 🔌 **Integrações** — Portarias, contabilidade, calendários, webhooks
-- 📊 **Observabilidade** — Métricas, alertas, tracing distribuído
+### Install the CLI
 
-## 🛠️ Stack Tecnológica
-
-| Camada             | Tecnologia                                               |
-| ------------------ | -------------------------------------------------------- |
-| **Frontend**       | Next.js 14+, React 18, Tailwind CSS, shadcn/ui           |
-| **Backend**        | Supabase (PostgreSQL, Auth, Storage, Realtime)           |
-| **Edge Functions** | Deno (Supabase Edge Functions)                           |
-| **IA**             | Groq (LLM), HuggingFace (Embeddings), Qdrant (Vector DB) |
-| **Infra**          | Vercel, GitHub Actions                                   |
-| **Monorepo**       | Turborepo + pnpm                                         |
-
-## 📁 Estrutura do Projeto
-
-```
-versix-norma/
-├── apps/
-│   └── web/                    # Frontend Next.js (Sprint 9+)
-├── packages/
-│   ├── database/               # Tipos gerados do Supabase
-│   └── shared/                 # Constantes, utils, validators
-├── supabase/
-│   ├── functions/              # Edge Functions
-│   ├── migrations/             # SQL migrations
-│   └── config.toml             # Configuração local
-├── docs/                       # Documentação técnica
-└── .github/workflows/          # CI/CD
-```
-
-## 🚀 Quick Start
-
-### Pré-requisitos
-
-- Node.js 20+
-- pnpm 8+
-- Docker Desktop (para Supabase local)
-- Conta Supabase
-
-### Setup
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/versix/versix-norma.git
-cd versix-norma
-
-# 2. Instale as dependências
-pnpm install
-
-# 3. Configure as variáveis de ambiente
-cp .env.example .env.local
-# Edite .env.local com suas chaves
-
-# 4. Verifique o ambiente
-pnpm doctor
-
-# 5. Inicie o Supabase local (requer Docker)
-pnpm supabase:start
-
-# 6. Rode o projeto
-pnpm dev
+npm i supabase --save-dev
 ```
 
-### Scripts Disponíveis
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-| Script                    | Descrição                            |
-| ------------------------- | ------------------------------------ |
-| `pnpm dev`                | Inicia ambiente de desenvolvimento   |
-| `pnpm build`              | Build de produção                    |
-| `pnpm lint`               | Verifica código com ESLint           |
-| `pnpm type-check`         | Verifica tipos TypeScript            |
-| `pnpm format`             | Formata código com Prettier          |
-| `pnpm doctor`             | Verifica ambiente de desenvolvimento |
-| `pnpm supabase:start`     | Inicia Supabase local                |
-| `pnpm supabase:gen-types` | Gera tipos do banco                  |
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-## 📚 Documentação
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-A documentação completa está na pasta `/docs`:
+<details>
+  <summary><b>macOS</b></summary>
 
-| Sprint | Descrição              | Status |
-| ------ | ---------------------- | ------ |
-| 0      | Fundação (Setup)       | ✅     |
-| 1      | Schema Core            | 🔄     |
-| 2      | Auth & SuperAdmin      | ⏳     |
-| 3      | Assembleias            | ⏳     |
-| 4      | Financeiro             | ⏳     |
-| 5      | IA (Norma)             | ⏳     |
-| 6      | Biblioteca & Chamados  | ⏳     |
-| 7      | Comunicação Multicanal | ⏳     |
-| 8      | Integrações            | ⏳     |
-| 9      | Mobile & PWA           | ⏳     |
-| 10     | Observabilidade        | ⏳     |
+  Available via [Homebrew](https://brew.sh). To install:
 
-## 🔐 Segurança
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-- **RLS (Row Level Security)** em todas as tabelas
-- **Multi-tenant** com isolamento por `condominio_id`
-- **Auditoria** completa de ações
-- **LGPD** compliance
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-## 🤝 Contribuição
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-Este é um projeto privado da Versix Solutions.
+<details>
+  <summary><b>Windows</b></summary>
 
-## 📄 Licença
+  Available via [Scoop](https://scoop.sh). To install:
 
-Proprietária - Todos os direitos reservados.
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
----
+  To upgrade:
 
-**Versix Norma** v1.0.1 | © 2024 Versix Solutions
+  ```powershell
+  scoop update supabase
+  ```
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+  Available via [Homebrew](https://brew.sh) and Linux packages.
+
+  #### via Homebrew
+
+  To install:
+
+  ```sh
+  brew install supabase/tap/supabase
+  ```
+
+  To upgrade:
+
+  ```sh
+  brew upgrade supabase
+  ```
+
+  #### via Linux packages
+
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
+
+```bash
+supabase bootstrap
+```
+
+Or using npx:
+
+```bash
+npx supabase bootstrap
+```
+
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```

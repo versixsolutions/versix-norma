@@ -3,7 +3,7 @@
 // Gerenciamento de instalação, atualização e status do PWA
 // ============================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -43,10 +43,10 @@ export function usePWAInstall() {
     // Verificar se já está instalado
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isInApp = (navigator as any).standalone === true;
+      const isInApp = (navigator as Navigator & { standalone?: boolean }).standalone === true;
       setIsInstalled(isStandalone || isInApp);
     };
-    
+
     checkInstalled();
 
     // Listener para prompt de instalação
@@ -78,14 +78,14 @@ export function usePWAInstall() {
     try {
       await installPrompt.prompt();
       const { outcome } = await installPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
         setIsInstalled(true);
         setIsInstallable(false);
         setInstallPrompt(null);
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Erro ao instalar PWA:', error);
@@ -151,7 +151,7 @@ export function useServiceWorker() {
         // Verificar por atualizações
         reg.addEventListener('updatefound', () => {
           const newWorker = reg.installing;
-          
+
           newWorker?.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               setIsUpdateAvailable(true);
@@ -160,10 +160,12 @@ export function useServiceWorker() {
         });
 
         // Verificar atualizações periodicamente
-        setInterval(() => {
-          reg.update();
-        }, 60 * 60 * 1000); // 1 hora
-
+        setInterval(
+          () => {
+            reg.update();
+          },
+          60 * 60 * 1000
+        ); // 1 hora
       } catch (error) {
         console.error('Erro ao registrar Service Worker:', error);
       }
@@ -176,7 +178,7 @@ export function useServiceWorker() {
     if (!registration?.waiting) return;
 
     registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-    
+
     // Recarregar quando o novo SW assumir
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       window.location.reload();
@@ -216,20 +218,21 @@ export function usePWAStatus(): PWAStatus {
       return 'browser';
     };
 
-    setDisplayMode(getDisplayMode());
+    // Evitar setState direto no efeito, usar microtask
+    Promise.resolve().then(() => setDisplayMode(getDisplayMode()));
 
     const handleChange = () => setDisplayMode(getDisplayMode());
-    
+
     const mediaQueries = [
       window.matchMedia('(display-mode: standalone)'),
       window.matchMedia('(display-mode: fullscreen)'),
       window.matchMedia('(display-mode: minimal-ui)'),
     ];
 
-    mediaQueries.forEach(mq => mq.addEventListener('change', handleChange));
+    mediaQueries.forEach((mq) => mq.addEventListener('change', handleChange));
 
     return () => {
-      mediaQueries.forEach(mq => mq.removeEventListener('change', handleChange));
+      mediaQueries.forEach((mq) => mq.removeEventListener('change', handleChange));
     };
   }, []);
 
@@ -257,7 +260,11 @@ export function useBackgroundSync() {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      await (registration as any).sync.register(tag);
+      await (
+        registration as ServiceWorkerRegistration & {
+          sync: { register: (tag: string) => Promise<void> };
+        }
+      ).sync.register(tag);
       setIsSyncing(true);
       return true;
     } catch (error) {
@@ -284,7 +291,7 @@ export function useBackgroundSync() {
     };
 
     navigator.serviceWorker?.addEventListener('message', handleMessage);
-    
+
     return () => {
       navigator.serviceWorker?.removeEventListener('message', handleMessage);
     };
@@ -310,10 +317,14 @@ export function usePeriodicSync() {
     const checkSupport = async () => {
       if ('periodicSync' in ServiceWorkerRegistration.prototype) {
         setIsSupported(true);
-        
+
         // Verificar tags registradas
         const registration = await navigator.serviceWorker.ready;
-        const tags = await (registration as any).periodicSync.getTags();
+        const tags = await (
+          registration as ServiceWorkerRegistration & {
+            periodicSync: { getTags: () => Promise<string[]> };
+          }
+        ).periodicSync.getTags();
         setRegisteredTags(tags);
       }
     };
@@ -321,44 +332,60 @@ export function usePeriodicSync() {
     checkSupport();
   }, []);
 
-  const register = useCallback(async (tag: string, minIntervalMs: number) => {
-    if (!isSupported) return false;
+  const register = useCallback(
+    async (tag: string, minIntervalMs: number) => {
+      if (!isSupported) return false;
 
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      
-      // Verificar permissão
-      const status = await navigator.permissions.query({
-        name: 'periodic-background-sync' as PermissionName,
-      });
+      try {
+        const registration = await navigator.serviceWorker.ready;
 
-      if (status.state === 'granted') {
-        await (registration as any).periodicSync.register(tag, {
-          minInterval: minIntervalMs,
+        // Verificar permissão
+        const status = await navigator.permissions.query({
+          name: 'periodic-background-sync' as PermissionName,
         });
-        
-        setRegisteredTags(prev => [...prev, tag]);
-        return true;
+
+        if (status.state === 'granted') {
+          await (
+            registration as ServiceWorkerRegistration & {
+              periodicSync: {
+                register: (tag: string, opts: { minInterval: number }) => Promise<void>;
+              };
+            }
+          ).periodicSync.register(tag, {
+            minInterval: minIntervalMs,
+          });
+
+          setRegisteredTags((prev) => [...prev, tag]);
+          return true;
+        }
+
+        return false;
+      } catch (error) {
+        console.error('Erro ao registrar periodic sync:', error);
+        return false;
       }
-      
-      return false;
-    } catch (error) {
-      console.error('Erro ao registrar periodic sync:', error);
-      return false;
-    }
-  }, [isSupported]);
+    },
+    [isSupported]
+  );
 
-  const unregister = useCallback(async (tag: string) => {
-    if (!isSupported) return;
+  const unregister = useCallback(
+    async (tag: string) => {
+      if (!isSupported) return;
 
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      await (registration as any).periodicSync.unregister(tag);
-      setRegisteredTags(prev => prev.filter(t => t !== tag));
-    } catch (error) {
-      console.error('Erro ao desregistrar periodic sync:', error);
-    }
-  }, [isSupported]);
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await (
+          registration as ServiceWorkerRegistration & {
+            periodicSync: { unregister: (tag: string) => Promise<void> };
+          }
+        ).periodicSync.unregister(tag);
+        setRegisteredTags((prev) => prev.filter((t) => t !== tag));
+      } catch (error) {
+        console.error('Erro ao desregistrar periodic sync:', error);
+      }
+    },
+    [isSupported]
+  );
 
   return {
     isSupported,
@@ -378,7 +405,7 @@ export function useDisplayMode() {
     const checkDisplayMode = () => {
       if (window.matchMedia('(display-mode: standalone)').matches) {
         setDisplayMode('standalone');
-      } else if ((navigator as any).standalone === true) {
+      } else if ((navigator as Navigator & { standalone?: boolean }).standalone === true) {
         // iOS Safari
         setDisplayMode('pwa');
       } else {
@@ -391,7 +418,9 @@ export function useDisplayMode() {
     window.matchMedia('(display-mode: standalone)').addEventListener('change', checkDisplayMode);
 
     return () => {
-      window.matchMedia('(display-mode: standalone)').removeEventListener('change', checkDisplayMode);
+      window
+        .matchMedia('(display-mode: standalone)')
+        .removeEventListener('change', checkDisplayMode);
     };
   }, []);
 

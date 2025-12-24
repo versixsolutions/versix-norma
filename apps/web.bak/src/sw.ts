@@ -3,17 +3,12 @@
 // PWA Offline-First com Workbox
 // ============================================================
 
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { 
-  CacheFirst, 
-  NetworkFirst, 
-  StaleWhileRevalidate,
-  NetworkOnly
-} from 'workbox-strategies';
-import { ExpirationPlugin } from 'workbox-expiration';
-import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -27,7 +22,6 @@ const ASSETS_CACHE = `assets-${CACHE_VERSION}`;
 const IMAGES_CACHE = `images-${CACHE_VERSION}`;
 
 const OFFLINE_PAGE = '/offline.html';
-const CRITICAL_DATA_KEY = 'emergency-data';
 
 // ============================================
 // LIMPEZA E PRECACHE
@@ -76,7 +70,7 @@ self.addEventListener('activate', (event) => {
 // ESTRATÉGIA 1: Cache-First para Assets Estáticos
 // ============================================
 registerRoute(
-  ({ request }) => 
+  ({ request }) =>
     request.destination === 'style' ||
     request.destination === 'script' ||
     request.destination === 'font',
@@ -113,9 +107,7 @@ registerRoute(
 // ESTRATÉGIA 3: Network-First para API
 // ============================================
 registerRoute(
-  ({ url }) => 
-    url.pathname.startsWith('/api/') ||
-    url.hostname.includes('supabase'),
+  ({ url }) => url.pathname.startsWith('/api/') || url.hostname.includes('supabase'),
   new NetworkFirst({
     cacheName: API_CACHE,
     networkTimeoutSeconds: 10,
@@ -133,9 +125,7 @@ registerRoute(
 // ESTRATÉGIA 4: Stale-While-Revalidate para Dados Dinâmicos
 // ============================================
 registerRoute(
-  ({ url }) => 
-    url.pathname.includes('/comunicados') ||
-    url.pathname.includes('/notificacoes'),
+  ({ url }) => url.pathname.includes('/comunicados') || url.pathname.includes('/notificacoes'),
   new StaleWhileRevalidate({
     cacheName: 'dynamic-content',
     plugins: [
@@ -152,9 +142,7 @@ registerRoute(
 // ESTRATÉGIA 5: Cache-First para Dados Críticos (Modo Pânico)
 // ============================================
 registerRoute(
-  ({ url }) => 
-    url.pathname.includes('/emergency') ||
-    url.pathname.includes('/critical-data'),
+  ({ url }) => url.pathname.includes('/emergency') || url.pathname.includes('/critical-data'),
   new CacheFirst({
     cacheName: OFFLINE_CACHE,
     plugins: [
@@ -176,20 +164,23 @@ registerRoute(
         // Tentar buscar da rede
         const response = await fetch(event.request);
         return response;
-      } catch (error) {
+      } catch {
         // Fallback para página offline
         const cache = await caches.open(OFFLINE_CACHE);
         const offlinePage = await cache.match(OFFLINE_PAGE);
-        return offlinePage || new Response('Você está offline', {
-          status: 503,
-          statusText: 'Service Unavailable',
-          headers: { 'Content-Type': 'text/html' }
-        });
+        return (
+          offlinePage ||
+          new Response('Você está offline', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'text/html' },
+          })
+        );
       }
     },
     {
       // Excluir rotas de API e assets
-      denylist: [/^\/api\//, /\.[a-z]+$/i]
+      denylist: [/^\/api\//, /\.[a-z]+$/i],
     }
   )
 );
@@ -216,10 +207,10 @@ const bgSyncPlugin = new BackgroundSyncPlugin('offlineActionsQueue', {
 
 // Registrar sync para ações offline (POST/PUT/DELETE)
 registerRoute(
-  ({ url, request }) => 
+  ({ url, request }) =>
     (url.pathname.includes('/ocorrencias') ||
-     url.pathname.includes('/chamados') ||
-     url.pathname.includes('/reservas')) &&
+      url.pathname.includes('/chamados') ||
+      url.pathname.includes('/reservas')) &&
     ['POST', 'PUT', 'DELETE'].includes(request.method),
   new NetworkOnly({
     plugins: [bgSyncPlugin],
@@ -228,10 +219,10 @@ registerRoute(
 );
 
 registerRoute(
-  ({ url, request }) => 
+  ({ url, request }) =>
     (url.pathname.includes('/ocorrencias') ||
-     url.pathname.includes('/chamados') ||
-     url.pathname.includes('/reservas')) &&
+      url.pathname.includes('/chamados') ||
+      url.pathname.includes('/reservas')) &&
     ['POST', 'PUT', 'DELETE'].includes(request.method),
   new NetworkOnly({
     plugins: [bgSyncPlugin],
@@ -260,29 +251,25 @@ self.addEventListener('push', (event) => {
     data: {
       url: data.url || '/',
       notificationId: data.id,
-      type: data.type
+      type: data.type,
     },
     tag: data.tag || 'default',
     renotify: true,
     requireInteraction: data.type === 'emergency' || data.priority === 'high',
     actions: data.actions || [
       { action: 'open', title: 'Abrir' },
-      { action: 'dismiss', title: 'Fechar' }
+      { action: 'dismiss', title: 'Fechar' },
     ],
     timestamp: Date.now(),
   };
 
   // Customização para emergências
   if (data.type === 'emergency') {
-    options.actions = [
-      { action: 'sos', title: '🆘 Ver Emergência' }
-    ];
+    options.actions = [{ action: 'sos', title: '🆘 Ver Emergência' }];
     options.requireInteraction = true;
   }
 
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Versix Norma', options)
-  );
+  event.waitUntil(self.registration.showNotification(data.title || 'Versix Norma', options));
 });
 
 // ============================================
@@ -303,19 +290,18 @@ self.addEventListener('notificationclick', (event) => {
   }
 
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        // Procurar janela existente
-        for (const client of clientList) {
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            client.focus();
-            client.navigate(targetUrl);
-            return;
-          }
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Procurar janela existente
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.focus();
+          client.navigate(targetUrl);
+          return;
         }
-        // Abrir nova janela
-        return self.clients.openWindow(targetUrl);
-      })
+      }
+      // Abrir nova janela
+      return self.clients.openWindow(targetUrl);
+    })
   );
 });
 
@@ -326,7 +312,7 @@ self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-critical-data') {
     event.waitUntil(syncCriticalData());
   }
-  
+
   if (event.tag === 'sync-offline-actions') {
     event.waitUntil(syncOfflineActions());
   }
@@ -337,18 +323,18 @@ async function syncCriticalData() {
     // Buscar dados críticos para modo pânico
     const response = await fetch('/api/critical-data');
     if (!response.ok) throw new Error('Falha ao buscar dados críticos');
-    
+
     const data = await response.json();
-    
+
     // Salvar no cache
     const cache = await caches.open(OFFLINE_CACHE);
     await cache.put(
       new Request('/api/critical-data'),
       new Response(JSON.stringify(data), {
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       })
     );
-    
+
     console.log('Dados críticos sincronizados');
   } catch (error) {
     console.error('Erro ao sincronizar dados críticos:', error);
@@ -376,16 +362,14 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data?.type === 'GET_VERSION') {
     event.ports[0]?.postMessage({ version: CACHE_VERSION });
   }
-  
+
   if (event.data?.type === 'CLEAR_CACHE') {
     event.waitUntil(
-      caches.keys().then((names) => 
-        Promise.all(names.map((name) => caches.delete(name)))
-      )
+      caches.keys().then((names) => Promise.all(names.map((name) => caches.delete(name))))
     );
   }
 });

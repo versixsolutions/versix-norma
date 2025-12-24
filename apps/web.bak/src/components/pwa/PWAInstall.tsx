@@ -3,17 +3,9 @@
 // Componente para instalação do PWA
 // ============================================================
 
+import { CheckCircle, Download, RefreshCw, Smartphone, Wifi, WifiOff, X } from 'lucide-react';
 import { useState } from 'react';
-import { usePWAInstall, useOnlineStatus } from '@/hooks/usePWA';
-import { 
-  Download, 
-  Smartphone, 
-  X, 
-  CheckCircle,
-  Wifi,
-  WifiOff,
-  RefreshCw
-} from 'lucide-react';
+import { useOnlineStatus, usePWAInstall } from '../../hooks/usePWA';
 
 // ============================================
 // PWA Install Banner
@@ -31,55 +23,50 @@ export function PWAInstallBanner() {
     setIsInstalling(true);
     const success = await install();
     setIsInstalling(false);
-    
+
     if (!success) {
       // Mostrar instruções manuais
     }
   };
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 
-                    bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 
-                    dark:border-gray-700 p-4 z-50 animate-slide-up">
+    <div className="animate-slide-up fixed bottom-20 left-4 right-4 z-50 rounded-xl border border-gray-200 bg-white p-4 shadow-2xl md:left-auto md:right-4 md:w-96 dark:border-gray-700 dark:bg-gray-800">
       <button
         onClick={() => setIsDismissed(true)}
-        className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600"
+        className="absolute right-2 top-2 p-1 text-gray-400 hover:text-gray-600"
         aria-label="Fechar"
       >
-        <X className="w-5 h-5" />
+        <X className="h-5 w-5" />
       </button>
-      
+
       <div className="flex items-start gap-4">
-        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-          <Smartphone className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        <div className="rounded-xl bg-blue-100 p-3 dark:bg-blue-900/30">
+          <Smartphone className="h-8 w-8 text-blue-600 dark:text-blue-400" />
         </div>
-        
+
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-white">
-            Instalar Versix Norma
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <h3 className="font-semibold text-gray-900 dark:text-white">Instalar Versix Norma</h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Acesse rapidamente direto da sua tela inicial, mesmo offline!
           </p>
-          
-          <div className="flex gap-2 mt-3">
+
+          <div className="mt-3 flex gap-2">
             <button
               onClick={handleInstall}
               disabled={isInstalling}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white 
-                       rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {isInstalling ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
+                <RefreshCw className="h-4 w-4 animate-spin" />
               ) : (
-                <Download className="w-4 h-4" />
+                <Download className="h-4 w-4" />
               )}
               Instalar
             </button>
-            
+
             <button
               onClick={() => setIsDismissed(true)}
-              className="px-4 py-2 text-gray-600 dark:text-gray-400 text-sm"
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400"
             >
               Agora não
             </button>
@@ -95,13 +82,12 @@ export function PWAInstallBanner() {
 // ============================================
 export function OfflineIndicator() {
   const isOnline = useOnlineStatus();
-  
+
   if (isOnline) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-amber-500 text-white py-2 px-4 
-                    text-center text-sm font-medium z-50 flex items-center justify-center gap-2">
-      <WifiOff className="w-4 h-4" />
+    <div className="fixed left-0 right-0 top-0 z-50 flex items-center justify-center gap-2 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-white">
+      <WifiOff className="h-4 w-4" />
       <span>Você está offline. Algumas funcionalidades podem estar limitadas.</span>
     </div>
   );
@@ -117,12 +103,12 @@ export function OnlineStatusBadge({ className = '' }: { className?: string }) {
     <div className={`flex items-center gap-1.5 text-sm ${className}`}>
       {isOnline ? (
         <>
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
           <span className="text-green-600 dark:text-green-400">Online</span>
         </>
       ) : (
         <>
-          <span className="w-2 h-2 bg-amber-500 rounded-full" />
+          <span className="h-2 w-2 rounded-full bg-amber-500" />
           <span className="text-amber-600 dark:text-amber-400">Offline</span>
         </>
       )}
@@ -140,32 +126,29 @@ interface UpdateBannerProps {
 
 export function UpdateAvailableBanner({ onUpdate, onDismiss }: UpdateBannerProps) {
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 
-                    bg-gradient-to-r from-green-500 to-emerald-500 text-white 
-                    rounded-xl shadow-2xl p-4 z-50">
+    <div className="fixed bottom-4 left-4 right-4 z-50 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 p-4 text-white shadow-2xl md:left-auto md:right-4 md:w-96">
       <button
         onClick={onDismiss}
-        className="absolute top-2 right-2 p-1 text-white/70 hover:text-white"
+        className="absolute right-2 top-2 p-1 text-white/70 hover:text-white"
         aria-label="Fechar"
       >
-        <X className="w-5 h-5" />
+        <X className="h-5 w-5" />
       </button>
-      
+
       <div className="flex items-start gap-4">
-        <div className="p-2 bg-white/20 rounded-lg">
-          <RefreshCw className="w-6 h-6" />
+        <div className="rounded-lg bg-white/20 p-2">
+          <RefreshCw className="h-6 w-6" />
         </div>
-        
+
         <div className="flex-1">
           <h3 className="font-semibold">Nova versão disponível!</h3>
-          <p className="text-sm text-white/80 mt-1">
+          <p className="mt-1 text-sm text-white/80">
             Atualize para ter acesso às últimas melhorias.
           </p>
-          
+
           <button
             onClick={onUpdate}
-            className="mt-3 px-4 py-2 bg-white text-green-600 rounded-lg 
-                     hover:bg-green-50 text-sm font-medium"
+            className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50"
           >
             Atualizar agora
           </button>
@@ -183,7 +166,7 @@ export function IOSInstallInstructions() {
 
   // Detectar iOS
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isStandalone = (navigator as any).standalone === true;
+  const isStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
   if (!isIOS || isStandalone) return null;
 
@@ -191,18 +174,16 @@ export function IOSInstallInstructions() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 
-                   rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300"
+        className="flex items-center gap-2 rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
       >
-        <Download className="w-4 h-4" />
+        <Download className="h-4 w-4" />
         Instalar App
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl w-full max-w-md p-6 
-                          animate-slide-up">
-            <div className="flex items-center justify-between mb-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4">
+          <div className="animate-slide-up w-full max-w-md rounded-t-2xl bg-white p-6 dark:bg-gray-800">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Instalar no iPhone/iPad
               </h3>
@@ -210,14 +191,13 @@ export function IOSInstallInstructions() {
                 onClick={() => setIsOpen(false)}
                 className="p-1 text-gray-400 hover:text-gray-600"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg 
-                              flex items-center justify-center text-blue-600 font-bold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 font-bold text-blue-600 dark:bg-blue-900/30">
                   1
                 </div>
                 <div>
@@ -231,40 +211,33 @@ export function IOSInstallInstructions() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg 
-                              flex items-center justify-center text-blue-600 font-bold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 font-bold text-blue-600 dark:bg-blue-900/30">
                   2
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    Role e toque em "Adicionar à Tela de Início"
+                    Role e toque em &quot;Adicionar à Tela de Início&quot;
                   </p>
-                  <p className="text-sm text-gray-500">
-                    Pode estar mais abaixo no menu
-                  </p>
+                  <p className="text-sm text-gray-500">Pode estar mais abaixo no menu</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg 
-                              flex items-center justify-center text-blue-600 font-bold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 font-bold text-blue-600 dark:bg-blue-900/30">
                   3
                 </div>
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    Toque em "Adicionar"
+                    Toque em &quot;Adicionar&quot;
                   </p>
-                  <p className="text-sm text-gray-500">
-                    O app aparecerá na sua tela inicial
-                  </p>
+                  <p className="text-sm text-gray-500">O app aparecerá na sua tela inicial</p>
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full mt-6 py-3 bg-blue-600 text-white rounded-xl 
-                       font-medium hover:bg-blue-700"
+              className="mt-6 w-full rounded-xl bg-blue-600 py-3 font-medium text-white hover:bg-blue-700"
             >
               Entendi
             </button>
@@ -283,35 +256,30 @@ export function PWAStatusCard() {
   const isOnline = useOnlineStatus();
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 
-                    dark:border-gray-700 p-4">
-      <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-        Status do App
-      </h3>
+    <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+      <h3 className="mb-4 font-semibold text-gray-900 dark:text-white">Status do App</h3>
 
       <div className="space-y-3">
         {/* Instalação */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Smartphone className="w-5 h-5 text-gray-400" />
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Instalado
-            </span>
+            <Smartphone className="h-5 w-5 text-gray-400" />
+            <span className="text-sm text-gray-600 dark:text-gray-400">Instalado</span>
           </div>
           {isInstalled ? (
-            <span className="flex items-center gap-1 text-green-600 text-sm">
-              <CheckCircle className="w-4 h-4" />
+            <span className="flex items-center gap-1 text-sm text-green-600">
+              <CheckCircle className="h-4 w-4" />
               Sim
             </span>
           ) : isInstallable ? (
             <button
               onClick={install}
-              className="text-blue-600 text-sm font-medium hover:text-blue-700"
+              className="text-sm font-medium text-blue-600 hover:text-blue-700"
             >
               Instalar
             </button>
           ) : (
-            <span className="text-gray-400 text-sm">Não disponível</span>
+            <span className="text-sm text-gray-400">Não disponível</span>
           )}
         </div>
 
@@ -319,13 +287,11 @@ export function PWAStatusCard() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isOnline ? (
-              <Wifi className="w-5 h-5 text-gray-400" />
+              <Wifi className="h-5 w-5 text-gray-400" />
             ) : (
-              <WifiOff className="w-5 h-5 text-gray-400" />
+              <WifiOff className="h-5 w-5 text-gray-400" />
             )}
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Conexão
-            </span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Conexão</span>
           </div>
           <span className={`text-sm ${isOnline ? 'text-green-600' : 'text-amber-600'}`}>
             {isOnline ? 'Online' : 'Offline'}
@@ -335,10 +301,8 @@ export function PWAStatusCard() {
         {/* Notificações */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-5 h-5 text-center">🔔</span>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Notificações
-            </span>
+            <span className="h-5 w-5 text-center">🔔</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Notificações</span>
           </div>
           <span className="text-sm">
             {typeof Notification !== 'undefined' && Notification.permission === 'granted' ? (
