@@ -1,21 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import AvatarMenu from '@/components/features/AvatarMenu';
+import BottomNav from '@/components/features/BottomNav';
+import FinancialPulse from '@/components/features/FinancialPulse';
+import MarketplaceCarousel from '@/components/features/MarketplaceCarousel';
+import MuralDigital from '@/components/features/MuralDigital';
+import NormaChat from '@/components/features/NormaChat';
+import NotificationPanel from '@/components/features/NotificationPanel';
+import QuickAccess from '@/components/features/QuickAccess';
+import SOSButton from '@/components/features/SOSButton';
+import CommunityPage from '@/components/pages/CommunityPage';
+import ProfilePage from '@/components/pages/ProfilePage';
+import ServicesPage from '@/components/pages/ServicesPage';
+import TransparencyPage from '@/components/pages/TransparencyPage';
+import { SkeletonGrid, SkeletonPulse } from '@/components/ui/Skeleton';
 import Image from 'next/image';
-import { SOSButton } from '@/components/features/SOSButton';
-import { NormaChat } from '@/components/features/NormaChat';
-import { NotificationPanel } from '@/components/features/NotificationPanel';
-import { AvatarMenu } from '@/components/features/AvatarMenu';
-import { FinancialPulse } from '@/components/features/FinancialPulse';
-import { QuickAccess } from '@/components/features/QuickAccess';
-import { MarketplaceCarousel } from '@/components/features/MarketplaceCarousel';
-import { MuralDigital } from '@/components/features/MuralDigital';
-import { TransparencyPage } from '@/components/pages/TransparencyPage';
-import { CommunityPage } from '@/components/pages/CommunityPage';
-import { ServicesPage } from '@/components/pages/ServicesPage';
-import { ProfilePage } from '@/components/pages/ProfilePage';
-import { BottomNav } from '@/components/features/BottomNav';
-import { SkeletonPulse, SkeletonGrid } from '@/components/ui/Skeleton';
+import { useEffect, useState } from 'react';
 
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
