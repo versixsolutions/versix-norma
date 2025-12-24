@@ -222,21 +222,22 @@ export function usePushNotifications() {
 // BACKEND FUNCTIONS
 // ============================================
 async function saveSubscription(subscription: PushSubscription): Promise<void> {
-  // Mock para supabase stub
-  const user = { id: 'stub-user-id' };
-  const subscriptionData = subscription.toJSON();
+  // Mock para supabase stub (prefix with _ to indicate intentionally unused)
+  const _user = { id: 'stub-user-id' };
+  const _subscriptionData = subscription.toJSON();
   // Simula chamada ao backend
   // Remova este mock quando integrar supabase real
   return;
 }
 
 async function removeSubscription(subscription: PushSubscription): Promise<void> {
-  // Mock para supabase stub
+  // Mock para supabase stub (use underscore for unused param)
+  const _subscription = subscription;
   // Remova este mock quando integrar supabase real
   return;
 }
 
-function getDeviceType(): string {
+function _getDeviceType(): string {
   const ua = navigator.userAgent;
   if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
   if (/Android/.test(ua)) return 'android';
@@ -246,7 +247,7 @@ function getDeviceType(): string {
   return 'unknown';
 }
 
-function getDeviceName(): string {
+function _getDeviceName(): string {
   const ua = navigator.userAgent;
 
   // Tentar extrair nome do dispositivo

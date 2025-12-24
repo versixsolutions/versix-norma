@@ -1,6 +1,6 @@
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Montserrat } from 'next/font/google';
-import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Toaster } from 'sonner';
 import './globals.css';
 
@@ -40,20 +40,20 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html
+      lang="pt-BR"
+      className={`${inter.className} ${montserrat.className}`}
+      suppressHydrationWarning
+    >
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className={`${inter.variable} ${montserrat.variable} font-sans antialiased`}>
+      <body className={`font-sans antialiased ${inter.variable} ${montserrat.variable}`}>
         <ThemeProvider defaultTheme="light">
           {children}
           <Toaster
