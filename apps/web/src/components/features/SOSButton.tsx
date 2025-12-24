@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-export default function SOSButton() {
+export function SOSButton() {
   const [pressing, setPressing] = useState(false);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -55,11 +55,11 @@ export default function SOSButton() {
       onMouseLeave={endPress}
       onTouchStart={startPress}
       onTouchEnd={endPress}
-      className="group relative flex h-10 w-10 select-none items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 backdrop-blur-sm transition-all duration-300 active:scale-95"
+      className="relative group flex items-center justify-center w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 transition-all duration-300 active:scale-95 backdrop-blur-sm select-none"
       style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
     >
       {/* Progress circle */}
-      <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 36 36">
+      <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
         <path
           className="text-red-500 transition-all duration-75"
           strokeDasharray={`${progress}, 100`}
@@ -73,7 +73,7 @@ export default function SOSButton() {
 
       {/* Icon */}
       <span
-        className={`material-symbols-outlined text-2xl font-bold text-red-500 transition-transform ${
+        className={`material-symbols-outlined text-red-500 text-2xl font-bold transition-transform ${
           pressing ? 'scale-110' : ''
         }`}
       >
@@ -82,9 +82,9 @@ export default function SOSButton() {
 
       {/* Ping indicator */}
       {!pressing && (
-        <span className="absolute -right-1 -top-1 flex h-3 w-3">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
         </span>
       )}
     </button>

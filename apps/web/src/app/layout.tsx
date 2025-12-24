@@ -1,7 +1,9 @@
-import { ThemeProvider } from '@/contexts/ThemeContext';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Montserrat } from 'next/font/google';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from 'sonner';
+import { PWAProvider } from '@/components/pwa/PWAProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -17,15 +19,73 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'Norma - Plataforma de Governança Condominial',
-  description: 'Gestão inteligente para condomínios com IA assistente',
-  keywords: ['condomínio', 'gestão', 'síndico', 'assembleia', 'norma', 'governança'],
-  authors: [{ name: 'Versix Solutions' }],
+  title: {
+    default: 'Norma - Plataforma de Governança Condominial',
+    template: '%s | Norma',
+  },
+  description: 'Gestão inteligente para condomínios com IA assistente. Assembleias, financeiro, comunicados e mais.',
+  keywords: ['condomínio', 'gestão', 'síndico', 'assembleia', 'norma', 'governança', 'app', 'PWA'],
+  authors: [{ name: 'Versix Solutions', url: 'https://versix.com.br' }],
+  creator: 'Versix Solutions',
+  publisher: 'Versix Solutions',
   manifest: '/manifest.json',
+  applicationName: 'Norma',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Norma',
+    startupImage: [
+      {
+        url: '/splash/splash-1125x2436.png',
+        media: '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)',
+      },
+    ],
+  },
+  formatDetection: {
+    telephone: true,
+    email: true,
+    address: true,
+  },
+  icons: {
+    icon: [
+      { url: '/icons/icon.svg', type: 'image/svg+xml' },
+      { url: '/icons/icon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    shortcut: '/icons/icon-192x192.png',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    url: 'https://norma.versix.com.br',
+    title: 'Norma - Plataforma de Governança Condominial',
+    description: 'Gestão inteligente para condomínios com IA assistente',
+    siteName: 'Norma',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Norma - Gestão Condominial Inteligente',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Norma - Plataforma de Governança Condominial',
+    description: 'Gestão inteligente para condomínios com IA assistente',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 };
 
@@ -34,38 +94,58 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#0f3460' },
     { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${inter.className} ${montserrat.className}`}
-      suppressHydrationWarning
-    >
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
+        {/* PWA Meta Tags */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Norma" />
+        <meta name="msapplication-TileColor" content="#0f3460" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        
+        {/* Preconnect */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        
+        {/* DNS Prefetch */}
+        <link rel="dns-prefetch" href="https://supabase.co" />
       </head>
-      <body className={`font-sans antialiased ${inter.variable} ${montserrat.variable}`}>
+      <body className={`${inter.variable} ${montserrat.variable} font-sans antialiased`}>
         <ThemeProvider defaultTheme="light">
-          {children}
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              style: {
-                background: 'var(--card)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
-              },
-            }}
-          />
+          <AuthProvider>
+            <PWAProvider>
+              {children}
+            </PWAProvider>
+            <Toaster
+              position="top-center"
+              toastOptions={{
+                style: {
+                  background: 'var(--card)',
+                  color: 'var(--foreground)',
+                  border: '1px solid var(--border)',
+                },
+              }}
+            />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,40 +1,211 @@
 {
   "name": "Versix Norma",
   "short_name": "Norma",
-  "description": "Plataforma de Governança Condominial Inteligente",
-  "start_url": "/",
+  "description": "Plataforma de Governança Condominial Inteligente com IA",
+  "start_url": "/home",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#0f3460",
   "theme_color": "#0f3460",
   "orientation": "portrait-primary",
+  "dir": "ltr",
+  "lang": "pt-BR",
+  "categories": ["lifestyle", "utilities", "productivity", "business"],
+  "iarc_rating_id": "",
+  "prefer_related_applications": false,
+  
   "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
+  
+  "screenshots": [
+    {
+      "src": "/screenshots/home-light.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tela inicial com dashboard financeiro"
+    },
+    {
+      "src": "/screenshots/norma-chat.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Chat com Norma IA"
+    },
+    {
+      "src": "/screenshots/transparency.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Transparência financeira"
+    }
+  ],
+  
   "shortcuts": [
     {
       "name": "Comunicados",
       "short_name": "Comunicados",
+      "description": "Ver últimos comunicados do condomínio",
       "url": "/home?tab=comunicados",
-      "icons": [{ "src": "/icons/comunicados.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icons/comunicados.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Falar com Norma",
+      "short_name": "Norma",
+      "description": "Abrir chat com assistente IA",
+      "url": "/home?chat=norma",
+      "icons": [
+        {
+          "src": "/icons/icon.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
     },
     {
       "name": "SOS Emergência",
       "short_name": "SOS",
+      "description": "Acionar modo de emergência",
       "url": "/home?sos=true",
-      "icons": [{ "src": "/icons/sos.png", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/icons/sos.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Financeiro",
+      "short_name": "Finanças",
+      "description": "Ver transparência financeira",
+      "url": "/home?tab=transparency",
+      "icons": [
+        {
+          "src": "/icons/icon.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
     }
   ],
-  "categories": ["lifestyle", "utilities", "productivity"],
-  "lang": "pt-BR"
+  
+  "share_target": {
+    "action": "/home/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "media",
+          "accept": ["image/*", "application/pdf"]
+        }
+      ]
+    }
+  },
+  
+  "protocol_handlers": [
+    {
+      "protocol": "web+norma",
+      "url": "/home?action=%s"
+    }
+  ],
+  
+  "related_applications": [],
+  
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  
+  "handle_links": "preferred",
+  
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  },
+  
+  "file_handlers": [
+    {
+      "action": "/home/upload",
+      "accept": {
+        "application/pdf": [".pdf"],
+        "image/*": [".jpg", ".jpeg", ".png", ".gif", ".webp"]
+      }
+    }
+  ]
 }

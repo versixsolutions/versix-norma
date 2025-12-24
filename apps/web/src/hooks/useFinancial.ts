@@ -1,8 +1,8 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { DBRow, Lancamento, StatusLancamento, TipoLancamento } from '@/types/database';
-import { useCallback, useEffect, useState } from 'react';
+import type { Lancamento, StatusLancamento, TipoLancamento } from '@/types/database';
 
 // ============================================
 // TYPES
@@ -44,22 +44,16 @@ interface UseFinancialReturn {
     valor_devido: number;
     meses_atraso: number;
   }[];
-
+  
   // State
   loading: boolean;
   error: Error | null;
-
+  
   // Methods
   refresh: () => Promise<void>;
   createLancamento: (data: CreateLancamentoInput) => Promise<{ success: boolean; error?: Error }>;
-  updateLancamento: (
-    id: string,
-    data: Partial<Lancamento>
-  ) => Promise<{ success: boolean; error?: Error }>;
-  registrarPagamento: (
-    lancamentoId: string,
-    dataPagamento?: Date
-  ) => Promise<{ success: boolean; error?: Error }>;
+  updateLancamento: (id: string, data: Partial<Lancamento>) => Promise<{ success: boolean; error?: Error }>;
+  registrarPagamento: (lancamentoId: string, dataPagamento?: Date) => Promise<{ success: boolean; error?: Error }>;
 }
 
 interface CreateLancamentoInput {
@@ -76,12 +70,9 @@ interface CreateLancamentoInput {
 // ============================================
 // HOOK
 // ============================================
-export function useFinancial({
-  condominioId,
-  mesReferencia,
-}: UseFinancialOptions): UseFinancialReturn {
+export function useFinancial({ condominioId, mesReferencia }: UseFinancialOptions): UseFinancialReturn {
   const supabase = getSupabaseClient();
-
+  
   const [dashboard, setDashboard] = useState<DashboardFinanceiro | null>(null);
   const [contas, setContas] = useState<ContaBancaria[]>([]);
   const [lancamentos, setLancamentos] = useState<LancamentoComDetalhes[]>([]);
@@ -115,15 +106,11 @@ export function useFinancial({
           .eq('condominio_id', condominioId)
           .eq('status', 'ativo');
 
-        const saldoTotal =
-          (contasData || []).reduce(
-            (sum: number, c: { saldo_atual?: number }) => sum + (c.saldo_atual || 0),
-            0
-          ) || 0;
+        const saldoTotal = contasData?.reduce((sum, c) => sum + (c.saldo_atual || 0), 0) || 0;
 
         // Receitas do mês
         const { data: receitas } = await supabase
-          .from('lancamentos_financeiros')
+          .from('lancamentos')
           .select('valor')
           .eq('condominio_id', condominioId)
           .eq('tipo', 'receita')
@@ -131,15 +118,11 @@ export function useFinancial({
           .gte('data_competencia', inicioMes)
           .lte('data_competencia', fimMes);
 
-        const receitasMes =
-          (receitas || []).reduce(
-            (sum: number, l: { valor?: number }) => sum + (l.valor || 0),
-            0
-          ) || 0;
+        const receitasMes = receitas?.reduce((sum, l) => sum + (l.valor || 0), 0) || 0;
 
         // Despesas do mês
         const { data: despesas } = await supabase
-          .from('lancamentos_financeiros')
+          .from('lancamentos')
           .select('valor')
           .eq('condominio_id', condominioId)
           .eq('tipo', 'despesa')
@@ -147,11 +130,7 @@ export function useFinancial({
           .gte('data_competencia', inicioMes)
           .lte('data_competencia', fimMes);
 
-        const despesasMes =
-          (despesas || []).reduce(
-            (sum: number, l: { valor?: number }) => sum + Math.abs(l.valor || 0),
-            0
-          ) || 0;
+        const despesasMes = despesas?.reduce((sum, l) => sum + Math.abs(l.valor || 0), 0) || 0;
 
         setDashboard({
           saldo_total: saldoTotal,
@@ -161,7 +140,7 @@ export function useFinancial({
           fundo_reserva: saldoTotal * 0.3, // TODO: conta específica
         });
       } else {
-        setDashboard(data as DashboardFinanceiro);
+        setDashboard(data);
       }
     } catch (err) {
       console.error('Erro ao buscar dashboard:', err);
@@ -179,7 +158,7 @@ export function useFinancial({
       .order('is_principal', { ascending: false });
 
     if (!error && data) {
-      setContas(data as ContaBancaria[]);
+      setContas(data);
     }
   }, [condominioId, supabase]);
 
@@ -187,14 +166,12 @@ export function useFinancial({
     if (!condominioId) return;
 
     const { data, error } = await supabase
-      .from('lancamentos_financeiros')
-      .select(
-        `
-              *,
-              categorias:categoria_id (nome),
-              unidades:unidade_id (identificador)
-            `
-      )
+      .from('lancamentos')
+      .select(`
+        *,
+        categorias:categoria_id (nome),
+        unidades:unidade_id (identificador)
+      `)
       .eq('condominio_id', condominioId)
       .gte('data_competencia', inicioMes)
       .lte('data_competencia', fimMes)
@@ -202,13 +179,11 @@ export function useFinancial({
       .limit(50);
 
     if (!error && data) {
-      setLancamentos(
-        (data as Array<DBRow<'lancamentos_financeiros'>>).map((l) => ({
-          ...(l as unknown as Lancamento),
-          categoria_nome: (l as any).categorias?.nome,
-          unidade_identificador: (l as any).unidades?.identificador,
-        }))
-      );
+      setLancamentos(data.map((l: any) => ({
+        ...l,
+        categoria_nome: l.categorias?.nome,
+        unidade_identificador: l.unidades?.identificador,
+      })));
     }
   }, [condominioId, supabase, inicioMes, fimMes]);
 
@@ -216,15 +191,13 @@ export function useFinancial({
     if (!condominioId) return;
 
     const { data, error } = await supabase
-      .from('lancamentos_financeiros')
-      .select(
-        `
-              unidade_id,
-              valor,
-              data_vencimento,
-              unidades:unidade_id (identificador)
-            `
-      )
+      .from('lancamentos')
+      .select(`
+        unidade_id,
+        valor,
+        data_vencimento,
+        unidades:unidade_id (identificador)
+      `)
       .eq('condominio_id', condominioId)
       .eq('tipo', 'receita')
       .eq('status', 'atrasado')
@@ -232,30 +205,20 @@ export function useFinancial({
 
     if (!error && data) {
       // Agrupar por unidade
-      type GroupItem = {
-        unidade_id: string;
-        identificador: string;
-        valor_devido: number;
-        meses_atraso: number;
-      };
-
-      const grouped = (data as Array<DBRow<'lancamentos_financeiros'>>).reduce(
-        (acc: Record<string, GroupItem>, l) => {
-          const key = (l as any).unidade_id as string;
-          if (!acc[key]) {
-            acc[key] = {
-              unidade_id: key,
-              identificador: (l as any).unidades?.identificador || '',
-              valor_devido: 0,
-              meses_atraso: 0,
-            };
-          }
-          acc[key].valor_devido += ((l as any).valor as number) || 0;
-          acc[key].meses_atraso += 1;
-          return acc;
-        },
-        {} as Record<string, GroupItem>
-      );
+      const grouped = data.reduce((acc: any, l: any) => {
+        const key = l.unidade_id;
+        if (!acc[key]) {
+          acc[key] = {
+            unidade_id: key,
+            identificador: l.unidades?.identificador || '',
+            valor_devido: 0,
+            meses_atraso: 0,
+          };
+        }
+        acc[key].valor_devido += l.valor;
+        acc[key].meses_atraso += 1;
+        return acc;
+      }, {});
 
       setInadimplentes(Object.values(grouped));
     }
@@ -298,12 +261,14 @@ export function useFinancial({
     if (!condominioId) return { success: false, error: new Error('Condomínio não selecionado') };
 
     try {
-      const { error } = await supabase.from('lancamentos_financeiros').insert({
-        condominio_id: condominioId,
-        ...data,
-        status: 'pendente',
-        created_by: (await supabase.auth.getUser()).data.user?.id || '',
-      });
+      const { error } = await supabase
+        .from('lancamentos')
+        .insert({
+          condominio_id: condominioId,
+          ...data,
+          status: 'pendente',
+          created_by: (await supabase.auth.getUser()).data.user?.id || '',
+        });
 
       if (error) throw error;
 
@@ -316,7 +281,10 @@ export function useFinancial({
 
   const updateLancamento = async (id: string, data: Partial<Lancamento>) => {
     try {
-      const { error } = await supabase.from('lancamentos_financeiros').update(data).eq('id', id);
+      const { error } = await supabase
+        .from('lancamentos')
+        .update(data)
+        .eq('id', id);
 
       if (error) throw error;
 
@@ -330,7 +298,7 @@ export function useFinancial({
   const registrarPagamento = async (lancamentoId: string, dataPagamento?: Date) => {
     try {
       const { error } = await supabase
-        .from('lancamentos_financeiros')
+        .from('lancamentos')
         .update({
           status: 'pago' as StatusLancamento,
           data_pagamento: (dataPagamento || new Date()).toISOString(),

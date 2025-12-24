@@ -1,1 +1,267 @@
-if(!self.define){let e,s={};const a=(a,n)=>(a=new URL(a+".js",n).href,s[a]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=a,e.onload=s,document.head.appendChild(e)}else e=a,importScripts(a),s()}).then(()=>{let e=s[a];if(!e)throw new Error(`Module ${a} didn’t register its module`);return e}));self.define=(n,t)=>{const c=e||("document"in self?document.currentScript.src:"")||location.href;if(s[c])return;let i={};const o=e=>a(e,c),r={module:{uri:c},exports:i,require:o};s[c]=Promise.all(n.map(e=>r[e]||o(e))).then(e=>(t(...e),i))}}define(["./workbox-01fd22c6"],function(e){"use strict";importScripts(),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"bd74d4538b0399e88912bd762307d841"},{url:"/_next/static/cLMDY5pXPZxLT8VSo4wpD/_buildManifest.js",revision:"844c7f70a7b51d2bb82744387c251768"},{url:"/_next/static/cLMDY5pXPZxLT8VSo4wpD/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/chunks/39-89e5af3d6c6dc070.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/750-3a4408231896738e.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/957-927cd4dd98dd09e2.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/app/_not-found/page-a73f9fbb61683a3b.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/app/home/page-9161c1425cd27612.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/app/layout-e0d41fff1b920b1d.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/app/login/page-403b8c7551d2c76c.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/app/onboarding/page-c427499b62213b4e.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/app/page-830a3912cf8b9186.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/app/signup/page-2c2a1e88fded62be.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/app/welcome/page-f7703fa13dd066c3.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/f6382312-1faf969845403f68.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/framework-bef83a85c94ff7de.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/main-6507b9ffd4b2721a.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/main-app-08ba2ac093f75d50.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/pages/_app-6c8871221421da73.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/pages/_error-9fb10fc3c387a0f2.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/chunks/polyfills-78c92fac7aa8fdd8.js",revision:"79330112775102f91e1010318bae2bd3"},{url:"/_next/static/chunks/webpack-353657966b109997.js",revision:"cLMDY5pXPZxLT8VSo4wpD"},{url:"/_next/static/css/fc08c33703baabec.css",revision:"fc08c33703baabec"},{url:"/_next/static/media/19cfc7226ec3afaa-s.woff2",revision:"9dda5cfc9a46f256d0e131bb535e46f8"},{url:"/_next/static/media/1f173e5e25f3efee-s.woff2",revision:"f143fb4877cf7ada1b84423ee86a0198"},{url:"/_next/static/media/21350d82a1f187e9-s.woff2",revision:"4e2553027f1d60eff32898367dd4d541"},{url:"/_next/static/media/48e2044251ef3125-s.woff2",revision:"45ea393f38e4ecd97f4dbeb12ef23877"},{url:"/_next/static/media/8e9860b6e62d6359-s.woff2",revision:"01ba6c2a184b8cba08b0d57167664d75"},{url:"/_next/static/media/904be59b21bd51cb-s.p.woff2",revision:"c154477b9affa3a0a47f894c8b80c03c"},{url:"/_next/static/media/b1f344208eb4edfe-s.woff2",revision:"b5818778898bf6d34b7423ff99c6beb4"},{url:"/_next/static/media/ba9851c3c22cd980-s.woff2",revision:"9e494903d6b0ffec1a1e14d34427d44d"},{url:"/_next/static/media/bf24a9759715e608-s.woff2",revision:"d185d272afd4e2d7b4801eabba1463a1"},{url:"/_next/static/media/c5fe6dc8356a8c31-s.woff2",revision:"027a89e9ab733a145db70f09b8a18b42"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/_next/static/media/e4af272ccee01ff0-s.p.woff2",revision:"65850a373e258f1c897a2b3d75eb74de"},{url:"/manifest.json",revision:"892e3caaca606a231b5bbff434c4f15e"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:s,event:a,state:n})=>s&&"opaqueredirect"===s.type?new Response(s.body,{status:200,statusText:"OK",headers:s.headers}):s}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-webfonts",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:31536e3})]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,new e.StaleWhileRevalidate({cacheName:"google-fonts-stylesheets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,new e.StaleWhileRevalidate({cacheName:"static-font-assets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,new e.StaleWhileRevalidate({cacheName:"static-image-assets",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/image\?url=.+$/i,new e.StaleWhileRevalidate({cacheName:"next-image",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp3|wav|ogg)$/i,new e.CacheFirst({cacheName:"static-audio-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp4)$/i,new e.CacheFirst({cacheName:"static-video-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:js)$/i,new e.StaleWhileRevalidate({cacheName:"static-js-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:css|less)$/i,new e.StaleWhileRevalidate({cacheName:"static-style-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/data\/.+\/.+\.json$/i,new e.StaleWhileRevalidate({cacheName:"next-data",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:json|xml|csv)$/i,new e.NetworkFirst({cacheName:"static-data-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;const s=e.pathname;return!s.startsWith("/api/auth/")&&!!s.startsWith("/api/")},new e.NetworkFirst({cacheName:"apis",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:16,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;return!e.pathname.startsWith("/api/")},new e.NetworkFirst({cacheName:"others",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>!(self.origin===e.origin),new e.NetworkFirst({cacheName:"cross-origin",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:3600})]}),"GET")});
+// ============================================
+// VERSIX NORMA - SERVICE WORKER v1.0.1
+// Cache-first para assets, Network-first para API
+// ============================================
+
+const CACHE_VERSION = 'v1.0.1';
+const STATIC_CACHE = `norma-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `norma-dynamic-${CACHE_VERSION}`;
+const IMAGE_CACHE = `norma-images-${CACHE_VERSION}`;
+
+const STATIC_ASSETS = [
+  '/',
+  '/home',
+  '/login',
+  '/offline',
+  '/manifest.json',
+];
+
+const CACHE_STRATEGIES = {
+  cacheFirst: [
+    /\/_next\/static\/.*/,
+    /\/icons\/.*/,
+    /\/fonts\/.*/,
+    /\.(?:js|css|woff2?)$/,
+  ],
+  networkFirst: [
+    /\/api\/.*/,
+    /supabase\.co/,
+  ],
+  staleWhileRevalidate: [
+    /\.(?:png|jpg|jpeg|gif|svg|webp|avif)$/,
+    /images\.unsplash\.com/,
+  ],
+  networkOnly: [
+    /\/auth\/.*/,
+    /supabase\.co\/auth/,
+  ],
+};
+
+// INSTALL
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing v' + CACHE_VERSION);
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => {
+      return cache.addAll(STATIC_ASSETS).catch(console.warn);
+    })
+  );
+  self.skipWaiting();
+});
+
+// ACTIVATE
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating v' + CACHE_VERSION);
+  event.waitUntil(
+    Promise.all([
+      caches.keys().then((keys) => {
+        return Promise.all(
+          keys.filter((key) => key.startsWith('norma-') && 
+            ![STATIC_CACHE, DYNAMIC_CACHE, IMAGE_CACHE].includes(key))
+            .map((key) => caches.delete(key))
+        );
+      }),
+      self.clients.claim(),
+    ])
+  );
+});
+
+// FETCH
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  if (request.method !== 'GET') return;
+  if (url.protocol === 'chrome-extension:') return;
+
+  const strategy = getCacheStrategy(url.href);
+  
+  switch (strategy) {
+    case 'cacheFirst':
+      event.respondWith(cacheFirst(request));
+      break;
+    case 'networkFirst':
+      event.respondWith(networkFirst(request));
+      break;
+    case 'staleWhileRevalidate':
+      event.respondWith(staleWhileRevalidate(request));
+      break;
+    case 'networkOnly':
+      event.respondWith(fetch(request).catch(() => offlineResponse()));
+      break;
+    default:
+      event.respondWith(networkFirst(request));
+  }
+});
+
+// STRATEGIES
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
+  
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    return offlineResponse();
+  }
+}
+
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    const cached = await caches.match(request);
+    return cached || offlineResponse();
+  }
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(IMAGE_CACHE);
+  const cached = await cache.match(request);
+  
+  const fetchPromise = fetch(request).then((response) => {
+    if (response.ok) cache.put(request, response.clone());
+    return response;
+  }).catch(() => null);
+
+  return cached || (await fetchPromise) || offlineResponse();
+}
+
+function getCacheStrategy(url) {
+  for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
+    for (const pattern of patterns) {
+      if (pattern.test(url)) return strategy;
+    }
+  }
+  return 'networkFirst';
+}
+
+function offlineResponse() {
+  return new Response(`
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Norma</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    .container { max-width: 400px; }
+    .icon { font-size: 64px; margin-bottom: 24px; }
+    h1 { font-size: 24px; margin-bottom: 12px; }
+    p { opacity: 0.8; margin-bottom: 24px; line-height: 1.5; }
+    button {
+      background: #e94560;
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>Você está offline</h1>
+    <p>Verifique sua conexão com a internet e tente novamente.</p>
+    <button onclick="location.reload()">Tentar novamente</button>
+  </div>
+</body>
+</html>`, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
+// PUSH NOTIFICATIONS
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'Norma',
+    body: 'Você tem uma nova notificação',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
+    tag: 'norma-notification',
+    data: { url: '/home' },
+  };
+
+  if (event.data) {
+    try {
+      data = { ...data, ...event.data.json() };
+    } catch {
+      data.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: data.badge,
+      tag: data.tag,
+      data: data.data,
+      vibrate: [200, 100, 200],
+      actions: [
+        { action: 'open', title: 'Abrir' },
+        { action: 'close', title: 'Fechar' },
+      ],
+    })
+  );
+});
+
+// NOTIFICATION CLICK
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  if (event.action === 'close') return;
+
+  const urlToOpen = event.notification.data?.url || '/home';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin)) {
+          client.navigate(urlToOpen);
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(urlToOpen);
+    })
+  );
+});
+
+// BACKGROUND SYNC
+self.addEventListener('sync', (event) => {
+  console.log('[SW] Background sync:', event.tag);
+});
+
+// MESSAGE HANDLER
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  if (event.data?.type === 'CLEAR_CACHE') {
+    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+  }
+  if (event.data?.type === 'GET_VERSION') {
+    event.ports[0]?.postMessage({ version: CACHE_VERSION });
+  }
+});

@@ -1,12 +1,12 @@
 import { createBrowserClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
 
 // ============================================
 // BROWSER CLIENT (Client Components)
 // ============================================
 export function createClient() {
-  // Use unknown generic to avoid explicit `any` while keeping flexibility during migration
-  return createBrowserClient<unknown>(
+  return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
@@ -15,25 +15,25 @@ export function createClient() {
 // ============================================
 // SINGLETON CLIENT (para hooks)
 // ============================================
-let browserClient: ReturnType<typeof createBrowserClient<unknown>> | null = null;
+let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null;
 
 export function getSupabaseClient() {
   if (typeof window === 'undefined') {
     // Server-side: sempre criar novo
-    return createSupabaseClient<unknown>(
+    return createSupabaseClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
   }
-
+  
   // Browser: singleton
   if (!browserClient) {
-    browserClient = createBrowserClient<unknown>(
+    browserClient = createBrowserClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
   }
-
+  
   return browserClient;
 }
 
@@ -41,8 +41,7 @@ export function getSupabaseClient() {
 // ADMIN CLIENT (Server Actions only)
 // ============================================
 export function createAdminClient() {
-  // Admin client uses `unknown` generic instead of explicit `any` to satisfy lint
-  return createSupabaseClient<unknown>(
+  return createSupabaseClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {

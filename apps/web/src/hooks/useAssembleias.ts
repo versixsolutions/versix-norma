@@ -1,8 +1,8 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Assembleia, TipoVoto } from '@/types/database';
-import { useCallback, useEffect, useState } from 'react';
+import type { Assembleia, StatusAssembleia, TipoVoto } from '@/types/database';
 
 // ============================================
 // TYPES
@@ -49,13 +49,9 @@ interface UseAssembleiasReturn {
 // ============================================
 // HOOK
 // ============================================
-export function useAssembleias({
-  condominioId,
-  userId,
-  unidadeId,
-}: UseAssembleiasOptions): UseAssembleiasReturn {
+export function useAssembleias({ condominioId, userId, unidadeId }: UseAssembleiasOptions): UseAssembleiasReturn {
   const supabase = getSupabaseClient();
-
+  
   const [assembleias, setAssembleias] = useState<AssembleiaComDetalhes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -72,7 +68,7 @@ export function useAssembleias({
         .from('assembleias')
         .select('*')
         .eq('condominio_id', condominioId)
-        .in('status', ['rascunho', 'convocada', 'em_andamento', 'encerrada'])
+        .in('status', ['agendada', 'convocada', 'em_andamento', 'encerrada'])
         .order('data_primeira', { ascending: false })
         .limit(20);
 
@@ -96,13 +92,10 @@ export function useAssembleias({
               .select('pauta_id, voto')
               .eq('unidade_id', unidadeId);
 
-            meusVotos = (votosData || []).reduce(
-              (acc, v) => {
-                acc[v.pauta_id] = v.voto as TipoVoto;
-                return acc;
-              },
-              {} as Record<string, TipoVoto>
-            );
+            meusVotos = (votosData || []).reduce((acc, v) => {
+              acc[v.pauta_id] = v.voto as TipoVoto;
+              return acc;
+            }, {} as Record<string, TipoVoto>);
           }
 
           // Buscar presença
@@ -192,13 +185,15 @@ export function useAssembleias({
     }
 
     try {
-      const { error } = await supabase.from('assembleias_presencas').upsert({
-        assembleia_id: assembleiaId,
-        usuario_id: userId,
-        unidade_id: unidadeId,
-        status: 'confirmada',
-        confirmado_em: new Date().toISOString(),
-      });
+      const { error } = await supabase
+        .from('assembleias_presencas')
+        .upsert({
+          assembleia_id: assembleiaId,
+          usuario_id: userId,
+          unidade_id: unidadeId,
+          status: 'confirmada',
+          confirmado_em: new Date().toISOString(),
+        });
 
       if (error) throw error;
 
@@ -233,10 +228,9 @@ export function useAssembleias({
     }
   };
 
-  const proxima =
-    assembleias.find(
-      (a) => a.status === 'rascunho' || a.status === 'convocada' || a.status === 'em_andamento'
-    ) || null;
+  const proxima = assembleias.find(
+    (a) => a.status === 'agendada' || a.status === 'convocada' || a.status === 'em_andamento'
+  ) || null;
 
   return {
     assembleias,
