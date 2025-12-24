@@ -55,14 +55,14 @@ const quickItems = [
   },
 ];
 
-export function QuickAccess() {
+export default function QuickAccess() {
   return (
-    <div className="px-6 animate-slide-up animation-delay-200">
-      <div className="flex justify-between items-end mb-4 px-1">
-        <h3 className="text-lg font-bold text-gray-800 dark:text-white font-display">
+    <div className="animation-delay-200 animate-slide-up px-6">
+      <div className="mb-4 flex items-end justify-between px-1">
+        <h3 className="font-display text-lg font-bold text-gray-800 dark:text-white">
           Acesso Rápido
         </h3>
-        <button className="text-secondary text-xs font-bold hover:text-blue-600 dark:hover:text-blue-400 uppercase tracking-wide">
+        <button className="text-xs font-bold uppercase tracking-wide text-secondary hover:text-blue-600 dark:hover:text-blue-400">
           Editar
         </button>
       </div>
@@ -71,29 +71,29 @@ export function QuickAccess() {
         {quickItems.map((item) => (
           <div
             key={item.id}
-            className={`${item.bgColor} p-4 rounded-home-xl shadow-sm border ${item.borderColor} relative overflow-hidden group cursor-pointer active:scale-95 transition-all duration-200 h-32 flex flex-col justify-center gap-2`}
+            className={`${item.bgColor} rounded-home-xl border p-4 shadow-sm ${item.borderColor} group relative flex h-32 cursor-pointer flex-col justify-center gap-2 overflow-hidden transition-all duration-200 active:scale-95`}
           >
             {/* Decorative corner */}
             <div
-              className={`absolute top-0 right-0 w-16 h-16 ${item.decorColor} rounded-bl-[3rem] -mr-2 -mt-2 transition-transform group-hover:scale-110`}
+              className={`absolute right-0 top-0 h-16 w-16 ${item.decorColor} -mr-2 -mt-2 rounded-bl-[3rem] transition-transform group-hover:scale-110`}
             />
 
-            <div className="flex items-center gap-3 relative z-10">
+            <div className="relative z-10 flex items-center gap-3">
               <div
-                className={`w-10 h-10 rounded-xl ${item.iconBg} flex items-center justify-center ${item.iconColor} shadow-sm`}
+                className={`h-10 w-10 rounded-xl ${item.iconBg} flex items-center justify-center ${item.iconColor} shadow-sm`}
               >
                 <span className="material-symbols-outlined text-2xl">{item.icon}</span>
               </div>
               <h4 className="font-bold text-gray-800 dark:text-white">{item.title}</h4>
             </div>
 
-            <p className="text-xs text-text-sub dark:text-text-sub-dark pl-1 relative z-10">
+            <p className="relative z-10 pl-1 text-xs text-text-sub dark:text-text-sub-dark">
               {item.desc}
             </p>
 
             {/* Badge */}
             <div className="absolute bottom-2 right-2">
-              <span className={`${item.badgeColor} text-[9px] font-bold px-1.5 py-0.5 rounded-md`}>
+              <span className={`${item.badgeColor} rounded-md px-1.5 py-0.5 text-[9px] font-bold`}>
                 {item.badge}
               </span>
             </div>

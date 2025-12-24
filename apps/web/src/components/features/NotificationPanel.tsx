@@ -35,23 +35,20 @@ const notifications = [
   },
 ];
 
-export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
+export default function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
   if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className="absolute top-16 right-4 z-50 w-80 bg-white dark:bg-card-dark rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-slide-down">
+      <div className="absolute right-4 top-16 z-50 w-80 animate-slide-down overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl dark:border-gray-700 dark:bg-card-dark">
         {/* Header */}
-        <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+        <div className="flex items-center justify-between border-b border-gray-100 p-4 dark:border-gray-700">
           <h3 className="font-bold text-gray-800 dark:text-white">Notificações</h3>
-          <button className="text-xs text-secondary font-bold hover:underline">
+          <button className="text-xs font-bold text-secondary hover:underline">
             Marcar todas como lidas
           </button>
         </div>
@@ -61,22 +58,22 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
           {notifications.map((notif) => (
             <div
               key={notif.id}
-              className="p-4 border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+              className="cursor-pointer border-b border-gray-50 p-4 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
             >
               <div className="flex gap-3">
-                <div className={`w-10 h-10 rounded-full ${notif.color} flex items-center justify-center shrink-0`}>
+                <div
+                  className={`h-10 w-10 rounded-full ${notif.color} flex shrink-0 items-center justify-center`}
+                >
                   <span className="material-symbols-outlined text-xl">{notif.icon}</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-bold text-sm text-gray-800 dark:text-white truncate">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between">
+                    <h4 className="truncate text-sm font-bold text-gray-800 dark:text-white">
                       {notif.title}
                     </h4>
-                    <span className="text-[10px] text-gray-400 shrink-0 ml-2">
-                      {notif.time}
-                    </span>
+                    <span className="ml-2 shrink-0 text-[10px] text-gray-400">{notif.time}</span>
                   </div>
-                  <p className="text-xs text-text-sub dark:text-text-sub-dark mt-0.5">
+                  <p className="mt-0.5 text-xs text-text-sub dark:text-text-sub-dark">
                     {notif.desc}
                   </p>
                 </div>
@@ -86,8 +83,8 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-gray-100 dark:border-gray-700">
-          <button className="w-full py-2 text-xs font-bold text-primary hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+        <div className="border-t border-gray-100 p-3 dark:border-gray-700">
+          <button className="w-full rounded-lg py-2 text-xs font-bold text-primary transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
             Ver todas as notificações
           </button>
         </div>

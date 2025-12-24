@@ -13,22 +13,22 @@ const navItems = [
   { id: 'profile', icon: 'person', label: 'Meu Perfil' },
 ];
 
-export function BottomNav({ activeNav, setActiveNav }: BottomNavProps) {
+export default function BottomNav({ activeNav, setActiveNav }: BottomNavProps) {
   return (
-    <div className="absolute bottom-0 w-full z-30 bg-white dark:bg-card-dark pt-3 pb-5 px-4 shadow-[0_-10px_60px_-15px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
-      <div className="flex justify-between items-end">
+    <div className="absolute bottom-0 z-30 w-full rounded-t-[2.5rem] bg-white px-4 pb-5 pt-3 shadow-[0_-10px_60px_-15px_rgba(0,0,0,0.05)] dark:bg-card-dark">
+      <div className="flex items-end justify-between">
         {navItems.map((item) => {
           const isActive = activeNav === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setActiveNav(item.id)}
-              className="flex flex-col items-center justify-end w-16 h-14 group relative"
+              className="group relative flex h-14 w-16 flex-col items-center justify-end"
             >
               <span
-                className={`material-symbols-outlined text-[26px] transition-all duration-300 ease-out mb-0.5 ${
+                className={`material-symbols-outlined mb-0.5 text-[26px] transition-all duration-300 ease-out ${
                   isActive
-                    ? 'text-primary -translate-y-1'
+                    ? '-translate-y-1 text-primary'
                     : 'text-gray-300 group-hover:text-gray-400'
                 }`}
               >
@@ -36,9 +36,7 @@ export function BottomNav({ activeNav, setActiveNav }: BottomNavProps) {
               </span>
               <span
                 className={`text-[9px] font-semibold tracking-tight transition-all duration-300 ${
-                  isActive
-                    ? 'text-primary opacity-100 translate-y-0'
-                    : 'text-gray-400 opacity-80'
+                  isActive ? 'translate-y-0 text-primary opacity-100' : 'text-gray-400 opacity-80'
                 }`}
               >
                 {item.label}

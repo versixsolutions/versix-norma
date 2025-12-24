@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Message {
   id: number;
@@ -14,7 +14,7 @@ interface NormaChatProps {
   onClose: () => void;
 }
 
-export function NormaChat({ isOpen, onClose }: NormaChatProps) {
+export default function NormaChat({ isOpen, onClose }: NormaChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -69,44 +69,47 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-bg-dark animate-slide-up">
+    <div className="fixed inset-0 z-50 flex animate-slide-up flex-col bg-white dark:bg-bg-dark">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-bg-dark/90 backdrop-blur-md">
+      <div className="flex items-center justify-between border-b border-gray-100 bg-white/90 p-4 backdrop-blur-md dark:border-gray-800 dark:bg-bg-dark/90">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-secondary to-blue-600 flex items-center justify-center text-white shadow-lg">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-secondary to-blue-600 text-white shadow-lg">
             <span className="material-symbols-outlined text-2xl">smart_toy</span>
           </div>
           <div>
             <h3 className="font-bold text-gray-800 dark:text-white">Norma AI</h3>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-[10px] text-gray-500 font-medium">Online • Regimento v2.4</span>
+              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+              <span className="text-[10px] font-medium text-gray-500">Online • Regimento v2.4</span>
             </div>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="rounded-full p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <span className="material-symbols-outlined text-gray-500">expand_more</span>
         </button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-black/20">
+      <div className="flex-1 space-y-4 overflow-y-auto bg-gray-50 p-4 dark:bg-black/20">
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div
+            key={msg.id}
+            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
             <div
-              className={`max-w-[80%] p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+              className={`max-w-[80%] rounded-2xl p-3.5 text-sm leading-relaxed shadow-sm ${
                 msg.sender === 'user'
-                  ? 'bg-primary text-white rounded-tr-none'
-                  : 'bg-white dark:bg-card-dark text-gray-700 dark:text-gray-200 rounded-tl-none border border-gray-100 dark:border-gray-700'
+                  ? 'rounded-tr-none bg-primary text-white'
+                  : 'rounded-tl-none border border-gray-100 bg-white text-gray-700 dark:border-gray-700 dark:bg-card-dark dark:text-gray-200'
               }`}
             >
               {msg.text}
               {msg.citation && (
-                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                  <span className="text-[10px] font-bold text-secondary flex items-center gap-1">
+                <div className="mt-2 border-t border-gray-100 pt-2 dark:border-gray-700">
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-secondary">
                     <span className="material-symbols-outlined text-[10px]">menu_book</span>
                     {msg.citation}
                   </span>
@@ -119,10 +122,10 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
         {/* Typing indicator */}
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-white dark:bg-card-dark p-3 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 dark:border-gray-700 flex gap-1">
-              <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" />
-              <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce animation-delay-100" />
-              <span className="w-2 h-2 bg-gray-300 rounded-full animate-bounce animation-delay-200" />
+            <div className="flex gap-1 rounded-2xl rounded-tl-none border border-gray-100 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-card-dark">
+              <span className="h-2 w-2 animate-bounce rounded-full bg-gray-300" />
+              <span className="animation-delay-100 h-2 w-2 animate-bounce rounded-full bg-gray-300" />
+              <span className="animation-delay-200 h-2 w-2 animate-bounce rounded-full bg-gray-300" />
             </div>
           </div>
         )}
@@ -133,19 +136,19 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
       {/* Input */}
       <form
         onSubmit={handleSend}
-        className="shrink-0 p-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-bg-dark flex gap-2"
+        className="flex shrink-0 gap-2 border-t border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-bg-dark"
       >
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Digite sua pergunta..."
-          className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="flex-1 rounded-xl bg-gray-100 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-800"
         />
         <button
           type="submit"
           disabled={!input.trim() || isTyping}
-          className="p-2 bg-primary text-white rounded-xl disabled:opacity-50 hover:opacity-90 transition-opacity"
+          className="rounded-xl bg-primary p-2 text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           <span className="material-symbols-outlined">send</span>
         </button>

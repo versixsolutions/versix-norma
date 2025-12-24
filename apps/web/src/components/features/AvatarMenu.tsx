@@ -8,7 +8,7 @@ interface AvatarMenuProps {
   onClose: () => void;
 }
 
-export function AvatarMenu({ isOpen, onClose }: AvatarMenuProps) {
+export default function AvatarMenu({ isOpen, onClose }: AvatarMenuProps) {
   const router = useRouter();
   const { setTheme, resolvedTheme } = useTheme();
 
