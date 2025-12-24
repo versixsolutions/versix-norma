@@ -1,76 +1,54 @@
-# =====================================================
-# VERSIX NORMA - .gitignore
-# =====================================================
-
 # Dependencies
-node_modules/
-.pnpm-store/
+node_modules
+.pnpm-store
 
 # Build outputs
-dist/
-.next/
-out/
-build/
+.next
+out
+dist
+build
 *.tsbuildinfo
 
-# Turbo
-.turbo/
-
-# Environment files
+# Environment
 .env
 .env.local
 .env.*.local
 !.env.example
 
 # IDE
-.idea/
+.idea
 .vscode/*
-!.vscode/extensions.json
 !.vscode/settings.json
-!.vscode/tasks.json
+!.vscode/extensions.json
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
 # Logs
-logs/
 *.log
 npm-debug.log*
-pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Testing
-coverage/
-.nyc_output/
+coverage
+.nyc_output
 
-# Supabase
-supabase/.branches/
-supabase/.temp/
+# Misc
+*.pem
+*.key
+.vercel
 
-# Temporary files
-tmp/
-temp/
-*.tmp
+# PWA generated
+public/workbox-*.js
+public/sw.js.map
 
-# Cache
-.cache/
-.eslintcache
-.prettiercache
-
-# Sentry
-.sentryclirc
+# Turbo
+.turbo
 
 # Debug
-*.pem
-debug.log
-
-# Local dev databases
-*.sqlite
-*.sqlite3
-*.db
-.vercel
+.debug

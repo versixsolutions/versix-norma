@@ -1,29 +1,18 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Versix Norma - Base Config",
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": false,
-    "noEmit": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": false,
     "skipLibCheck": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
     "incremental": true
   },
-  "exclude": ["node_modules", "dist", ".next", "coverage", ".turbo"]
+  "exclude": ["node_modules", "dist", "build", ".next", "out"]
 }
