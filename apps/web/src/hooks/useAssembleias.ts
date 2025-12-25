@@ -76,7 +76,7 @@ export function useAssembleias({ condominioId, userId, unidadeId }: UseAssemblei
 
       // Para cada assembleia, buscar pautas e votos
       const assembleiasComDetalhes: AssembleiaComDetalhes[] = await Promise.all(
-        (assembleiasData || []).map(async (ass) => {
+        (assembleiasData || []).map(async (ass: any) => {
           // Buscar pautas
           const { data: pautasData } = await supabase
             .from('pautas')
