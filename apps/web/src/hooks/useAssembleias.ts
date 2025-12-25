@@ -50,7 +50,7 @@ interface UseAssembleiasReturn {
 // HOOK
 // ============================================
 export function useAssembleias({ condominioId, userId, unidadeId }: UseAssembleiasOptions): UseAssembleiasReturn {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseClient() as any;
 
   const [assembleias, setAssembleias] = useState<AssembleiaComDetalhes[]>([]);
   const [loading, setLoading] = useState(true);
