@@ -110,7 +110,7 @@ export function useAuth() {
         : null;
       
       const condominioAtual = userCondominios.find(
-        (c) => c.condominio_id === storedCondominioId
+        (c: any) => c.condominio_id === storedCondominioId
       ) || userCondominios[0] || null;
 
       return {
