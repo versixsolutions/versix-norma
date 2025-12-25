@@ -103,8 +103,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare build env (.env.local)
+        run: |
+          mkdir -p apps/web
+          cat > apps/web/.env.local << 'EOF'
+          NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'https://app.versixnorma.com.br' }}
+          NEXT_PUBLIC_APP_ENV=${{ secrets.NEXT_PUBLIC_APP_ENV || 'production' }}
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTI4MDAsImV4cCI6MTk2MDc2ODgwMH0.placeholder' }}
+          EOF
+
       - name: Build
         run: pnpm build
-        env:
-          NEXT_PUBLIC_APP_URL: https://app.versixnorma.com.br
-          NEXT_PUBLIC_APP_ENV: production
