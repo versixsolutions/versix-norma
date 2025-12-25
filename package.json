@@ -19,15 +19,15 @@
     "prepare": "husky install || true"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "prettier": "^3.3.0",
-    "typescript": "^5.5.3",
-    "@typescript-eslint/parser": "^6.14.0",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "eslint-plugin-react": "^7.32.2",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "husky": "^9.0.0",
-    "lint-staged": "^15.2.0"
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

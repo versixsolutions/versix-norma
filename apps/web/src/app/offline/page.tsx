@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
 import RetryButton from '@/components/ui/RetryButton';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Offline - Norma',
@@ -12,18 +12,18 @@ export default function OfflinePage() {
       <div className="max-w-md text-center">
         {/* Icon */}
         <div className="text-7xl mb-6 animate-pulse">📡</div>
-        
+
         {/* Title */}
         <h1 className="text-3xl font-display font-bold mb-4">
           Você está offline
         </h1>
-        
+
         {/* Description */}
         <p className="text-lg text-blue-200 mb-8 leading-relaxed">
-          Parece que sua conexão com a internet foi interrompida. 
+          Parece que sua conexão com a internet foi interrompida.
           Algumas funcionalidades podem estar temporariamente indisponíveis.
         </p>
-        
+
         {/* What's available */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-8 text-left">
           <h3 className="font-bold text-sm uppercase tracking-wider mb-4 text-blue-200">
@@ -50,10 +50,10 @@ export default function OfflinePage() {
             </li>
           </ul>
         </div>
-        
+
         {/* Retry Button (client) */}
         <RetryButton />
-        
+
         {/* Go home */}
         <a
           href="/home"
