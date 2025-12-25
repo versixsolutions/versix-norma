@@ -21,12 +21,19 @@
   "overrides": [
     {
       "files": ["apps/web/**/*.{ts,tsx}"],
-      "extends": ["next/core-web-vitals"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint", "react"],
+      "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended", "plugin:react/recommended"],
       "rules": {
         "@typescript-eslint/no-unused-vars": "warn",
         "@typescript-eslint/no-explicit-any": "warn",
         "react/no-unescaped-entities": "off",
         "react-hooks/exhaustive-deps": "warn"
+      },
+      "settings": {
+        "react": {
+          "version": "detect"
+        }
       }
     }
   ]
