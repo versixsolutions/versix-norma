@@ -7,6 +7,14 @@
 
 declare const self: ServiceWorkerGlobalScope;
 
+// Some lib types like SyncEvent may be missing in the consumed DOM lib.
+// Declare lightweight SyncEvent so TypeScript accepts `event: SyncEvent` usage.
+declare global {
+  interface SyncEvent extends ExtendableEvent {
+    tag: string;
+  }
+}
+
 const CACHE_VERSION = 'v1.0.1';
 const STATIC_CACHE = `norma-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `norma-dynamic-${CACHE_VERSION}`;
