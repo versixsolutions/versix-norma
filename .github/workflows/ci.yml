@@ -97,7 +97,7 @@ jobs:
           NEXT_PUBLIC_MAPBOX_TOKEN="${NEXT_PUBLIC_MAPBOX_TOKEN:-mapbox_dummy_token}"
           NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}"
           NEXTAUTH_URL="${NEXTAUTH_URL:-http://localhost:3000}"
-          cat > apps/web/.env.local <<-'EOF'
+          cat > apps/web/.env.local <<'EOF'
           NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
           NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
           NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
@@ -110,6 +110,7 @@ jobs:
           NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
           NEXTAUTH_URL=${NEXTAUTH_URL}
           EOF
+          sed -i 's/^[[:space:]]*//' apps/web/.env.local
         shell: bash
 
       - name: Build
