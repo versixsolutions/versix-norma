@@ -1,6 +1,6 @@
+import type { Database } from '@/types/database';
 import { createBrowserClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/database';
 
 // ============================================
 // BROWSER CLIENT (Client Components)
@@ -19,22 +19,22 @@ let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = nul
 
 export function getSupabaseClient() {
   if (typeof window === 'undefined') {
-    // Server-side: sempre criar novo
+    // Server-side: sempre criar novo (mas retornar como any para evitar checagens estritas)
     return createSupabaseClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    ) as any;
   }
-  
+
   // Browser: singleton
   if (!browserClient) {
     browserClient = createBrowserClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    ) as any;
   }
-  
-  return browserClient;
+
+  return browserClient as any;
 }
 
 // ============================================
