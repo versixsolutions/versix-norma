@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Assembleia, StatusAssembleia, TipoVoto } from '@/types/database';
+import type { Assembleia, TipoVoto } from '@/types/database';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -51,7 +51,7 @@ interface UseAssembleiasReturn {
 // ============================================
 export function useAssembleias({ condominioId, userId, unidadeId }: UseAssembleiasOptions): UseAssembleiasReturn {
   const supabase = getSupabaseClient();
-  
+
   const [assembleias, setAssembleias] = useState<AssembleiaComDetalhes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -92,7 +92,7 @@ export function useAssembleias({ condominioId, userId, unidadeId }: UseAssemblei
               .select('pauta_id, voto')
               .eq('unidade_id', unidadeId);
 
-            meusVotos = (votosData || []).reduce((acc, v) => {
+            meusVotos = (votosData || []).reduce((acc, v: any) => {
               acc[v.pauta_id] = v.voto as TipoVoto;
               return acc;
             }, {} as Record<string, TipoVoto>);
