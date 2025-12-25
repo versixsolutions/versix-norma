@@ -120,7 +120,7 @@ export function useAssembleias({ condominioId, userId, unidadeId }: UseAssemblei
             .eq('assembleia_id', ass.id)
             .eq('status', 'confirmada');
 
-          const pautas: Pauta[] = (pautasData || []).map((p) => ({
+          const pautas: Pauta[] = (pautasData || []).map((p: any) => ({
             id: p.id,
             titulo: p.titulo,
             descricao: p.descricao,
