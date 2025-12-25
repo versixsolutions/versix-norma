@@ -59,7 +59,7 @@ const CACHE_STRATEGIES = {
 // ============================================
 self.addEventListener('install', (event: ExtendableEvent) => {
   console.log('[SW] Installing Service Worker v' + CACHE_VERSION);
-  
+
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       console.log('[SW] Caching static assets');
@@ -68,7 +68,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
       });
     })
   );
-  
+
   // Ativa imediatamente sem esperar
   self.skipWaiting();
 });
@@ -78,7 +78,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 // ============================================
 self.addEventListener('activate', (event: ExtendableEvent) => {
   console.log('[SW] Activating Service Worker v' + CACHE_VERSION);
-  
+
   event.waitUntil(
     Promise.all([
       // Limpa caches antigos
@@ -86,8 +86,8 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
         return Promise.all(
           keys
             .filter((key) => {
-              return key.startsWith('norma-') && 
-                     key !== STATIC_CACHE && 
+              return key.startsWith('norma-') &&
+                     key !== STATIC_CACHE &&
                      key !== DYNAMIC_CACHE &&
                      key !== IMAGE_CACHE &&
                      key !== API_CACHE;
@@ -123,7 +123,7 @@ self.addEventListener('fetch', (event: FetchEvent) => {
 
   // Determina a estratégia de cache
   const strategy = getCacheStrategy(url.href);
-  
+
   switch (strategy) {
     case 'cacheFirst':
       event.respondWith(cacheFirst(request));
@@ -152,7 +152,7 @@ async function cacheFirst(request: Request): Promise<Response> {
   if (cached) {
     return cached;
   }
-  
+
   try {
     const response = await fetch(request);
     if (response.ok) {
@@ -187,7 +187,7 @@ async function networkFirst(request: Request): Promise<Response> {
 async function staleWhileRevalidate(request: Request): Promise<Response> {
   const cache = await caches.open(IMAGE_CACHE);
   const cached = await cache.match(request);
-  
+
   const fetchPromise = fetch(request).then((response) => {
     if (response.ok) {
       cache.put(request, response.clone());
@@ -230,7 +230,7 @@ async function getOfflinePage(): Promise<Response> {
   if (cached) {
     return cached;
   }
-  
+
   return new Response(
     `<!DOCTYPE html>
     <html lang="pt-BR">
@@ -290,7 +290,7 @@ async function getOfflinePage(): Promise<Response> {
 // ============================================
 self.addEventListener('push', (event: PushEvent) => {
   console.log('[SW] Push notification received');
-  
+
   let data = {
     title: 'Norma',
     body: 'Você tem uma nova notificação',
@@ -310,18 +310,21 @@ self.addEventListener('push', (event: PushEvent) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: data.icon,
-      badge: data.badge,
-      tag: data.tag,
-      data: data.data,
-      vibrate: [200, 100, 200],
-      actions: [
-        { action: 'open', title: 'Abrir' },
-        { action: 'close', title: 'Fechar' },
-      ],
-    })
+    self.registration.showNotification(
+      data.title,
+      {
+        body: data.body,
+        icon: data.icon,
+        badge: data.badge,
+        tag: data.tag,
+        data: data.data,
+        vibrate: [200, 100, 200],
+        actions: [
+          { action: 'open', title: 'Abrir' },
+          { action: 'close', title: 'Fechar' },
+        ],
+      } as NotificationOptions
+    )
   );
 });
 
@@ -330,7 +333,7 @@ self.addEventListener('push', (event: PushEvent) => {
 // ============================================
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   console.log('[SW] Notification clicked:', event.action);
-  
+
   event.notification.close();
 
   if (event.action === 'close') {
@@ -359,11 +362,11 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 // ============================================
 self.addEventListener('sync', (event: SyncEvent) => {
   console.log('[SW] Background sync:', event.tag);
-  
+
   if (event.tag === 'sync-chamados') {
     event.waitUntil(syncChamados());
   }
-  
+
   if (event.tag === 'sync-messages') {
     event.waitUntil(syncMessages());
   }
@@ -409,11 +412,11 @@ async function updateContent(): Promise<void> {
 // ============================================
 self.addEventListener('message', (event: ExtendableMessageEvent) => {
   console.log('[SW] Message received:', event.data);
-  
+
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data?.type === 'CLEAR_CACHE') {
     event.waitUntil(
       caches.keys().then((keys) => {
@@ -421,10 +424,11 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
       })
     );
   }
-  
+
   if (event.data?.type === 'GET_VERSION') {
     event.ports[0]?.postMessage({ version: CACHE_VERSION });
   }
 });
 
-export {};
+export { };
+
