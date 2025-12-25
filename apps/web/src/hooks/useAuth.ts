@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { User, Session, AuthError } from '@supabase/supabase-js';
-import type { Usuario, RoleType } from '@/types/database';
+import type { RoleType, Usuario } from '@/types/database';
+import type { AuthError, Session, User } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -51,7 +51,7 @@ interface SignupCredentials {
 export function useAuth() {
   const router = useRouter();
   const supabase = getSupabaseClient();
-  
+
   const [state, setState] = useState<AuthState>({
     user: null,
     profile: null,
@@ -105,10 +105,10 @@ export function useAuth() {
       }));
 
       // Definir condomínio atual (primeiro da lista ou do localStorage)
-      const storedCondominioId = typeof window !== 'undefined' 
-        ? localStorage.getItem('condominio_atual') 
+      const storedCondominioId = typeof window !== 'undefined'
+        ? localStorage.getItem('condominio_atual')
         : null;
-      
+
       const condominioAtual = userCondominios.find(
         (c: any) => c.condominio_id === storedCondominioId
       ) || userCondominios[0] || null;
@@ -134,7 +134,7 @@ export function useAuth() {
     const initAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) throw error;
 
         if (session?.user) {
@@ -168,9 +168,9 @@ export function useAuth() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: string, session: any) => {
         console.log('Auth event:', event);
-        
+
         if (event === 'SIGNED_IN' && session?.user) {
           const profile = await fetchProfile(session.user.id);
           setState({
@@ -206,10 +206,10 @@ export function useAuth() {
   // ============================================
   // AUTH METHODS
   // ============================================
-  
+
   const login = async ({ email, password }: LoginCredentials) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -232,7 +232,7 @@ export function useAuth() {
 
   const signup = async ({ email, password, nome, telefone }: SignupCredentials) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
-    
+
     try {
       // 1. Criar usuário no Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -280,16 +280,16 @@ export function useAuth() {
 
   const logout = async () => {
     setState((prev) => ({ ...prev, loading: true }));
-    
+
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
+
       // Limpar localStorage
       if (typeof window !== 'undefined') {
         localStorage.removeItem('condominio_atual');
       }
-      
+
       return { success: true };
     } catch (error) {
       setState((prev) => ({
@@ -306,7 +306,7 @@ export function useAuth() {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      
+
       if (error) throw error;
       return { success: true };
     } catch (error) {
@@ -319,7 +319,7 @@ export function useAuth() {
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
-      
+
       if (error) throw error;
       return { success: true };
     } catch (error) {
@@ -362,9 +362,9 @@ export function useAuth() {
   // COMPUTED VALUES
   // ============================================
   const isAuthenticated = !!state.user && !!state.session;
-  const isAdmin = state.profile?.condominio_atual?.role === 'admin_master' || 
+  const isAdmin = state.profile?.condominio_atual?.role === 'admin_master' ||
                   state.profile?.condominio_atual?.role === 'superadmin';
-  const isSindico = state.profile?.condominio_atual?.role === 'sindico' || 
+  const isSindico = state.profile?.condominio_atual?.role === 'sindico' ||
                    state.profile?.condominio_atual?.role === 'subsindico';
   const hasMultipleCondominios = (state.profile?.condominios.length || 0) > 1;
 
@@ -375,14 +375,14 @@ export function useAuth() {
     session: state.session,
     loading: state.loading,
     error: state.error,
-    
+
     // Computed
     isAuthenticated,
     isAdmin,
     isSindico,
     hasMultipleCondominios,
     condominioAtual: state.profile?.condominio_atual,
-    
+
     // Methods
     login,
     signup,
