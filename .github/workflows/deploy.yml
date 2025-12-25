@@ -46,6 +46,7 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
+      # Verify Vercel CLI is available (|| true allows step to succeed regardless)
       - name: Install Vercel CLI
         run: npx --yes vercel@28.10.1 --version || true
 
@@ -102,6 +103,7 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
+      # Verify Vercel CLI is available (|| true allows step to succeed regardless)
       - name: Install Vercel CLI
         run: npx --yes vercel@28.10.1 --version || true
 

@@ -103,6 +103,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Create .env.local with safe fallback values for builds in PRs/forks
+      # These dummy values allow the build to complete without requiring secrets
+      # Note: Dummy values are only used when secrets are unavailable (e.g., fork PRs)
       - name: Prepare build env (.env.local)
         run: |
           mkdir -p apps/web
