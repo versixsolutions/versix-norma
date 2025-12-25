@@ -110,7 +110,7 @@ jobs:
           NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
           NEXT_PUBLIC_APP_ENV=${{ secrets.NEXT_PUBLIC_APP_ENV || 'development' }}
           NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ4ODMyMDAsImV4cCI6MjAyMDQ1OTIwMH0.placeholder_token_for_ci_only' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key-for-ci-builds-only' }}
           EOF
         shell: bash
 
