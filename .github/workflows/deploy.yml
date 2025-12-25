@@ -2,6 +2,13 @@
 # VERSIX NORMA - Deploy to Vercel
 # =====================================================
 # Deploy automático para produção (main) e preview (PRs)
+#
+# IMPORTANTE: Preview deployments não funcionam para PRs de forks
+# porque secrets (VERCEL_TOKEN) não são expostos por segurança.
+# Para habilitar preview em forks, considere usar:
+# - Vercel for GitHub App (recomendado)
+# - GitHub App dedicada com permissões limitadas
+# Ou instrua contribuidores externos a criar PRs de branches no repo principal.
 
 name: Deploy
 
@@ -19,13 +26,24 @@ jobs:
   deploy-preview:
     name: Deploy Preview
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # Only run preview deployments for PRs from the same repository (not from forks)
+    # Forks don't have access to secrets (VERCEL_TOKEN) which are required for deployment
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     environment:
       name: preview
       url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Verify Vercel Token
+        run: |
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            echo "❌ Error: VERCEL_TOKEN secret is not configured"
+            echo "Please add VERCEL_TOKEN to repository secrets to enable Vercel deployments"
+            exit 1
+          fi
+          echo "✅ VERCEL_TOKEN is configured"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
