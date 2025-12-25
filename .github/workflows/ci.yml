@@ -103,8 +103,25 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare build env (.env.local)
+        run: |
+          mkdir -p apps/web
+          cat > apps/web/.env.local << 'EOF'
+          # Build-time environment variables for CI
+          # Uses secrets when available, safe placeholders otherwise
+          NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'https://app.example.com' }}
+          NEXT_PUBLIC_APP_ENV=${{ secrets.NEXT_PUBLIC_APP_ENV || 'ci' }}
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder' }}
+          NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL || 'https://api.example.com' }}
+          NEXT_PUBLIC_ANALYTICS_ID=${{ secrets.NEXT_PUBLIC_ANALYTICS_ID || 'placeholder-analytics-id' }}
+          NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN || '' }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder' }}
+          NEXT_PUBLIC_GTM_ID=${{ secrets.NEXT_PUBLIC_GTM_ID || '' }}
+          NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN || '' }}
+          NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL || 'https://app.example.com' }}
+          EOF
+          echo "✅ Created apps/web/.env.local with environment variables"
+
       - name: Build
         run: pnpm build
-        env:
-          NEXT_PUBLIC_APP_URL: https://app.versixnorma.com.br
-          NEXT_PUBLIC_APP_ENV: production
