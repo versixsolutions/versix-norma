@@ -109,7 +109,7 @@ export function useAssembleias({ condominioId, userId, unidadeId }: UseAssemblei
               .single();
 
             if (presencaData) {
-              minhaPresenca = presencaData.status === 'confirmada' ? 'confirmada' : 'ausente';
+              minhaPresenca = (presencaData as any).status === 'confirmada' ? 'confirmada' : 'ausente';
             }
           }
 
