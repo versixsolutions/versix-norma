@@ -50,37 +50,6 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-  # test:
-  #   name: Tests
-  #   runs-on: ubuntu-latest
-  #   needs: lint-and-typecheck
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Setup pnpm
-  #       uses: pnpm/action-setup@v2
-  #       with:
-  #         version: ${{ env.PNPM_VERSION }}
-  #
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ env.NODE_VERSION }}
-  #         cache: 'pnpm'
-  #
-  #     - name: Install dependencies
-  #       run: pnpm install --frozen-lockfile
-  #
-  #     - name: Run tests
-  #       run: pnpm test
-  #
-  #     - name: Upload coverage
-  #       uses: codecov/codecov-action@v3
-  #       with:
-  #         files: ./coverage/lcov.info
-  #         fail_ci_if_error: false
-
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -102,6 +71,46 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Prepare build env (.env.local)
+        run: |
+          mkdir -p apps/web
+          NEXT_PUBLIC_APP_URL="${{ secrets.NEXT_PUBLIC_APP_URL }}"
+          NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL:-https://app.versixnorma.com.br}"
+          NEXT_PUBLIC_APP_ENV="${{ secrets.NEXT_PUBLIC_APP_ENV }}"
+          NEXT_PUBLIC_APP_ENV="${NEXT_PUBLIC_APP_ENV:-production}"
+          NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}"
+          NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://example.supabase.co}"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-dummy_anon_key_for_ci}"
+          NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}"
+          NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://api.example.com}"
+          NEXT_PUBLIC_ANALYTICS_ID="${{ secrets.NEXT_PUBLIC_ANALYTICS_ID }}"
+          NEXT_PUBLIC_ANALYTICS_ID="${NEXT_PUBLIC_ANALYTICS_ID:-dummy-analytics-id}"
+          NEXT_PUBLIC_SENTRY_DSN="${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}"
+          NEXT_PUBLIC_SENTRY_DSN="${NEXT_PUBLIC_SENTRY_DSN:-}"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}"
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:-pk_test_dummy}"
+          NEXT_PUBLIC_GTM_ID="${{ secrets.NEXT_PUBLIC_GTM_ID }}"
+          NEXT_PUBLIC_GTM_ID="${NEXT_PUBLIC_GTM_ID:-GTM-XXXXXXX}"
+          NEXT_PUBLIC_MAPBOX_TOKEN="${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}"
+          NEXT_PUBLIC_MAPBOX_TOKEN="${NEXT_PUBLIC_MAPBOX_TOKEN:-mapbox_dummy_token}"
+          NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}"
+          NEXTAUTH_URL="${NEXTAUTH_URL:-http://localhost:3000}"
+          cat > apps/web/.env.local <<-'EOF'
+          NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+          NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV}
+          NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+          NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+          NEXT_PUBLIC_ANALYTICS_ID=${NEXT_PUBLIC_ANALYTICS_ID}
+          NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+          NEXT_PUBLIC_GTM_ID=${NEXT_PUBLIC_GTM_ID}
+          NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
+          NEXTAUTH_URL=${NEXTAUTH_URL}
+          EOF
+        shell: bash
 
       - name: Build
         run: pnpm build
