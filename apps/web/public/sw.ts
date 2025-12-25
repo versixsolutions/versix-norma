@@ -368,7 +368,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 // ============================================
 // BACKGROUND SYNC
 // ============================================
-self.addEventListener('sync', (event: SyncEvent) => {
+self.addEventListener('sync', (event: any) => {
   console.log('[SW] Background sync:', event.tag);
 
   if (event.tag === 'sync-chamados') {
