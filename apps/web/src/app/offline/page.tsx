@@ -1,6 +1,5 @@
-"use client";
-
 import type { Metadata } from 'next';
+import RetryButton from '@/components/ui/RetryButton';
 
 export const metadata: Metadata = {
   title: 'Offline - Norma',
@@ -52,14 +51,8 @@ export default function OfflinePage() {
           </ul>
         </div>
         
-        {/* Retry Button */}
-        <button
-          onClick={() => window.location.reload()}
-          className="w-full py-4 bg-secondary text-white font-bold rounded-xl shadow-lg hover:bg-secondary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-        >
-          <span className="material-symbols-outlined">refresh</span>
-          Tentar novamente
-        </button>
+        {/* Retry Button (client) */}
+        <RetryButton />
         
         {/* Go home */}
         <a
