@@ -110,7 +110,7 @@ jobs:
           NEXT_PUBLIC_APP_ENV=${NEXT_PUBLIC_APP_ENV:-production}
           NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://example.supabase.co}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0}
-          
+
           mkdir -p apps/web
           cat > apps/web/.env.local << EOF
           NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
@@ -126,6 +126,3 @@ jobs:
 
       - name: Build
         run: pnpm build
-        env:
-          NEXT_PUBLIC_APP_URL: https://app.versixnorma.com.br
-          NEXT_PUBLIC_APP_ENV: production
