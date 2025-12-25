@@ -92,7 +92,7 @@ export function useAssembleias({ condominioId, userId, unidadeId }: UseAssemblei
               .select('pauta_id, voto')
               .eq('unidade_id', unidadeId);
 
-            meusVotos = (votosData || []).reduce((acc, v: any) => {
+            meusVotos = (votosData || []).reduce((acc: Record<string, TipoVoto>, v: any) => {
               acc[v.pauta_id] = v.voto as TipoVoto;
               return acc;
             }, {} as Record<string, TipoVoto>);
