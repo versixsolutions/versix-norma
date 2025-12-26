@@ -1,37 +1,38 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { useAuthContext, AuthGuard } from '@/contexts/AuthContext';
-import { useFinancial } from '@/hooks/useFinancial';
-import { useComunicados } from '@/hooks/useComunicados';
-import { SOSButton } from '@/components/features/SOSButton';
-import { NormaChat } from '@/components/features/NormaChat';
-import { NotificationPanel } from '@/components/features/NotificationPanel';
 import { AvatarMenu } from '@/components/features/AvatarMenu';
+import { BottomNav } from '@/components/features/BottomNav';
 import { FinancialPulse } from '@/components/features/FinancialPulse';
-import { QuickAccess } from '@/components/features/QuickAccess';
 import { MarketplaceCarousel } from '@/components/features/MarketplaceCarousel';
 import { MuralDigital } from '@/components/features/MuralDigital';
-import { TransparencyPage } from '@/components/pages/TransparencyPage';
+import { NormaChat } from '@/components/features/NormaChat';
+import { NotificationPanel } from '@/components/features/NotificationPanel';
+import { QuickAccess } from '@/components/features/QuickAccess';
+import { SOSButton } from '@/components/features/SOSButton';
 import { CommunityPage } from '@/components/pages/CommunityPage';
-import { ServicesPage } from '@/components/pages/ServicesPage';
 import { ProfilePage } from '@/components/pages/ProfilePage';
-import { BottomNav } from '@/components/features/BottomNav';
-import { SkeletonPulse, SkeletonGrid } from '@/components/ui/Skeleton';
+import { ServicesPage } from '@/components/pages/ServicesPage';
+import { TransparencyPage } from '@/components/pages/TransparencyPage';
+import { SkeletonGrid, SkeletonPulse } from '@/components/ui/Skeleton';
+import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
+import { useComunicados } from '@/hooks/useComunicados';
+import { useFinancial } from '@/hooks/useFinancial';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 function HomeContent() {
   const router = useRouter();
   const { profile, isAuthenticated, loading: authLoading } = useAuthContext();
-  
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeNav, setActiveNav] = useState('home');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
   const [showNormaChat, setShowNormaChat] = useState(false);
+  const [dataLoadingTimeout, setDataLoadingTimeout] = useState(false);
 
-  // Hooks de dados
+  // Hooks de dados - só carregar se perfil estiver disponível
   const { dashboard, loading: financialLoading } = useFinancial({
     condominioId: profile?.condominio_atual?.id || null,
   });
@@ -40,6 +41,17 @@ function HomeContent() {
     condominioId: profile?.condominio_atual?.id || null,
     userId: profile?.id || null,
   });
+
+  // Timeout para loading de dados (evitar loop infinito)
+  useEffect(() => {
+    if (authLoading || !isAuthenticated) return;
+
+    const timeout = setTimeout(() => {
+      setDataLoadingTimeout(true);
+    }, 10000); // 10 segundos timeout
+
+    return () => clearTimeout(timeout);
+  }, [authLoading, isAuthenticated]);
 
   // Redirect se não autenticado
   useEffect(() => {
@@ -68,7 +80,7 @@ function HomeContent() {
     c => c.condominio_id === profile?.condominio_atual?.id
   )?.unidade_id || null;
 
-  const isLoading = authLoading || financialLoading;
+  const isLoading = authLoading || (financialLoading && !dataLoadingTimeout);
 
   const renderContent = () => {
     switch (activeNav) {
@@ -206,17 +218,17 @@ function HomeContent() {
         </div>
 
         {/* Modals */}
-        <NotificationPanel 
-          isOpen={showNotifications} 
-          onClose={() => setShowNotifications(false)} 
+        <NotificationPanel
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
         />
-        <AvatarMenu 
-          isOpen={showAvatarMenu} 
-          onClose={() => setShowAvatarMenu(false)} 
+        <AvatarMenu
+          isOpen={showAvatarMenu}
+          onClose={() => setShowAvatarMenu(false)}
         />
-        <NormaChat 
-          isOpen={showNormaChat} 
-          onClose={() => setShowNormaChat(false)} 
+        <NormaChat
+          isOpen={showNormaChat}
+          onClose={() => setShowNormaChat(false)}
         />
 
         {/* Content */}

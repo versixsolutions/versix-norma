@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAuthContext } from '@/contexts/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useAuthContext } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated, loading: authLoading } = useAuthContext();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +30,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast.error('Preencha todos os campos');
       return;
@@ -45,7 +45,7 @@ export default function LoginPage() {
       router.push('/home');
     } else {
       const errorMessage = (result.error as any)?.message || 'Erro ao fazer login';
-      
+
       if (errorMessage.includes('Invalid login credentials')) {
         toast.error('Email ou senha incorretos');
       } else if (errorMessage.includes('Email not confirmed')) {

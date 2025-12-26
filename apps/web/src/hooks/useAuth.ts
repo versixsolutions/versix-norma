@@ -133,9 +133,22 @@ export function useAuth() {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Tentar múltiplas vezes para PWA
+        let session = null;
+        let attempts = 0;
+        const maxAttempts = 3;
 
-        if (error) throw error;
+        while (!session && attempts < maxAttempts) {
+          const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          session = currentSession;
+          attempts++;
+
+          if (!session && attempts < maxAttempts) {
+            // Aguardar um pouco antes de tentar novamente
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
 
         if (session?.user) {
           const profile = await fetchProfile(session.user.id);
@@ -156,6 +169,7 @@ export function useAuth() {
           });
         }
       } catch (error) {
+        console.error('Auth initialization error:', error);
         setState((prev) => ({
           ...prev,
           loading: false,

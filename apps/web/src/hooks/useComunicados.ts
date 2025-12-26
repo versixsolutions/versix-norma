@@ -85,8 +85,30 @@ export function useComunicados({ condominioId, userId }: UseComunicadosOptions):
   }, [condominioId, userId, supabase]);
 
   useEffect(() => {
-    fetchComunicados();
-  }, [fetchComunicados]);
+    const checkAndFetch = async () => {
+      if (!condominioId) {
+        setLoading(false);
+        return;
+      }
+
+      // Verificar se há sessão válida
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Session check failed:', error);
+        setLoading(false);
+        return;
+      }
+
+      fetchComunicados();
+    };
+
+    checkAndFetch();
+  }, [fetchComunicados, condominioId]);
 
   // Realtime subscription
   useEffect(() => {

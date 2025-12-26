@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { Lancamento, StatusLancamento, TipoLancamento } from '@/types/database';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -44,11 +44,11 @@ interface UseFinancialReturn {
     valor_devido: number;
     meses_atraso: number;
   }[];
-  
+
   // State
   loading: boolean;
   error: Error | null;
-  
+
   // Methods
   refresh: () => Promise<void>;
   createLancamento: (data: CreateLancamentoInput) => Promise<{ success: boolean; error?: Error }>;
@@ -72,7 +72,7 @@ interface CreateLancamentoInput {
 // ============================================
 export function useFinancial({ condominioId, mesReferencia }: UseFinancialOptions): UseFinancialReturn {
   const supabase = getSupabaseClient();
-  
+
   const [dashboard, setDashboard] = useState<DashboardFinanceiro | null>(null);
   const [contas, setContas] = useState<ContaBancaria[]>([]);
   const [lancamentos, setLancamentos] = useState<LancamentoComDetalhes[]>([]);
@@ -247,12 +247,12 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
   // Initial load
   useEffect(() => {
-    if (condominioId) {
+    if (condominioId && isAuthenticated) {
       refresh();
     } else {
       setLoading(false);
     }
-  }, [condominioId, refresh]);
+  }, [condominioId, refresh, isAuthenticated]);
 
   // ============================================
   // MUTATIONS
