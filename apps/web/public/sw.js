@@ -1,9 +1,9 @@
 // ============================================
-// VERSIX NORMA - SERVICE WORKER v1.0.1
+// VERSIX NORMA - SERVICE WORKER v1.0.2
 // Cache-first para assets, Network-first para API
 // ============================================
 
-const CACHE_VERSION = 'v1.0.1';
+const CACHE_VERSION = 'v1.0.2';
 const STATIC_CACHE = `norma-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `norma-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `norma-images-${CACHE_VERSION}`;
@@ -14,37 +14,31 @@ const STATIC_ASSETS = [
     '/',
     '/home',
     '/login',
-    '/signup',
-    '/onboarding',
-    '/welcome',
     '/offline',
     '/manifest.json',
-    '/icons/icon.svg',
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png',
 ];
 
 // Padrões de URL para diferentes estratégias de cache
 const CACHE_STRATEGIES = {
     // Cache First - Assets estáticos
-    cacheFirst: [
+    'cache-first': [
         /\/_next\/static\/.*/,
         /\/icons\/.*/,
         /\/fonts\/.*/,
         /\.(?:js|css|woff2?)$/,
     ],
     // Network First - API calls
-    networkFirst: [
+    'network-first': [
         /\/api\/.*/,
         /supabase\.co/,
     ],
     // Stale While Revalidate - Imagens
-    staleWhileRevalidate: [
+    'stale-while-revalidate': [
         /\.(?:png|jpg|jpeg|gif|svg|webp|avif)$/,
         /images\.unsplash\.com/,
     ],
     // Network Only - Autenticação
-    networkOnly: [
+    'network-only': [
         /\/auth\/.*/,
         /supabase\.co\/auth/,
     ],
@@ -54,7 +48,7 @@ const CACHE_STRATEGIES = {
 // INSTALAÇÃO
 // ============================================
 self.addEventListener('install', (event) => {
-    console.log('[SW] Installing Service Worker v' + CACHE_VERSION);
+    console.log('[SW] Installing Service Worker ' + CACHE_VERSION);
     event.waitUntil(
         caches.open(STATIC_CACHE).then((cache) => {
             console.log('[SW] Caching static assets');
@@ -63,7 +57,6 @@ self.addEventListener('install', (event) => {
             });
         })
     );
-    // Ativa imediatamente sem esperar
     self.skipWaiting();
 });
 
@@ -71,10 +64,9 @@ self.addEventListener('install', (event) => {
 // ATIVAÇÃO
 // ============================================
 self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating Service Worker v' + CACHE_VERSION);
+    console.log('[SW] Activating Service Worker ' + CACHE_VERSION);
     event.waitUntil(
         Promise.all([
-            // Limpa caches antigos
             caches.keys().then((keys) => {
                 return Promise.all(
                     keys
@@ -91,7 +83,6 @@ self.addEventListener('activate', (event) => {
                         })
                 );
             }),
-            // Assume controle de todas as páginas
             self.clients.claim(),
         ])
     );
@@ -102,15 +93,27 @@ self.addEventListener('activate', (event) => {
 // ============================================
 self.addEventListener('fetch', (event) => {
     const { request } = event;
-    const url = new URL(request.url);
 
     // Ignora requisições não-GET
     if (request.method !== 'GET') {
         return;
     }
 
-    // Ignora extensões do Chrome e outros
+    // Tenta parsear a URL
+    let url;
+    try {
+        url = new URL(request.url);
+    } catch (e) {
+        return;
+    }
+
+    // Ignora extensões do browser
     if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+        return;
+    }
+
+    // Ignora URLs inválidas
+    if (!url.href || url.href === 'about:blank') {
         return;
     }
 
@@ -118,13 +121,10 @@ self.addEventListener('fetch', (event) => {
     const strategy = getCacheStrategy(url.href);
 
     if (strategy === 'network-only') {
-        // Network Only - passa direto
         return;
     }
 
-    event.respondWith(
-        handleRequest(request, strategy)
-    );
+    event.respondWith(handleRequest(request, strategy));
 });
 
 // ============================================
@@ -132,26 +132,43 @@ self.addEventListener('fetch', (event) => {
 // ============================================
 
 function getCacheStrategy(urlString) {
+    // Validação de entrada
+    if (!urlString || typeof urlString !== 'string') {
+        return 'network-first';
+    }
+
+    // Itera sobre as estratégias
     for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
+        // Verifica se patterns é um array válido
+        if (!Array.isArray(patterns)) {
+            continue;
+        }
+
         for (const pattern of patterns) {
-            if (pattern.test(urlString)) {
-                return strategy;
+            // Verifica se pattern é uma RegExp válida
+            if (pattern && typeof pattern.test === 'function') {
+                try {
+                    if (pattern.test(urlString)) {
+                        return strategy;
+                    }
+                } catch (e) {
+                    console.warn('[SW] Pattern test failed:', e);
+                }
             }
         }
     }
-    // Default: Cache First para navegação
+
+    // Default: network-first para navegação, cache-first para assets
     try {
         const url = new URL(urlString);
-        return url.pathname === '/' || !url.pathname.includes('.') ? 'network-first' : 'cache-first';
-    } catch (error) {
-        // Fallback se URL for inválida
-        return 'cache-first';
+        const isNavigation = url.pathname === '/' || !url.pathname.includes('.');
+        return isNavigation ? 'network-first' : 'cache-first';
+    } catch (e) {
+        return 'network-first';
     }
 }
 
 async function handleRequest(request, strategy) {
-    const url = new URL(request.url);
-
     switch (strategy) {
         case 'cache-first':
             return handleCacheFirst(request);
@@ -165,14 +182,14 @@ async function handleRequest(request, strategy) {
 }
 
 async function handleCacheFirst(request) {
-    const cache = await caches.open(STATIC_CACHE);
-    const cachedResponse = await cache.match(request);
-
-    if (cachedResponse) {
-        return cachedResponse;
-    }
-
     try {
+        const cache = await caches.open(STATIC_CACHE);
+        const cachedResponse = await cache.match(request);
+
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
             cache.put(request, networkResponse.clone());
@@ -193,7 +210,7 @@ async function handleNetworkFirst(request) {
         }
         return networkResponse;
     } catch (error) {
-        console.log('[SW] Network failed, trying cache:', error);
+        console.log('[SW] Network failed, trying cache');
         const cache = await caches.open(DYNAMIC_CACHE);
         const cachedResponse = await cache.match(request);
 
@@ -201,10 +218,10 @@ async function handleNetworkFirst(request) {
             return cachedResponse;
         }
 
-        // Fallback para página offline
         if (request.destination === 'document') {
             const offlineCache = await caches.open(STATIC_CACHE);
-            return offlineCache.match('/offline') || new Response('Offline', { status: 503 });
+            const offlinePage = await offlineCache.match('/offline');
+            if (offlinePage) return offlinePage;
         }
 
         return new Response('Offline', { status: 503 });
@@ -215,23 +232,25 @@ async function handleStaleWhileRevalidate(request) {
     const cache = await caches.open(IMAGE_CACHE);
     const cachedResponse = await cache.match(request);
 
-    const fetchPromise = fetch(request).then((networkResponse) => {
-        if (networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-    }).catch((error) => {
-        console.warn('[SW] Stale-while-revalidate fetch failed:', error);
-    });
+    const fetchPromise = fetch(request)
+        .then((networkResponse) => {
+            if (networkResponse.ok) {
+                cache.put(request, networkResponse.clone());
+            }
+            return networkResponse;
+        })
+        .catch((error) => {
+            console.warn('[SW] SWR fetch failed:', error);
+            return null;
+        });
 
     if (cachedResponse) {
-        // Retorna cache e atualiza em background
-        fetchPromise;
+        fetchPromise; // Update in background
         return cachedResponse;
     }
 
-    // Se não tem cache, espera pela rede
-    return fetchPromise || new Response('Offline', { status: 503 });
+    const networkResponse = await fetchPromise;
+    return networkResponse || new Response('Offline', { status: 503 });
 }
 
 // ============================================
@@ -240,10 +259,15 @@ async function handleStaleWhileRevalidate(request) {
 self.addEventListener('push', (event) => {
     if (!event.data) return;
 
-    const data = event.data.json();
+    let data;
+    try {
+        data = event.data.json();
+    } catch (e) {
+        data = { title: 'Norma', body: event.data.text() };
+    }
 
     const options = {
-        body: data.body,
+        body: data.body || '',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/badge-72x72.png',
         vibrate: [100, 50, 100],
@@ -256,14 +280,13 @@ self.addEventListener('push', (event) => {
         requireInteraction: data.priority === 'high'
     };
 
-    // Notificação de emergência
     if (data.type === 'emergency') {
         options.vibrate = [200, 100, 200, 100, 200];
         options.requireInteraction = true;
     }
 
     event.waitUntil(
-        self.registration.showNotification(data.title, options)
+        self.registration.showNotification(data.title || 'Norma', options)
     );
 });
 
@@ -275,7 +298,6 @@ self.addEventListener('notificationclick', (event) => {
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then((clientList) => {
-                // Se já tem uma janela aberta, foca nela
                 for (const client of clientList) {
                     if (client.url.includes(self.location.origin) && 'focus' in client) {
                         client.focus();
@@ -283,7 +305,6 @@ self.addEventListener('notificationclick', (event) => {
                         return;
                     }
                 }
-                // Se não, abre nova janela
                 return clients.openWindow(urlToOpen);
             })
     );
@@ -296,15 +317,11 @@ self.addEventListener('sync', (event) => {
     if (event.tag === 'sync-critical-data') {
         event.waitUntil(syncCriticalData());
     }
-
     if (event.tag === 'sync-offline-actions') {
         event.waitUntil(syncOfflineActions());
     }
 });
 
-// ============================================
-// PERIODIC SYNC
-// ============================================
 self.addEventListener('periodicsync', (event) => {
     if (event.tag === 'update-critical-data') {
         event.waitUntil(syncCriticalData());
@@ -314,17 +331,12 @@ self.addEventListener('periodicsync', (event) => {
     }
 });
 
-// ============================================
-// FUNÇÕES PLACEHOLDER
-// ============================================
 async function syncCriticalData() {
     console.log('[SW] Syncing critical data...');
-    // Implementação será feita no lado do cliente
 }
 
 async function syncOfflineActions() {
     console.log('[SW] Syncing offline actions...');
-    // Implementação será feita no lado do cliente
 }
 
 async function cleanupOldCaches() {
