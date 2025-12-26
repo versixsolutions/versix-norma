@@ -1,0 +1,22 @@
+{
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
+  "devCommand": "pnpm dev",
+  "framework": "nextjs",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "routes": [
+    {
+      "src": "/en/?",
+      "dest": "/login"
+    },
+    {
+      "src": "/pt-BR/?",
+      "dest": "/login"
+    },
+    {
+      "src": "^/$",
+      "dest": "/login"
+    }
+  ]
+}
