@@ -118,7 +118,11 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Determina a estratégia de cache
-    const strategy = getCacheStrategy(url.href);
+    const urlString = url.href;
+    if (!urlString || typeof urlString !== 'string') {
+        return;
+    }
+    const strategy = getCacheStrategy(urlString);
 
     if (strategy === 'network-only') {
         return;
