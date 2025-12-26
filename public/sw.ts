@@ -1,15 +1,15 @@
 // public/sw.ts
 
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { 
-  CacheFirst, 
-  NetworkFirst, 
-  StaleWhileRevalidate 
-} from 'workbox-strategies';
-import { ExpirationPlugin } from 'workbox-expiration';
-import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+import {
+    CacheFirst,
+    NetworkFirst,
+    StaleWhileRevalidate
+} from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -40,7 +40,7 @@ precacheAndRoute(self.__WB_MANIFEST || []);
 // ESTRATÉGIA 1: Cache-First para assets estáticos
 // =====================================================
 registerRoute(
-  ({ request }) => 
+  ({ request }) =>
     request.destination === 'style' ||
     request.destination === 'script' ||
     request.destination === 'font',
@@ -48,8 +48,8 @@ registerRoute(
     cacheName: ASSETS_CACHE,
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({ 
-        maxEntries: CACHE_LIMITS.assets.maxEntries, 
+      new ExpirationPlugin({
+        maxEntries: CACHE_LIMITS.assets.maxEntries,
         maxAgeSeconds: CACHE_LIMITS.assets.maxAgeSeconds
       })
     ]
@@ -65,8 +65,8 @@ registerRoute(
     cacheName: 'images',
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({ 
-        maxEntries: CACHE_LIMITS.images.maxEntries, 
+      new ExpirationPlugin({
+        maxEntries: CACHE_LIMITS.images.maxEntries,
         maxAgeSeconds: CACHE_LIMITS.images.maxAgeSeconds
       })
     ]
@@ -77,13 +77,13 @@ registerRoute(
 // ESTRATÉGIA 3: Cache-First para fotos de ocorrências (maior, mas controlado)
 // =====================================================
 registerRoute(
-  ({ url }) => url.pathname.includes('/storage/') && 
+  ({ url }) => url.pathname.includes('/storage/') &&
                url.pathname.includes('/ocorrencias/'),
   new CacheFirst({
     cacheName: 'ocorrencia-photos',
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({ 
+      new ExpirationPlugin({
         maxEntries: CACHE_LIMITS.ocorrenciaPhotos.maxEntries,
         maxAgeSeconds: CACHE_LIMITS.ocorrenciaPhotos.maxAgeSeconds,
         purgeOnQuotaError: true
@@ -96,14 +96,14 @@ registerRoute(
 // ESTRATÉGIA 4: Cache-First para documentos/PDFs
 // =====================================================
 registerRoute(
-  ({ request }) => 
+  ({ request }) =>
     request.destination === 'document' ||
     request.url.includes('.pdf'),
   new CacheFirst({
     cacheName: 'documents-cache',
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({ 
+      new ExpirationPlugin({
         maxEntries: CACHE_LIMITS.documents.maxEntries,
         maxAgeSeconds: CACHE_LIMITS.documents.maxAgeSeconds,
         purgeOnQuotaError: true
@@ -116,15 +116,15 @@ registerRoute(
 // ESTRATÉGIA 5: Network-First para API
 // =====================================================
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/') || 
+  ({ url }) => url.pathname.startsWith('/api/') ||
                url.origin.includes('supabase'),
   new NetworkFirst({
     cacheName: API_CACHE,
     networkTimeoutSeconds: 10,
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({ 
-        maxEntries: CACHE_LIMITS.apiResponses.maxEntries, 
+      new ExpirationPlugin({
+        maxEntries: CACHE_LIMITS.apiResponses.maxEntries,
         maxAgeSeconds: CACHE_LIMITS.apiResponses.maxAgeSeconds
       })
     ]
@@ -135,7 +135,7 @@ registerRoute(
 // ESTRATÉGIA 6: Stale-While-Revalidate para dados semi-estáticos
 // =====================================================
 registerRoute(
-  ({ url }) => 
+  ({ url }) =>
     url.pathname.includes('/faq') ||
     url.pathname.includes('/condominio') ||
     url.pathname.includes('/perfil'),
@@ -151,7 +151,7 @@ registerRoute(
 // =====================================================
 // FALLBACK OFFLINE
 // =====================================================
-const OFFLINE_PAGE = '/offline.html';
+const OFFLINE_PAGE = '/offline';
 
 // Precache da página offline
 self.addEventListener('install', (event) => {
@@ -171,10 +171,28 @@ registerRoute(
   new NavigationRoute(
     async ({ event }) => {
       try {
-        return await fetch(event.request);
+        // Timeout de 10 segundos para evitar carregamento eterno
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(event.request, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
       } catch (error) {
+        console.warn('[SW] Network request failed, serving offline page:', error);
         const cache = await caches.open(OFFLINE_CACHE);
-        return cache.match(OFFLINE_PAGE) || new Response('Offline');
+        const offlineResponse = await cache.match(OFFLINE_PAGE);
+        if (offlineResponse) {
+          return offlineResponse;
+        }
+        // Fallback se a página offline não estiver no cache
+        return new Response('Offline - Tente novamente quando estiver online', {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'Content-Type': 'text/plain' }
+        });
       }
     }
   )
@@ -189,7 +207,7 @@ const bgSyncPlugin = new BackgroundSyncPlugin('offlineQueue', {
 
 // Fila de ações offline (ocorrências, chamados)
 registerRoute(
-  ({ url, request }) => 
+  ({ url, request }) =>
     (url.pathname.includes('/ocorrencias') ||
     url.pathname.includes('/chamados')) && request.method === 'POST',
   new NetworkFirst({
@@ -204,9 +222,9 @@ registerRoute(
 // =====================================================
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  
+
   const data = event.data.json();
-  
+
   const options: NotificationOptions = {
     body: data.body,
     icon: '/icons/icon-192x192.png',
@@ -224,7 +242,7 @@ self.addEventListener('push', (event) => {
     renotify: true,
     requireInteraction: data.priority === 'high'
   };
-  
+
   // Notificação de emergência
   if (data.type === 'emergency') {
     options.vibrate = [200, 100, 200, 100, 200];
@@ -233,7 +251,7 @@ self.addEventListener('push', (event) => {
       { action: 'sos', title: '🆘 Ver Emergência' }
     ];
   }
-  
+
   event.waitUntil(
     self.registration.showNotification(data.title, options)
   );
@@ -241,9 +259,9 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
+
   const urlToOpen = event.notification.data?.url || '/';
-  
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((clientList) => {
@@ -268,7 +286,7 @@ self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-critical-data') {
     // event.waitUntil(syncCriticalData()); // Implementação no lado do cliente
   }
-  
+
   if (event.tag === 'sync-offline-actions') {
     // event.waitUntil(syncOfflineActions()); // Implementação no lado do cliente
   }
@@ -290,5 +308,18 @@ self.addEventListener('periodicsync', (event) => {
 // LIMPEZA PROATIVA DE CACHE (Placeholder para a lógica completa)
 // =====================================================
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    (async () => {
+      // Limpar caches antigos
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames
+          .filter(name => name !== OFFLINE_CACHE && !name.startsWith(CACHE_VERSION))
+          .map(name => caches.delete(name))
+      );
+
+      // Claims all clients
+      await clients.claim();
+    })()
+  );
 });

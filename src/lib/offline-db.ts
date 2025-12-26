@@ -1,6 +1,6 @@
 // src/lib/offline-db.ts
 
-import { openDB, DBSchema, IDBPDatabase } from 'idb';
+import { DBSchema, IDBPDatabase, openDB } from 'idb';
 
 interface VersixOfflineDB extends DBSchema {
   'critical-data': {
@@ -36,6 +36,31 @@ interface VersixOfflineDB extends DBSchema {
 
 let dbPromise: Promise<IDBPDatabase<VersixOfflineDB>> | null = null;
 
+export async function resetDB() {
+  if (dbPromise) {
+    try {
+      const db = await dbPromise;
+      db.close();
+    } catch (error) {
+      console.warn('[OfflineDB] Error closing DB during reset:', error);
+    }
+  }
+  dbPromise = null;
+
+  // Delete the database
+  const deleteRequest = indexedDB.deleteDatabase('versix-offline');
+  return new Promise<void>((resolve, reject) => {
+    deleteRequest.onsuccess = () => {
+      console.log('[OfflineDB] Database reset successfully');
+      resolve();
+    };
+    deleteRequest.onerror = () => {
+      console.error('[OfflineDB] Failed to reset database');
+      reject(deleteRequest.error);
+    };
+  });
+}
+
 export async function getDB() {
   if (!dbPromise) {
     dbPromise = openDB<VersixOfflineDB>('versix-offline', 1, {
@@ -44,18 +69,33 @@ export async function getDB() {
         if (!db.objectStoreNames.contains('critical-data')) {
           db.createObjectStore('critical-data', { keyPath: 'id' });
         }
-        
+
         // Store para ações pendentes
         if (!db.objectStoreNames.contains('pending-actions')) {
           const store = db.createObjectStore('pending-actions', { keyPath: 'id' });
           store.createIndex('by-created', 'createdAt');
         }
-        
+
         // Store para cache genérico
         if (!db.objectStoreNames.contains('cached-data')) {
           db.createObjectStore('cached-data', { keyPath: 'key' });
         }
+      },
+      blocked() {
+        console.warn('[OfflineDB] Database blocked, retrying...');
+        // Reset promise to try again
+        dbPromise = null;
+      },
+      blocking() {
+        console.warn('[OfflineDB] Database blocking, closing...');
+        // Reset promise to allow new connection
+        dbPromise = null;
       }
+    }).catch(error => {
+      console.error('[OfflineDB] Failed to open database:', error);
+      // Reset promise on error
+      dbPromise = null;
+      throw error;
     });
   }
   return dbPromise;
@@ -65,13 +105,23 @@ export async function getDB() {
 // DADOS CRÍTICOS (Modo Pânico)
 // =====================================================
 export async function saveCriticalData(type: string, data: any) {
-  const db = await getDB();
-  await db.put('critical-data', {
-    id: type,
-    type: type as any,
-    data,
-    updatedAt: new Date().toISOString()
-  });
+  try {
+    const db = await getDB();
+    await db.put('critical-data', {
+      id: type,
+      type: type as any,
+      data,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`[OfflineDB] Error saving ${type}:`, error);
+    // Try to reset DB if it's corrupted
+    if (error.name === 'InvalidStateError' || error.name === 'VersionError') {
+      console.warn('[OfflineDB] Attempting DB reset due to corruption');
+      await resetDB();
+    }
+    throw error;
+  }
 }
 
 export async function getCriticalData(type: string) {
@@ -95,7 +145,7 @@ export async function queueOfflineAction(action: {
 }) {
   const db = await getDB();
   const id = `action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  
+
   await db.add('pending-actions', {
     id,
     url: action.url,
@@ -104,12 +154,12 @@ export async function queueOfflineAction(action: {
     body: action.body,
     createdAt: new Date().toISOString()
   });
-  
+
   // Solicitar sync quando online
   if ('serviceWorker' in navigator && 'sync' in window.registration) {
     await (window.registration as any).sync.register('sync-offline-actions');
   }
-  
+
   return id;
 }
 
@@ -138,14 +188,14 @@ export async function setCache<T>(key: string, data: T, ttlMinutes: number = 60)
 export async function getCache<T>(key: string): Promise<T | null> {
   const db = await getDB();
   const cached = await db.get('cached-data', key);
-  
+
   if (!cached) return null;
-  
+
   // Verificar expiração
   if (new Date(cached.expiresAt) < new Date()) {
     await db.delete('cached-data', key);
     return null;
   }
-  
+
   return cached.data as T;
 }
