@@ -8,22 +8,41 @@ Para que o CI/CD funcione corretamente, adicione estes secrets no GitHub:
 
 ### Secrets OBRIGATÓRIOS:
 ```
-VERCEL_TOKEN=5YRHbVBV5TVFsdR9NnQL5d0C
-VERCEL_ORG_ID=team_lNqNbfRVjG1TSb57laOCzfWd
-VERCEL_PROJECT_ID=prj_ZJNJraYsEoF3yyAH76RYsZkd2zmt
-NEXT_PUBLIC_SUPABASE_URL=https://udryfalkvulhzoahgvqc.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkcnlmYWxrdnVsaHpvYWhndnFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzMDU1NjksImV4cCI6MjA4MTg4MTU2OX0.KT-uZUchS43ZiAK54OOFAmSX8TF6HTqsU4Qg6WM927c
+VERCEL_TOKEN
+VERCEL_ORG_ID
+VERCEL_PROJECT_ID
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```
 
 ### Secrets RECOMENDADOS:
 ```
-NEXT_PUBLIC_APP_URL=https://app.versixnorma.com.br
-NEXT_PUBLIC_APP_NAME=Versix Norma
-NEXT_PUBLIC_DEMO_CONDOMINIO_ID=your_demo_condominio_id
-NEXT_PUBLIC_DEMO_CODIGO_CONVITE=your_demo_code
-NEXT_PUBLIC_ENABLE_PWA=true
-NEXT_PUBLIC_ENABLE_NORMA_AI=true
+NEXT_PUBLIC_APP_URL
+NEXT_PUBLIC_APP_NAME
+NEXT_PUBLIC_DEMO_CONDOMINIO_ID
+NEXT_PUBLIC_DEMO_CODIGO_CONVITE
+NEXT_PUBLIC_ENABLE_PWA
+NEXT_PUBLIC_ENABLE_NORMA_AI
 ```
+
+## 📋 Valores dos Secrets
+
+### Vercel Secrets:
+- **VERCEL_TOKEN**: Obtenha em [vercel.com/account/tokens](https://vercel.com/account/tokens)
+- **VERCEL_ORG_ID**: `team_lNqNbfRVjG1TSb57laOCzfWd`
+- **VERCEL_PROJECT_ID**: `prj_ZJNJraYsEoF3yyAH76RYsZkd2zmt`
+
+### Supabase Secrets:
+- **NEXT_PUBLIC_SUPABASE_URL**: URL do seu projeto Supabase (ex: `https://xxxxx.supabase.co`)
+- **NEXT_PUBLIC_SUPABASE_ANON_KEY**: Chave anônima do Supabase (das configurações do projeto)
+
+### App Secrets:
+- **NEXT_PUBLIC_APP_URL**: `https://app.versixnorma.com.br`
+- **NEXT_PUBLIC_APP_NAME**: `Versix Norma`
+- **NEXT_PUBLIC_DEMO_CONDOMINIO_ID**: ID do condomínio de demonstração
+- **NEXT_PUBLIC_DEMO_CODIGO_CONVITE**: Código de convite de demonstração
+- **NEXT_PUBLIC_ENABLE_PWA**: `true`
+- **NEXT_PUBLIC_ENABLE_NORMA_AI**: `true`
 
 ## 🚀 Como Testar
 
