@@ -105,7 +105,7 @@ jobs:
     if: github.event_name == 'pull_request'
     environment:
       name: preview
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.deploy.outputs.deployment-url }}
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -133,14 +133,9 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Deploy to Vercel (Preview)
-        id: deploy
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Create environment file for preview
         run: |
           cd apps/web
-
-          # Criar arquivo .env.production temporário
           cat > .env.production << EOF
           NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -148,9 +143,15 @@ jobs:
           NEXT_PUBLIC_APP_NAME=${{ secrets.NEXT_PUBLIC_APP_NAME || 'Versix Norma (Preview)' }}
           EOF
 
-          # Deploy para Vercel
-          DEPLOY_URL=$(vercel deploy --prebuilt --token=$VERCEL_TOKEN)
-          echo "url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+      - name: Deploy to Vercel (Preview)
+        id: deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prebuilt'
+          working-directory: ./apps/web
 
       - name: Comment PR with preview URL
         uses: actions/github-script@v7
@@ -160,7 +161,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 **Preview Deploy**\n\nAplicativo disponível em: ${{ steps.deploy.outputs.url }}\n\n**Credenciais de teste:**\n- Email: demo@versix.com.br\n- Senha: demo123`
+              body: `🚀 **Preview Deploy**\n\nAplicativo disponível em: ${{ steps.deploy.outputs.deployment-url }}\n\n**Credenciais de teste:**\n- Email: demo@versix.com.br\n- Senha: demo123`
             })
 
   # ============================================
