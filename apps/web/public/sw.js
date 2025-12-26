@@ -1,1 +1,442 @@
-if(!self.define){let e,s={};const n=(n,a)=>(n=new URL(n+".js",a).href,s[n]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=n,e.onload=s,document.head.appendChild(e)}else e=n,importScripts(n),s()}).then(()=>{let e=s[n];if(!e)throw new Error(`Module ${n} didn’t register its module`);return e}));self.define=(a,i)=>{const c=e||("document"in self?document.currentScript.src:"")||location.href;if(s[c])return;let t={};const o=e=>n(e,c),r={module:{uri:c},exports:t,require:o};s[c]=Promise.all(a.map(e=>r[e]||o(e))).then(e=>(i(...e),t))}}define(["./workbox-01fd22c6"],function(e){"use strict";importScripts(),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"6abf36a8499d512dd8b701340e660ae6"},{url:"/_next/static/Jh9m39PTw9OXMhVkoLM03/_buildManifest.js",revision:"f881676227e6e7e952d997064aef7ca6"},{url:"/_next/static/Jh9m39PTw9OXMhVkoLM03/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/chunks/04228aa9-38b617b1ac01aa9c.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/181-744129073cb390d6.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/2-7df2d331e421eb19.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/232-63188887f2a987e9.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/370-d8e92a674775b56c.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/823-f8c46289190da411.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/_not-found/page-3ce2ff72c0893d26.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/forgot-password/page-04ba2554d8b3fca1.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/home/page-3a1d2ecbc2156746.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/layout-084a94945bdf68d1.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/login/page-b414becbec2795d0.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/offline/page-9a90a38368b7510b.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/onboarding/page-476c58a91a6a6582.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/page-2b6931db80f911bd.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/reset-password/page-6581880f54d63c8e.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/signup/page-595f08fe170b721f.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/app/welcome/page-9317f9a85b693188.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/framework-bef83a85c94ff7de.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/main-192c2ca1b7a5d58e.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/main-app-2a7f237a1c2f67b9.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/pages/_app-36719c199d6fd2b6.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/pages/_error-8165d7dff7d95840.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/chunks/polyfills-78c92fac7aa8fdd8.js",revision:"79330112775102f91e1010318bae2bd3"},{url:"/_next/static/chunks/webpack-e7b1d71df25141e9.js",revision:"Jh9m39PTw9OXMhVkoLM03"},{url:"/_next/static/css/7697b2725f5f8e1a.css",revision:"7697b2725f5f8e1a"},{url:"/_next/static/media/19cfc7226ec3afaa-s.woff2",revision:"9dda5cfc9a46f256d0e131bb535e46f8"},{url:"/_next/static/media/1f173e5e25f3efee-s.woff2",revision:"f143fb4877cf7ada1b84423ee86a0198"},{url:"/_next/static/media/21350d82a1f187e9-s.woff2",revision:"4e2553027f1d60eff32898367dd4d541"},{url:"/_next/static/media/48e2044251ef3125-s.woff2",revision:"45ea393f38e4ecd97f4dbeb12ef23877"},{url:"/_next/static/media/8e9860b6e62d6359-s.woff2",revision:"01ba6c2a184b8cba08b0d57167664d75"},{url:"/_next/static/media/904be59b21bd51cb-s.p.woff2",revision:"c154477b9affa3a0a47f894c8b80c03c"},{url:"/_next/static/media/b1f344208eb4edfe-s.woff2",revision:"b5818778898bf6d34b7423ff99c6beb4"},{url:"/_next/static/media/ba9851c3c22cd980-s.woff2",revision:"9e494903d6b0ffec1a1e14d34427d44d"},{url:"/_next/static/media/bf24a9759715e608-s.woff2",revision:"d185d272afd4e2d7b4801eabba1463a1"},{url:"/_next/static/media/c5fe6dc8356a8c31-s.woff2",revision:"027a89e9ab733a145db70f09b8a18b42"},{url:"/_next/static/media/df0a9ae256c0569c-s.woff2",revision:"d54db44de5ccb18886ece2fda72bdfe0"},{url:"/_next/static/media/e4af272ccee01ff0-s.p.woff2",revision:"65850a373e258f1c897a2b3d75eb74de"},{url:"/icons/apple-touch-icon.png",revision:"495df1d2a4bb5cbe78afb5032ab1d066"},{url:"/icons/badge-72x72.png",revision:"66b21409ed3617622ef3e62e5d57998b"},{url:"/icons/comunicados.svg",revision:"bc361711da9d39a94d873c88fb87d65f"},{url:"/icons/favicon-32x32.png",revision:"32e333b0922d5bcda7795ccffbdcc428"},{url:"/icons/icon-128x128.png",revision:"54b19a91dd9a2ebd051afec3075bf2ab"},{url:"/icons/icon-144x144.png",revision:"de32ce0d5b9d65aea7fa2d1038dd2691"},{url:"/icons/icon-152x152.png",revision:"2bbeb12963908215b1fbf4734d3ac4ce"},{url:"/icons/icon-192x192.png",revision:"9690f967d33138ba083871cf3295e98f"},{url:"/icons/icon-384x384.png",revision:"4cad2fb4085663e960b8764935d33408"},{url:"/icons/icon-512x512.png",revision:"15376571bfca6ea3573908e4b0de0eae"},{url:"/icons/icon-72x72.png",revision:"f31d08c4975c701da4802257b51d86cb"},{url:"/icons/icon-96x96.png",revision:"25da8d1ed65fff37edfece594a76ee1b"},{url:"/icons/icon.svg",revision:"35430cd5ea17f486429addf6117ecc2a"},{url:"/icons/maskable-192x192.png",revision:"93ccbef31c823b6bdb3c3774852d1437"},{url:"/icons/maskable-512x512.png",revision:"60137288b985d78626c0080b636e81f0"},{url:"/icons/sos.svg",revision:"a45cb50278825c926ea861fb82b99f9f"},{url:"/manifest.json",revision:"e524705ac26b1504382393df880021ff"},{url:"/sw.ts",revision:"12c0827c6a7104e3fe5b16690a020898"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:s,event:n,state:a})=>s&&"opaqueredirect"===s.type?new Response(s.body,{status:200,statusText:"OK",headers:s.headers}):s}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-webfonts",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:31536e3})]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,new e.StaleWhileRevalidate({cacheName:"google-fonts-stylesheets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,new e.StaleWhileRevalidate({cacheName:"static-font-assets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,new e.StaleWhileRevalidate({cacheName:"static-image-assets",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/image\?url=.+$/i,new e.StaleWhileRevalidate({cacheName:"next-image",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp3|wav|ogg)$/i,new e.CacheFirst({cacheName:"static-audio-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp4)$/i,new e.CacheFirst({cacheName:"static-video-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:js)$/i,new e.StaleWhileRevalidate({cacheName:"static-js-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:css|less)$/i,new e.StaleWhileRevalidate({cacheName:"static-style-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/data\/.+\/.+\.json$/i,new e.StaleWhileRevalidate({cacheName:"next-data",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:json|xml|csv)$/i,new e.NetworkFirst({cacheName:"static-data-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;const s=e.pathname;return!s.startsWith("/api/auth/")&&!!s.startsWith("/api/")},new e.NetworkFirst({cacheName:"apis",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:16,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;return!e.pathname.startsWith("/api/")},new e.NetworkFirst({cacheName:"others",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>!(self.origin===e.origin),new e.NetworkFirst({cacheName:"cross-origin",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:3600})]}),"GET")});
+/// <reference lib="webworker" />
+
+// ============================================
+// VERSIX NORMA - SERVICE WORKER v1.0.1
+// Cache-first para assets, Network-first para API
+// ============================================
+
+declare const self: ServiceWorkerGlobalScope;
+
+// Some lib types like SyncEvent may be missing in the consumed DOM lib.
+// Declare lightweight SyncEvent so TypeScript accepts `event: SyncEvent` usage.
+declare global {
+  interface SyncEvent extends ExtendableEvent {
+    tag: string;
+  }
+}
+
+const CACHE_VERSION = 'v1.0.1';
+const STATIC_CACHE = `norma-static-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `norma-dynamic-${CACHE_VERSION}`;
+const IMAGE_CACHE = `norma-images-${CACHE_VERSION}`;
+const API_CACHE = `norma-api-${CACHE_VERSION}`;
+
+// Assets que devem ser cacheados na instalação
+const STATIC_ASSETS = [
+  '/',
+  '/home',
+  '/login',
+  '/signup',
+  '/onboarding',
+  '/welcome',
+  '/offline',
+  '/manifest.json',
+  '/icons/icon.svg',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+];
+
+// Padrões de URL para diferentes estratégias de cache
+const CACHE_STRATEGIES = {
+  // Cache First - Assets estáticos
+  cacheFirst: [
+    /\/_next\/static\/.*/,
+    /\/icons\/.*/,
+    /\/fonts\/.*/,
+    /\.(?:js|css|woff2?)$/,
+  ],
+  // Network First - API calls
+  networkFirst: [
+    /\/api\/.*/,
+    /supabase\.co/,
+  ],
+  // Stale While Revalidate - Imagens
+  staleWhileRevalidate: [
+    /\.(?:png|jpg|jpeg|gif|svg|webp|avif)$/,
+    /images\.unsplash\.com/,
+  ],
+  // Network Only - Autenticação
+  networkOnly: [
+    /\/auth\/.*/,
+    /supabase\.co\/auth/,
+  ],
+};
+
+// ============================================
+// INSTALAÇÃO
+// ============================================
+self.addEventListener('install', (event: ExtendableEvent) => {
+  console.log('[SW] Installing Service Worker v' + CACHE_VERSION);
+
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) => {
+      console.log('[SW] Caching static assets');
+      return cache.addAll(STATIC_ASSETS).catch((err) => {
+        console.warn('[SW] Some static assets failed to cache:', err);
+      });
+    })
+  );
+
+  // Ativa imediatamente sem esperar
+  self.skipWaiting();
+});
+
+// ============================================
+// ATIVAÇÃO
+// ============================================
+self.addEventListener('activate', (event: ExtendableEvent) => {
+  console.log('[SW] Activating Service Worker v' + CACHE_VERSION);
+
+  event.waitUntil(
+    Promise.all([
+      // Limpa caches antigos
+      caches.keys().then((keys) => {
+        return Promise.all(
+          keys
+            .filter((key) => {
+              return key.startsWith('norma-') &&
+                     key !== STATIC_CACHE &&
+                     key !== DYNAMIC_CACHE &&
+                     key !== IMAGE_CACHE &&
+                     key !== API_CACHE;
+            })
+            .map((key) => {
+              console.log('[SW] Removing old cache:', key);
+              return caches.delete(key);
+            })
+        );
+      }),
+      // Assume controle de todas as páginas
+      self.clients.claim(),
+    ])
+  );
+});
+
+// ============================================
+// FETCH - Intercepta requisições
+// ============================================
+self.addEventListener('fetch', (event: FetchEvent) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Ignora requisições não-GET
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Ignora extensões do Chrome e outros
+  if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+    return;
+  }
+
+  // Determina a estratégia de cache
+  const strategy = getCacheStrategy(url.href);
+
+  switch (strategy) {
+    case 'cacheFirst':
+      event.respondWith(cacheFirst(request));
+      break;
+    case 'networkFirst':
+      event.respondWith(networkFirst(request));
+      break;
+    case 'staleWhileRevalidate':
+      event.respondWith(staleWhileRevalidate(request));
+      break;
+    case 'networkOnly':
+      event.respondWith(networkOnly(request));
+      break;
+    default:
+      event.respondWith(networkFirst(request));
+  }
+});
+
+// ============================================
+// ESTRATÉGIAS DE CACHE
+// ============================================
+
+// Cache First - Busca no cache, fallback para network
+async function cacheFirst(request: Request): Promise<Response> {
+  const cached = await caches.match(request);
+  if (cached) {
+    return cached;
+  }
+
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    return getOfflinePage();
+  }
+}
+
+// Network First - Busca na network, fallback para cache
+async function networkFirst(request: Request): Promise<Response> {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
+    return getOfflinePage();
+  }
+}
+
+// Stale While Revalidate - Retorna cache imediato, atualiza em background
+async function staleWhileRevalidate(request: Request): Promise<Response> {
+  const cache = await caches.open(IMAGE_CACHE);
+  const cached = await cache.match(request);
+
+  const fetchPromise = fetch(request).then((response) => {
+    if (response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  }).catch(() => null);
+
+  return cached || (await fetchPromise) || getOfflinePage();
+}
+
+// Network Only - Sempre busca na network
+async function networkOnly(request: Request): Promise<Response> {
+  try {
+    return await fetch(request);
+  } catch (error) {
+    return new Response(JSON.stringify({ error: 'Network unavailable' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+function getCacheStrategy(url: string): string {
+  for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
+    for (const pattern of patterns) {
+      if (pattern.test(url)) {
+        return strategy;
+      }
+    }
+  }
+  return 'networkFirst';
+}
+
+async function getOfflinePage(): Promise<Response> {
+  const cached = await caches.match('/offline');
+  if (cached) {
+    return cached;
+  }
+
+  return new Response(
+    `<!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Offline - Norma</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: system-ui, -apple-system, sans-serif;
+          background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+          color: white;
+          text-align: center;
+          padding: 20px;
+        }
+        .container { max-width: 400px; }
+        .icon { font-size: 64px; margin-bottom: 24px; }
+        h1 { font-size: 24px; margin-bottom: 12px; }
+        p { opacity: 0.8; margin-bottom: 24px; line-height: 1.5; }
+        button {
+          background: #e94560;
+          color: white;
+          border: none;
+          padding: 12px 32px;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.2s;
+        }
+        button:active { transform: scale(0.95); }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="icon">📡</div>
+        <h1>Você está offline</h1>
+        <p>Verifique sua conexão com a internet e tente novamente. Algumas funcionalidades podem estar indisponíveis.</p>
+        <button onclick="location.reload()">Tentar novamente</button>
+      </div>
+    </body>
+    </html>`,
+    {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    }
+  );
+}
+
+// ============================================
+// PUSH NOTIFICATIONS
+// ============================================
+self.addEventListener('push', (event: PushEvent) => {
+  console.log('[SW] Push notification received');
+
+  let data = {
+    title: 'Norma',
+    body: 'Você tem uma nova notificação',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
+    tag: 'norma-notification',
+    data: { url: '/home' },
+  };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      data = { ...data, ...payload };
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(
+      data.title,
+      {
+        body: data.body,
+        icon: data.icon,
+        badge: data.badge,
+        tag: data.tag,
+        data: data.data,
+        vibrate: [200, 100, 200],
+        actions: [
+          { action: 'open', title: 'Abrir' },
+          { action: 'close', title: 'Fechar' },
+        ],
+      } as NotificationOptions
+    )
+  );
+});
+
+// ============================================
+// NOTIFICATION CLICK
+// ============================================
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+  console.log('[SW] Notification clicked:', event.action);
+
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  const urlToOpen = event.notification.data?.url || '/home';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      // Se já tem uma janela aberta, foca nela
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(urlToOpen);
+          return client.focus();
+        }
+      }
+      // Se não, abre uma nova janela
+      return self.clients.openWindow(urlToOpen);
+    })
+  );
+});
+
+// ============================================
+// BACKGROUND SYNC
+// ============================================
+self.addEventListener('sync', (event: any) => {
+  console.log('[SW] Background sync:', event.tag);
+
+  if (event.tag === 'sync-chamados') {
+    event.waitUntil(syncChamados());
+  }
+
+  if (event.tag === 'sync-messages') {
+    event.waitUntil(syncMessages());
+  }
+});
+
+async function syncChamados(): Promise<void> {
+  // Busca chamados pendentes do IndexedDB e envia para o servidor
+  console.log('[SW] Syncing chamados...');
+  // Implementação depende do IndexedDB setup
+}
+
+async function syncMessages(): Promise<void> {
+  // Busca mensagens pendentes do IndexedDB e envia para o servidor
+  console.log('[SW] Syncing messages...');
+  // Implementação depende do IndexedDB setup
+}
+
+// ============================================
+// PERIODIC BACKGROUND SYNC (se disponível)
+// ============================================
+self.addEventListener('periodicsync', (event: any) => {
+  if (event.tag === 'update-content') {
+    event.waitUntil(updateContent());
+  }
+});
+
+async function updateContent(): Promise<void> {
+  console.log('[SW] Periodic sync: updating content');
+  // Atualiza cache de conteúdo importante
+  const cache = await caches.open(DYNAMIC_CACHE);
+  try {
+    const response = await fetch('/api/updates');
+    if (response.ok) {
+      await cache.put('/api/updates', response);
+    }
+  } catch (e) {
+    console.warn('[SW] Failed to update content');
+  }
+}
+
+// ============================================
+// MESSAGE HANDLER
+// ============================================
+self.addEventListener('message', (event: ExtendableMessageEvent) => {
+  console.log('[SW] Message received:', event.data);
+
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+
+  if (event.data?.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((keys) => {
+        return Promise.all(keys.map((key) => caches.delete(key)));
+      })
+    );
+  }
+
+  if (event.data?.type === 'GET_VERSION') {
+    event.ports[0]?.postMessage({ version: CACHE_VERSION });
+  }
+});
+
+export { };
+

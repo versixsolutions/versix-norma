@@ -32,9 +32,19 @@ const CACHE_LIMITS = {
 // Limpar caches antigos
 cleanupOutdatedCaches();
 
-// Precache de assets do build
-// self.__WB_MANIFEST será injetado pelo workbox-webpack-plugin
-precacheAndRoute(self.__WB_MANIFEST || []);
+// =====================================================
+// PRECACHING MANUAL - apenas assets essenciais
+// =====================================================
+const essentialAssets = [
+  '/',
+  '/offline',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+];
+
+// Precache apenas assets essenciais e confiáveis
+precacheAndRoute(essentialAssets);
 
 // =====================================================
 // ESTRATÉGIA 1: Cache-First para assets estáticos
@@ -57,23 +67,21 @@ registerRoute(
 );
 
 // =====================================================
-// ESTRATÉGIA 2: Cache-First para imagens genéricas
+// ESTRATÉGIA 1.1: Cache-First para arquivos _next/static
 // =====================================================
 registerRoute(
-  ({ request }) => request.destination === 'image' && !request.url.includes('/storage/'),
+  ({ url }) => url.pathname.startsWith('/_next/static/'),
   new CacheFirst({
-    cacheName: 'images',
+    cacheName: 'next-static-assets',
     plugins: [
       new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({
-        maxEntries: CACHE_LIMITS.images.maxEntries,
-        maxAgeSeconds: CACHE_LIMITS.images.maxAgeSeconds
+        maxEntries: 200,
+        maxAgeSeconds: 30 * 24 * 60 * 60 // 30 dias
       })
     ]
   })
 );
-
-// =====================================================
 // ESTRATÉGIA 3: Cache-First para fotos de ocorrências (maior, mas controlado)
 // =====================================================
 registerRoute(
