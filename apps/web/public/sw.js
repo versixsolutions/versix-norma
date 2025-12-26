@@ -1,19 +1,7 @@
-/// <reference lib="webworker" />
-
 // ============================================
 // VERSIX NORMA - SERVICE WORKER v1.0.1
 // Cache-first para assets, Network-first para API
 // ============================================
-
-declare const self: ServiceWorkerGlobalScope;
-
-// Some lib types like SyncEvent may be missing in the consumed DOM lib.
-// Declare lightweight SyncEvent so TypeScript accepts `event: SyncEvent` usage.
-declare global {
-  interface SyncEvent extends ExtendableEvent {
-    tag: string;
-  }
-}
 
 const CACHE_VERSION = 'v1.0.1';
 const STATIC_CACHE = `norma-static-${CACHE_VERSION}`;
@@ -23,420 +11,322 @@ const API_CACHE = `norma-api-${CACHE_VERSION}`;
 
 // Assets que devem ser cacheados na instalação
 const STATIC_ASSETS = [
-  '/',
-  '/home',
-  '/login',
-  '/signup',
-  '/onboarding',
-  '/welcome',
-  '/offline',
-  '/manifest.json',
-  '/icons/icon.svg',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+    '/',
+    '/home',
+    '/login',
+    '/signup',
+    '/onboarding',
+    '/welcome',
+    '/offline',
+    '/manifest.json',
+    '/icons/icon.svg',
+    '/icons/icon-192x192.png',
+    '/icons/icon-512x512.png',
 ];
 
 // Padrões de URL para diferentes estratégias de cache
 const CACHE_STRATEGIES = {
-  // Cache First - Assets estáticos
-  cacheFirst: [
-    /\/_next\/static\/.*/,
-    /\/icons\/.*/,
-    /\/fonts\/.*/,
-    /\.(?:js|css|woff2?)$/,
-  ],
-  // Network First - API calls
-  networkFirst: [
-    /\/api\/.*/,
-    /supabase\.co/,
-  ],
-  // Stale While Revalidate - Imagens
-  staleWhileRevalidate: [
-    /\.(?:png|jpg|jpeg|gif|svg|webp|avif)$/,
-    /images\.unsplash\.com/,
-  ],
-  // Network Only - Autenticação
-  networkOnly: [
-    /\/auth\/.*/,
-    /supabase\.co\/auth/,
-  ],
+    // Cache First - Assets estáticos
+    cacheFirst: [
+        /\/_next\/static\/.*/,
+        /\/icons\/.*/,
+        /\/fonts\/.*/,
+        /\.(?:js|css|woff2?)$/,
+    ],
+    // Network First - API calls
+    networkFirst: [
+        /\/api\/.*/,
+        /supabase\.co/,
+    ],
+    // Stale While Revalidate - Imagens
+    staleWhileRevalidate: [
+        /\.(?:png|jpg|jpeg|gif|svg|webp|avif)$/,
+        /images\.unsplash\.com/,
+    ],
+    // Network Only - Autenticação
+    networkOnly: [
+        /\/auth\/.*/,
+        /supabase\.co\/auth/,
+    ],
 };
 
 // ============================================
 // INSTALAÇÃO
 // ============================================
-self.addEventListener('install', (event: ExtendableEvent) => {
-  console.log('[SW] Installing Service Worker v' + CACHE_VERSION);
-
-  event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
-      console.log('[SW] Caching static assets');
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('[SW] Some static assets failed to cache:', err);
-      });
-    })
-  );
-
-  // Ativa imediatamente sem esperar
-  self.skipWaiting();
+self.addEventListener('install', (event) => {
+    console.log('[SW] Installing Service Worker v' + CACHE_VERSION);
+    event.waitUntil(
+        caches.open(STATIC_CACHE).then((cache) => {
+            console.log('[SW] Caching static assets');
+            return cache.addAll(STATIC_ASSETS).catch((err) => {
+                console.warn('[SW] Some static assets failed to cache:', err);
+            });
+        })
+    );
+    // Ativa imediatamente sem esperar
+    self.skipWaiting();
 });
 
 // ============================================
 // ATIVAÇÃO
 // ============================================
-self.addEventListener('activate', (event: ExtendableEvent) => {
-  console.log('[SW] Activating Service Worker v' + CACHE_VERSION);
-
-  event.waitUntil(
-    Promise.all([
-      // Limpa caches antigos
-      caches.keys().then((keys) => {
-        return Promise.all(
-          keys
-            .filter((key) => {
-              return key.startsWith('norma-') &&
-                     key !== STATIC_CACHE &&
-                     key !== DYNAMIC_CACHE &&
-                     key !== IMAGE_CACHE &&
-                     key !== API_CACHE;
-            })
-            .map((key) => {
-              console.log('[SW] Removing old cache:', key);
-              return caches.delete(key);
-            })
-        );
-      }),
-      // Assume controle de todas as páginas
-      self.clients.claim(),
-    ])
-  );
+self.addEventListener('activate', (event) => {
+    console.log('[SW] Activating Service Worker v' + CACHE_VERSION);
+    event.waitUntil(
+        Promise.all([
+            // Limpa caches antigos
+            caches.keys().then((keys) => {
+                return Promise.all(
+                    keys
+                        .filter((key) => {
+                            return key.startsWith('norma-') &&
+                                key !== STATIC_CACHE &&
+                                key !== DYNAMIC_CACHE &&
+                                key !== IMAGE_CACHE &&
+                                key !== API_CACHE;
+                        })
+                        .map((key) => {
+                            console.log('[SW] Removing old cache:', key);
+                            return caches.delete(key);
+                        })
+                );
+            }),
+            // Assume controle de todas as páginas
+            self.clients.claim(),
+        ])
+    );
 });
 
 // ============================================
 // FETCH - Intercepta requisições
 // ============================================
-self.addEventListener('fetch', (event: FetchEvent) => {
-  const { request } = event;
-  const url = new URL(request.url);
+self.addEventListener('fetch', (event) => {
+    const { request } = event;
+    const url = new URL(request.url);
 
-  // Ignora requisições não-GET
-  if (request.method !== 'GET') {
-    return;
-  }
+    // Ignora requisições não-GET
+    if (request.method !== 'GET') {
+        return;
+    }
 
-  // Ignora extensões do Chrome e outros
-  if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
-    return;
-  }
+    // Ignora extensões do Chrome e outros
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:') {
+        return;
+    }
 
-  // Determina a estratégia de cache
-  const strategy = getCacheStrategy(url.href);
+    // Determina a estratégia de cache
+    const strategy = getCacheStrategy(url.href);
 
-  switch (strategy) {
-    case 'cacheFirst':
-      event.respondWith(cacheFirst(request));
-      break;
-    case 'networkFirst':
-      event.respondWith(networkFirst(request));
-      break;
-    case 'staleWhileRevalidate':
-      event.respondWith(staleWhileRevalidate(request));
-      break;
-    case 'networkOnly':
-      event.respondWith(networkOnly(request));
-      break;
-    default:
-      event.respondWith(networkFirst(request));
-  }
+    if (strategy === 'network-only') {
+        // Network Only - passa direto
+        return;
+    }
+
+    event.respondWith(
+        handleRequest(request, strategy)
+    );
 });
 
 // ============================================
-// ESTRATÉGIAS DE CACHE
+// FUNÇÕES AUXILIARES
 // ============================================
 
-// Cache First - Busca no cache, fallback para network
-async function cacheFirst(request: Request): Promise<Response> {
-  const cached = await caches.match(request);
-  if (cached) {
-    return cached;
-  }
-
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, response.clone());
+function getCacheStrategy(url) {
+    for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
+        for (const pattern of patterns) {
+            if (pattern.test(url)) {
+                return strategy;
+            }
+        }
     }
-    return response;
-  } catch (error) {
-    return getOfflinePage();
-  }
+    // Default: Cache First para navegação
+    return url.pathname === '/' || !url.pathname.includes('.') ? 'network-first' : 'cache-first';
 }
 
-// Network First - Busca na network, fallback para cache
-async function networkFirst(request: Request): Promise<Response> {
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, response.clone());
+async function handleRequest(request, strategy) {
+    const url = new URL(request.url);
+
+    switch (strategy) {
+        case 'cache-first':
+            return handleCacheFirst(request);
+        case 'network-first':
+            return handleNetworkFirst(request);
+        case 'stale-while-revalidate':
+            return handleStaleWhileRevalidate(request);
+        default:
+            return fetch(request);
     }
-    return response;
-  } catch (error) {
-    const cached = await caches.match(request);
-    if (cached) {
-      return cached;
-    }
-    return getOfflinePage();
-  }
 }
 
-// Stale While Revalidate - Retorna cache imediato, atualiza em background
-async function staleWhileRevalidate(request: Request): Promise<Response> {
-  const cache = await caches.open(IMAGE_CACHE);
-  const cached = await cache.match(request);
+async function handleCacheFirst(request) {
+    const cache = await caches.open(STATIC_CACHE);
+    const cachedResponse = await cache.match(request);
 
-  const fetchPromise = fetch(request).then((response) => {
-    if (response.ok) {
-      cache.put(request, response.clone());
+    if (cachedResponse) {
+        return cachedResponse;
     }
-    return response;
-  }).catch(() => null);
 
-  return cached || (await fetchPromise) || getOfflinePage();
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+    } catch (error) {
+        console.warn('[SW] Cache-first failed:', error);
+        return new Response('Offline', { status: 503 });
+    }
 }
 
-// Network Only - Sempre busca na network
-async function networkOnly(request: Request): Promise<Response> {
-  try {
-    return await fetch(request);
-  } catch (error) {
-    return new Response(JSON.stringify({ error: 'Network unavailable' }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' },
+async function handleNetworkFirst(request) {
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            const cache = await caches.open(DYNAMIC_CACHE);
+            cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+    } catch (error) {
+        console.log('[SW] Network failed, trying cache:', error);
+        const cache = await caches.open(DYNAMIC_CACHE);
+        const cachedResponse = await cache.match(request);
+
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
+        // Fallback para página offline
+        if (request.destination === 'document') {
+            const offlineCache = await caches.open(STATIC_CACHE);
+            return offlineCache.match('/offline') || new Response('Offline', { status: 503 });
+        }
+
+        return new Response('Offline', { status: 503 });
+    }
+}
+
+async function handleStaleWhileRevalidate(request) {
+    const cache = await caches.open(IMAGE_CACHE);
+    const cachedResponse = await cache.match(request);
+
+    const fetchPromise = fetch(request).then((networkResponse) => {
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+    }).catch((error) => {
+        console.warn('[SW] Stale-while-revalidate fetch failed:', error);
     });
-  }
-}
 
-// ============================================
-// HELPERS
-// ============================================
-
-function getCacheStrategy(url: string): string {
-  for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
-    for (const pattern of patterns) {
-      if (pattern.test(url)) {
-        return strategy;
-      }
+    if (cachedResponse) {
+        // Retorna cache e atualiza em background
+        fetchPromise;
+        return cachedResponse;
     }
-  }
-  return 'networkFirst';
-}
 
-async function getOfflinePage(): Promise<Response> {
-  const cached = await caches.match('/offline');
-  if (cached) {
-    return cached;
-  }
-
-  return new Response(
-    `<!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Offline - Norma</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: system-ui, -apple-system, sans-serif;
-          background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
-          color: white;
-          text-align: center;
-          padding: 20px;
-        }
-        .container { max-width: 400px; }
-        .icon { font-size: 64px; margin-bottom: 24px; }
-        h1 { font-size: 24px; margin-bottom: 12px; }
-        p { opacity: 0.8; margin-bottom: 24px; line-height: 1.5; }
-        button {
-          background: #e94560;
-          color: white;
-          border: none;
-          padding: 12px 32px;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: transform 0.2s;
-        }
-        button:active { transform: scale(0.95); }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="icon">📡</div>
-        <h1>Você está offline</h1>
-        <p>Verifique sua conexão com a internet e tente novamente. Algumas funcionalidades podem estar indisponíveis.</p>
-        <button onclick="location.reload()">Tentar novamente</button>
-      </div>
-    </body>
-    </html>`,
-    {
-      status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    }
-  );
+    // Se não tem cache, espera pela rede
+    return fetchPromise || new Response('Offline', { status: 503 });
 }
 
 // ============================================
 // PUSH NOTIFICATIONS
 // ============================================
-self.addEventListener('push', (event: PushEvent) => {
-  console.log('[SW] Push notification received');
+self.addEventListener('push', (event) => {
+    if (!event.data) return;
 
-  let data = {
-    title: 'Norma',
-    body: 'Você tem uma nova notificação',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
-    tag: 'norma-notification',
-    data: { url: '/home' },
-  };
+    const data = event.data.json();
 
-  if (event.data) {
-    try {
-      const payload = event.data.json();
-      data = { ...data, ...payload };
-    } catch (e) {
-      data.body = event.data.text();
-    }
-  }
-
-  event.waitUntil(
-    self.registration.showNotification(
-      data.title,
-      {
+    const options = {
         body: data.body,
-        icon: data.icon,
-        badge: data.badge,
-        tag: data.tag,
-        data: data.data,
-        vibrate: [200, 100, 200],
-        actions: [
-          { action: 'open', title: 'Abrir' },
-          { action: 'close', title: 'Fechar' },
-        ],
-      } as NotificationOptions
-    )
-  );
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
+        vibrate: [100, 50, 100],
+        data: {
+            url: data.url || '/',
+            notificationId: data.id
+        },
+        tag: data.tag || 'default',
+        renotify: true,
+        requireInteraction: data.priority === 'high'
+    };
+
+    // Notificação de emergência
+    if (data.type === 'emergency') {
+        options.vibrate = [200, 100, 200, 100, 200];
+        options.requireInteraction = true;
+    }
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
 });
 
-// ============================================
-// NOTIFICATION CLICK
-// ============================================
-self.addEventListener('notificationclick', (event: NotificationEvent) => {
-  console.log('[SW] Notification clicked:', event.action);
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
 
-  event.notification.close();
+    const urlToOpen = event.notification.data?.url || '/';
 
-  if (event.action === 'close') {
-    return;
-  }
-
-  const urlToOpen = event.notification.data?.url || '/home';
-
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // Se já tem uma janela aberta, foca nela
-      for (const client of clients) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          client.navigate(urlToOpen);
-          return client.focus();
-        }
-      }
-      // Se não, abre uma nova janela
-      return self.clients.openWindow(urlToOpen);
-    })
-  );
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then((clientList) => {
+                // Se já tem uma janela aberta, foca nela
+                for (const client of clientList) {
+                    if (client.url.includes(self.location.origin) && 'focus' in client) {
+                        client.focus();
+                        client.navigate(urlToOpen);
+                        return;
+                    }
+                }
+                // Se não, abre nova janela
+                return clients.openWindow(urlToOpen);
+            })
+    );
 });
 
 // ============================================
 // BACKGROUND SYNC
 // ============================================
-self.addEventListener('sync', (event: any) => {
-  console.log('[SW] Background sync:', event.tag);
-
-  if (event.tag === 'sync-chamados') {
-    event.waitUntil(syncChamados());
-  }
-
-  if (event.tag === 'sync-messages') {
-    event.waitUntil(syncMessages());
-  }
-});
-
-async function syncChamados(): Promise<void> {
-  // Busca chamados pendentes do IndexedDB e envia para o servidor
-  console.log('[SW] Syncing chamados...');
-  // Implementação depende do IndexedDB setup
-}
-
-async function syncMessages(): Promise<void> {
-  // Busca mensagens pendentes do IndexedDB e envia para o servidor
-  console.log('[SW] Syncing messages...');
-  // Implementação depende do IndexedDB setup
-}
-
-// ============================================
-// PERIODIC BACKGROUND SYNC (se disponível)
-// ============================================
-self.addEventListener('periodicsync', (event: any) => {
-  if (event.tag === 'update-content') {
-    event.waitUntil(updateContent());
-  }
-});
-
-async function updateContent(): Promise<void> {
-  console.log('[SW] Periodic sync: updating content');
-  // Atualiza cache de conteúdo importante
-  const cache = await caches.open(DYNAMIC_CACHE);
-  try {
-    const response = await fetch('/api/updates');
-    if (response.ok) {
-      await cache.put('/api/updates', response);
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-critical-data') {
+        event.waitUntil(syncCriticalData());
     }
-  } catch (e) {
-    console.warn('[SW] Failed to update content');
-  }
-}
 
-// ============================================
-// MESSAGE HANDLER
-// ============================================
-self.addEventListener('message', (event: ExtendableMessageEvent) => {
-  console.log('[SW] Message received:', event.data);
-
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-
-  if (event.data?.type === 'CLEAR_CACHE') {
-    event.waitUntil(
-      caches.keys().then((keys) => {
-        return Promise.all(keys.map((key) => caches.delete(key)));
-      })
-    );
-  }
-
-  if (event.data?.type === 'GET_VERSION') {
-    event.ports[0]?.postMessage({ version: CACHE_VERSION });
-  }
+    if (event.tag === 'sync-offline-actions') {
+        event.waitUntil(syncOfflineActions());
+    }
 });
 
-export { };
+// ============================================
+// PERIODIC SYNC
+// ============================================
+self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'update-critical-data') {
+        event.waitUntil(syncCriticalData());
+    }
+    if (event.tag === 'cache-cleanup') {
+        event.waitUntil(cleanupOldCaches());
+    }
+});
 
+// ============================================
+// FUNÇÕES PLACEHOLDER
+// ============================================
+async function syncCriticalData() {
+    console.log('[SW] Syncing critical data...');
+    // Implementação será feita no lado do cliente
+}
+
+async function syncOfflineActions() {
+    console.log('[SW] Syncing offline actions...');
+    // Implementação será feita no lado do cliente
+}
+
+async function cleanupOldCaches() {
+    console.log('[SW] Cleaning up old caches...');
+    const keys = await caches.keys();
+    await Promise.all(
+        keys
+            .filter(key => key.startsWith('norma-') && !key.includes(CACHE_VERSION))
+            .map(key => caches.delete(key))
+    );
+}
