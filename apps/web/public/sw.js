@@ -131,16 +131,22 @@ self.addEventListener('fetch', (event) => {
 // FUNÇÕES AUXILIARES
 // ============================================
 
-function getCacheStrategy(url) {
+function getCacheStrategy(urlString) {
     for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
         for (const pattern of patterns) {
-            if (pattern.test(url)) {
+            if (pattern.test(urlString)) {
                 return strategy;
             }
         }
     }
     // Default: Cache First para navegação
-    return url.pathname === '/' || !url.pathname.includes('.') ? 'network-first' : 'cache-first';
+    try {
+        const url = new URL(urlString);
+        return url.pathname === '/' || !url.pathname.includes('.') ? 'network-first' : 'cache-first';
+    } catch (error) {
+        // Fallback se URL for inválida
+        return 'cache-first';
+    }
 }
 
 async function handleRequest(request, strategy) {
