@@ -4,16 +4,16 @@
   "private": true,
   "packageManager": "pnpm@8.15.0",
   "engines": {
-    "node": ">=18.17.0",
+    "node": ">=20.0.0",
     "pnpm": ">=8.0.0"
   },
   "scripts": {
     "dev": "pnpm --filter @versix/web dev",
     "build": "pnpm --filter @versix/web build",
     "start": "pnpm --filter @versix/web start",
-    "lint": "pnpm --filter @versix/web lint",
-    "lint:fix": "pnpm --filter @versix/web lint -- --fix",
-    "type-check": "pnpm --filter @versix/web type-check",
+    "lint": "eslint apps/web/src --ext .ts,.tsx",
+    "lint:fix": "pnpm lint -- --fix",
+    "type-check": "tsc --noEmit -p apps/web",
     "clean": "rm -rf node_modules apps/web/node_modules apps/web/.next",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "prepare": "husky install || true"

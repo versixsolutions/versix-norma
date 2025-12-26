@@ -1,18 +1,7 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    {
-      "src": "/en/?",
-      "dest": "/login"
-    },
-    {
-      "src": "/pt-BR/?",
-      "dest": "/login"
-    },
-    {
-      "src": "^/$",
-      "dest": "/login"
-    }
-  ]
+  "buildCommand": "pnpm run build",
+  "devCommand": "pnpm run dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next"
 }

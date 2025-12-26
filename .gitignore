@@ -52,3 +52,4 @@ public/sw.js.map
 
 # Debug
 .debug
+.env*.local
