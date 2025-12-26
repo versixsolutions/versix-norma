@@ -14,6 +14,8 @@ on:
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  NEXT_PUBLIC_SUPABASE_URL: "https://udryfalkvulhzoahgvqc.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkcnlmYWxrdnVsaHpvYWhndnFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzMDU1NjksImV4cCI6MjA4MTg4MTU2OX0.KT-uZUchS43ZiAK54OOFAmSX8TF6HTqsU4Qg6WM927c"
 
 jobs:
   deploy-preview:
