@@ -2,7 +2,7 @@
   "name": "Versix Norma",
   "short_name": "Norma",
   "description": "Plataforma de Governança Condominial Inteligente com IA",
-  "start_url": "/home",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
@@ -14,7 +14,7 @@
   "categories": ["lifestyle", "utilities", "productivity", "business"],
   "iarc_rating_id": "",
   "prefer_related_applications": false,
-  
+
   "icons": [
     {
       "src": "/icons/icon.svg",
@@ -83,7 +83,7 @@
       "purpose": "maskable"
     }
   ],
-  
+
   "screenshots": [
     {
       "src": "/screenshots/home-light.png",
@@ -107,7 +107,7 @@
       "label": "Transparência financeira"
     }
   ],
-  
+
   "shortcuts": [
     {
       "name": "Comunicados",
@@ -162,7 +162,7 @@
       ]
     }
   ],
-  
+
   "share_target": {
     "action": "/home/share",
     "method": "POST",
@@ -179,26 +179,26 @@
       ]
     }
   },
-  
+
   "protocol_handlers": [
     {
       "protocol": "web+norma",
       "url": "/home?action=%s"
     }
   ],
-  
+
   "related_applications": [],
-  
+
   "edge_side_panel": {
     "preferred_width": 400
   },
-  
+
   "handle_links": "preferred",
-  
+
   "launch_handler": {
     "client_mode": ["focus-existing", "auto"]
   },
-  
+
   "file_handlers": [
     {
       "action": "/home/upload",
