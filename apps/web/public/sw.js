@@ -138,26 +138,43 @@ self.addEventListener('fetch', (event) => {
 function getCacheStrategy(urlString) {
     // Validação de entrada
     if (!urlString || typeof urlString !== 'string') {
+        console.log('[SW] Invalid urlString:', urlString);
+        return 'network-first';
+    }
+
+    console.log('[SW] Processing URL:', urlString);
+
+    // Verifica se CACHE_STRATEGIES existe
+    if (!CACHE_STRATEGIES || typeof CACHE_STRATEGIES !== 'object') {
+        console.error('[SW] CACHE_STRATEGIES not defined or invalid');
         return 'network-first';
     }
 
     // Itera sobre as estratégias
     for (const [strategy, patterns] of Object.entries(CACHE_STRATEGIES)) {
+        console.log('[SW] Checking strategy:', strategy, 'patterns:', patterns);
+
         // Verifica se patterns é um array válido
         if (!Array.isArray(patterns)) {
+            console.warn('[SW] Patterns is not an array for strategy:', strategy);
             continue;
         }
 
         for (const pattern of patterns) {
+            console.log('[SW] Testing pattern:', pattern, 'against:', urlString);
+
             // Verifica se pattern é uma RegExp válida
             if (pattern && typeof pattern.test === 'function') {
                 try {
                     if (pattern.test(urlString)) {
+                        console.log('[SW] Match found for strategy:', strategy);
                         return strategy;
                     }
                 } catch (e) {
                     console.warn('[SW] Pattern test failed:', e);
                 }
+            } else {
+                console.warn('[SW] Invalid pattern:', pattern);
             }
         }
     }
@@ -165,9 +182,14 @@ function getCacheStrategy(urlString) {
     // Default: network-first para navegação, cache-first para assets
     try {
         const url = new URL(urlString);
-        const isNavigation = url.pathname === '/' || (url.pathname && !url.pathname.includes('.'));
+        console.log('[SW] URL parsed:', url.href, 'pathname:', url.pathname);
+
+        const isNavigation = url.pathname === '/' || (url.pathname && typeof url.pathname === 'string' && !url.pathname.includes('.'));
+        console.log('[SW] isNavigation:', isNavigation, 'for pathname:', url.pathname);
+
         return isNavigation ? 'network-first' : 'cache-first';
     } catch (e) {
+        console.warn('[SW] URL parsing failed:', e);
         return 'network-first';
     }
 }
