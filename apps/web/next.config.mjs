@@ -12,11 +12,6 @@ const withPWA = withPWAInit({
 const nextConfig = {
   reactStrictMode: true,
 
-  i18n: {
-    locales: ['pt-BR', 'en'],
-    defaultLocale: 'pt-BR',
-  },
-
   images: {
     remotePatterns: [
       {
