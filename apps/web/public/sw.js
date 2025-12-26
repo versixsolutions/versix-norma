@@ -161,7 +161,7 @@ function getCacheStrategy(urlString) {
     // Default: network-first para navegação, cache-first para assets
     try {
         const url = new URL(urlString);
-        const isNavigation = url.pathname === '/' || !url.pathname.includes('.');
+        const isNavigation = url.pathname === '/' || (url.pathname && !url.pathname.includes('.'));
         return isNavigation ? 'network-first' : 'cache-first';
     } catch (e) {
         return 'network-first';
