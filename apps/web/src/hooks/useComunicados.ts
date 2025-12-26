@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { Comunicado } from '@/types/database';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -32,7 +32,7 @@ interface UseComunicadosReturn {
 // ============================================
 export function useComunicados({ condominioId, userId }: UseComunicadosOptions): UseComunicadosReturn {
   const supabase = getSupabaseClient();
-  
+
   const [comunicados, setComunicados] = useState<ComunicadoComLeitura[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -108,7 +108,7 @@ export function useComunicados({ condominioId, userId }: UseComunicadosOptions):
     };
 
     checkAndFetch();
-  }, [fetchComunicados, condominioId]);
+  }, [fetchComunicados, condominioId, supabase]);
 
   // Realtime subscription
   useEffect(() => {
@@ -162,7 +162,7 @@ export function useComunicados({ condominioId, userId }: UseComunicadosOptions):
 
     try {
       const naoLidosIds = comunicados.filter((c) => !c.lido).map((c) => c.id);
-      
+
       if (naoLidosIds.length === 0) return;
 
       await supabase

@@ -134,7 +134,7 @@ export function useAuth() {
     const initAuth = async () => {
       try {
         // Tentar múltiplas vezes para PWA
-        let session = null;
+        let session: Session | null = null;
         let attempts = 0;
         const maxAttempts = 3;
 

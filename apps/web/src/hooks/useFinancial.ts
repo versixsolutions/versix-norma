@@ -247,12 +247,30 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
   // Initial load
   useEffect(() => {
-    if (condominioId && isAuthenticated) {
+    const checkAndLoad = async () => {
+      if (!condominioId) {
+        setLoading(false);
+        return;
+      }
+
+      // Verificar se há sessão válida
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Session check failed:', error);
+        setLoading(false);
+        return;
+      }
+
       refresh();
-    } else {
-      setLoading(false);
-    }
-  }, [condominioId, refresh, isAuthenticated]);
+    };
+
+    checkAndLoad();
+  }, [condominioId, refresh]);
 
   // ============================================
   // MUTATIONS
