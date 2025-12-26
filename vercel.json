@@ -1,4 +1,9 @@
 {
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
+  "devCommand": "pnpm dev",
+  "framework": "nextjs",
+  "rootDirectory": "apps/web",
   "cleanUrls": true,
   "trailingSlash": false,
   "routes": [
