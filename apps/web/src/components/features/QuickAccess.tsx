@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 const quickItems = [
   {
     id: 'assemblies',
@@ -41,6 +43,32 @@ const quickItems = [
     decorColor: 'bg-accent-green/20',
   },
   {
+    id: 'chamados',
+    icon: 'support_agent',
+    title: 'Chamados',
+    desc: 'Solicitações',
+    badge: '2 pendentes',
+    bgColor: 'bg-purple-50/80 dark:bg-card-dark',
+    borderColor: 'border-purple-100 dark:border-gray-700',
+    iconBg: 'bg-white dark:bg-purple-900/30',
+    iconColor: 'text-purple-500',
+    badgeColor: 'bg-purple-100 text-purple-600',
+    decorColor: 'bg-purple-200/20',
+  },
+  {
+    id: 'ocorrencias',
+    icon: 'report_problem',
+    title: 'Ocorrências',
+    desc: 'Reportar Problemas',
+    badge: 'novo',
+    bgColor: 'bg-red-50/80 dark:bg-card-dark',
+    borderColor: 'border-red-100 dark:border-gray-700',
+    iconBg: 'bg-white dark:bg-red-900/30',
+    iconColor: 'text-red-500',
+    badgeColor: 'bg-red-100 text-red-600',
+    decorColor: 'bg-red-200/20',
+  },
+  {
     id: 'bibliotecas',
     icon: 'library_books',
     title: 'Bibliotecas',
@@ -56,6 +84,33 @@ const quickItems = [
 ];
 
 export function QuickAccess() {
+  const router = useRouter();
+
+  const handleItemClick = (itemId: string) => {
+    switch (itemId) {
+      case 'assemblies':
+        router.push('/assembleias');
+        break;
+      case 'comunicados':
+        router.push('/comunicados');
+        break;
+      case 'faqs':
+        router.push('/faq');
+        break;
+      case 'chamados':
+        router.push('/chamados');
+        break;
+      case 'ocorrencias':
+        router.push('/ocorrencias');
+        break;
+      case 'bibliotecas':
+        // TODO: Implementar página de bibliotecas/documentos
+        router.push('/assembleias'); // Temporário - redirecionar para assembleias
+        break;
+      default:
+        break;
+    }
+  };
   return (
     <div className="px-6 animate-slide-up animation-delay-200">
       <div className="flex justify-between items-end mb-4 px-1">
@@ -68,9 +123,46 @@ export function QuickAccess() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {quickItems.map((item) => (
+        {quickItems.slice(0, 4).map((item) => (
           <div
             key={item.id}
+            onClick={() => handleItemClick(item.id)}
+            className={`${item.bgColor} p-4 rounded-home-xl shadow-sm border ${item.borderColor} relative overflow-hidden group cursor-pointer active:scale-95 transition-all duration-200 h-32 flex flex-col justify-center gap-2`}
+          >
+            {/* Decorative corner */}
+            <div
+              className={`absolute top-0 right-0 w-16 h-16 ${item.decorColor} rounded-bl-[3rem] -mr-2 -mt-2 transition-transform group-hover:scale-110`}
+            />
+
+            <div className="flex items-center gap-3 relative z-10">
+              <div
+                className={`w-10 h-10 rounded-xl ${item.iconBg} flex items-center justify-center ${item.iconColor} shadow-sm`}
+              >
+                <span className="material-symbols-outlined text-2xl">{item.icon}</span>
+              </div>
+              <h4 className="font-bold text-gray-800 dark:text-white">{item.title}</h4>
+            </div>
+
+            <p className="text-xs text-text-sub dark:text-text-sub-dark pl-1 relative z-10">
+              {item.desc}
+            </p>
+
+            {/* Badge */}
+            <div className="absolute bottom-2 right-2">
+              <span className={`${item.badgeColor} text-[9px] font-bold px-1.5 py-0.5 rounded-md`}>
+                {item.badge}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Segunda linha com Chamados e Ocorrências */}
+      <div className="grid grid-cols-2 gap-4">
+        {quickItems.slice(4, 6).map((item) => (
+          <div
+            key={item.id}
+            onClick={() => handleItemClick(item.id)}
             className={`${item.bgColor} p-4 rounded-home-xl shadow-sm border ${item.borderColor} relative overflow-hidden group cursor-pointer active:scale-95 transition-all duration-200 h-32 flex flex-col justify-center gap-2`}
           >
             {/* Decorative corner */}
