@@ -331,3 +331,26 @@ self.addEventListener('activate', (event) => {
     })()
   );
 });
+
+// =====================================================
+// MESSAGE HANDLING (para comunicação com o cliente)
+// =====================================================
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Skipping waiting, activating new service worker');
+    self.skipWaiting();
+  }
+
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    console.log('[SW] Clearing all caches');
+    event.waitUntil(
+      (async () => {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+        console.log('[SW] All caches cleared');
+      })()
+    );
+  }
+});

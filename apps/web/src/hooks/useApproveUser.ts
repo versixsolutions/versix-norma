@@ -1,0 +1,109 @@
+'use client';
+
+import { getSupabaseClient } from '@/lib/supabase';
+import { useCallback, useState } from 'react';
+
+export interface PendingUser {
+  id: string;
+  nome: string;
+  email: string;
+  telefone: string | null;
+  status: string;
+  created_at: string;
+  unidade_id: string | null;
+  unidade_identificador?: string;
+  bloco_nome?: string;
+}
+
+interface ApproveUserResponse {
+  success: boolean;
+  usuario: { id: string; nome: string; email: string; status: string; } | null;
+  error: string | null;
+}
+
+export function useApproveUser() {
+  const supabase = getSupabaseClient();
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPendingUsers = useCallback(async (condominioId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('usuarios')
+        .select(`id, nome, email, telefone, status, created_at, unidade_id, unidades:unidade_id (identificador, blocos:bloco_id (nome))`)
+        .eq('condominio_id', condominioId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      const formattedUsers: PendingUser[] = (data || []).map((user: any) => ({
+        id: user.id, nome: user.nome, email: user.email, telefone: user.telefone,
+        status: user.status, created_at: user.created_at, unidade_id: user.unidade_id,
+        unidade_identificador: user.unidades?.identificador, bloco_nome: user.unidades?.blocos?.nome,
+      }));
+      setPendingUsers(formattedUsers);
+    } catch (err) {
+      console.error('Erro ao buscar usuários pendentes:', err);
+      setError('Erro ao carregar usuários pendentes');
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const approveUser = useCallback(async (userId: string, unidadeId?: string): Promise<ApproveUserResponse> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await supabase.functions.invoke<ApproveUserResponse>('approve-user', {
+        body: { usuario_id: userId, acao: 'approve', unidade_id: unidadeId },
+      });
+      if (response.error) throw new Error(response.error.message);
+      if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao aprovar usuário');
+      setPendingUsers(prev => prev.filter(u => u.id !== userId));
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.message || 'Erro ao aprovar usuário';
+      setError(errorMessage);
+      return { success: false, usuario: null, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const rejectUser = useCallback(async (userId: string, motivo: string): Promise<ApproveUserResponse> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await supabase.functions.invoke<ApproveUserResponse>('approve-user', {
+        body: { usuario_id: userId, acao: 'reject', motivo_rejeicao: motivo },
+      });
+      if (response.error) throw new Error(response.error.message);
+      if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao rejeitar usuário');
+      setPendingUsers(prev => prev.filter(u => u.id !== userId));
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.message || 'Erro ao rejeitar usuário';
+      setError(errorMessage);
+      return { success: false, usuario: null, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const approveInBatch = useCallback(async (userIds: string[], unidadeId?: string): Promise<ApproveUserResponse[]> => {
+    setLoading(true);
+    const results: ApproveUserResponse[] = [];
+    for (const userId of userIds) {
+      const result = await approveUser(userId, unidadeId);
+      results.push(result);
+    }
+    setLoading(false);
+    return results;
+  }, [approveUser]);
+
+  return { pendingUsers, loading, error, fetchPendingUsers, approveUser, rejectUser, approveInBatch };
+}

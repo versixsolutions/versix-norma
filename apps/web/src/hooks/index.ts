@@ -1,21 +1,10 @@
-// ============================================
-// HOOKS - Versix Norma
-// ============================================
-
-// Auth
-export { useAuth } from './useAuth';
-
-// Data
-export { useFinancial } from './useFinancial';
-export { useComunicados } from './useComunicados';
-export { useAssembleias } from './useAssembleias';
-export { useChamados } from './useChamados';
-
-// AI
-export { useNormaChat, useNormaChatMock } from './useNormaChat';
-
-// PWA
-export { useServiceWorker, UpdatePrompt, OfflineIndicator } from './useServiceWorker';
-
-// Types re-exports
-export type { Message } from './useNormaChat';
+export { useApproveUser } from './useApproveUser';
+export type { PendingUser } from './useApproveUser';
+export { useImpersonate } from './useImpersonate';
+export type { ImpersonateSession } from './useImpersonate';
+export { useAdmin } from './useAdmin';
+export type { AdminUser, AdminCondominio, AdminStats } from './useAdmin';
+export { useAuditLogs } from './useAuditLogs';
+export type { AuditLog, AuditLogFilters } from './useAuditLogs';
+export { useFeatureFlags, FEATURE_FLAGS } from './useFeatureFlags';
+export type { FeatureFlag } from './useFeatureFlags';
