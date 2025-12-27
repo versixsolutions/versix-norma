@@ -4,7 +4,7 @@ import { getSupabaseClient } from '@/lib/supabase';
 import type { Comunicado, ComunicadoCategoria, ComunicadoFilters, ComunicadoStatus, CreateComunicadoInput, PaginatedResponse, UpdateComunicadoInput } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
-export function useComunicados(options?: { condominioId?: string | null; userId?: string | null }) {
+export function useComunicados(_options?: { condominioId?: string | null; userId?: string | null }) {
   const supabase = getSupabaseClient();
   const [comunicados, setComunicados] = useState<Comunicado[]>([]);
   const [loading, setLoading] = useState(false);

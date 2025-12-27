@@ -1,7 +1,7 @@
 'use client';
 
-import { useApproveUser, type PendingUser } from '@/hooks/useApproveUser';
-import { useState, useEffect } from 'react';
+import { useApproveUser } from '@/hooks/useApproveUser';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 interface ApprovalListProps { condominioId: string; onUserApproved?: () => void; }

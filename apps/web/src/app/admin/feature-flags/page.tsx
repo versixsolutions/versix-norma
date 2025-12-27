@@ -10,7 +10,7 @@ type AmbienteType = 'all' | 'development' | 'staging' | 'production';
 export default function FeatureFlagsPage() {
   const { flags, loading, updateFlag, createFlag, deleteFlag } = useFeatureFlags();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newFlag, setNewFlag] = useState({ key: '', nome: '', descricao: '', is_enabled: false, ambiente: 'all' as const, config: {}, condominio_ids: null as string[] | null });
+  const [newFlag, setNewFlag] = useState({ key: '', nome: '', descricao: '', is_enabled: false, ambiente: 'all' as AmbienteType, config: {}, condominio_ids: null as string[] | null });
 
   const handleToggle = async (flag: FeatureFlag) => { const success = await updateFlag(flag.id, { is_enabled: !flag.is_enabled }); if (success) toast.success(`${flag.nome} ${!flag.is_enabled ? 'ativado' : 'desativado'}`); else toast.error('Erro ao atualizar'); };
   const handleCreate = async () => { if (!newFlag.key || !newFlag.nome) { toast.error('Preencha key e nome'); return; } const result = await createFlag(newFlag); if (result) { toast.success('Flag criada'); setShowCreateModal(false); setNewFlag({ key: '', nome: '', descricao: '', is_enabled: false, ambiente: 'all', config: {}, condominio_ids: null }); } else toast.error('Erro ao criar'); };

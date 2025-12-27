@@ -169,7 +169,6 @@ export default function AssembleiaDetalhePage() {
           {pautaAtual && minhaPresenca && (
             <VotacaoCard
               pauta={pautaAtual}
-              presencaId={minhaPresenca.id}
               onVotar={(voto, opcaoId) => handleVotar(pautaAtual.id, voto, opcaoId)}
               jaVotou={votosRegistrados.has(pautaAtual.id)}
             />

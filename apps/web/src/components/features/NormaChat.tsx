@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { useNormaChat, useNormaChatMock, type Message } from '@/hooks/useNormaChat';
+import { useNormaChat, useNormaChatMock } from '@/hooks/useNormaChat';
+import { useEffect, useRef, useState } from 'react';
 
 interface NormaChatProps {
   isOpen: boolean;
@@ -15,13 +15,12 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Usar hook real ou mock dependendo do ambiente
-  const isDev = process.env.NODE_ENV === 'development';
   const realChat = useNormaChat({
     condominioId: profile?.condominio_atual?.id || null,
     userId: profile?.id || null,
   });
   const mockChat = useNormaChatMock();
-  
+
   // Usar mock em dev se não houver condomínio configurado
   const chat = profile?.condominio_atual?.id ? realChat : mockChat;
   const { messages, isTyping, sendMessage, loadHistory, clearMessages } = chat;
@@ -108,7 +107,7 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
                 Olá, {profile?.nome?.split(' ')[0] || 'visitante'}! 👋
               </p>
               <p className="text-sm leading-relaxed mt-2">
-                Sou a <span className="font-bold text-secondary">Norma</span>, sua assistente virtual. 
+                Sou a <span className="font-bold text-secondary">Norma</span>, sua assistente virtual.
                 Posso ajudar com dúvidas sobre o regimento, reservas, financeiro e muito mais!
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -128,8 +127,8 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
 
         {/* Messages list */}
         {messages.map((msg) => (
-          <div 
-            key={msg.id} 
+          <div
+            key={msg.id}
             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
@@ -142,7 +141,7 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
               }`}
             >
               {msg.text}
-              
+
               {/* Citation */}
               {msg.citation && (
                 <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">

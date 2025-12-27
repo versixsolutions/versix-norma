@@ -7,10 +7,9 @@ interface VotacaoCardProps {
   pauta: Pauta;
   onVotar: (voto: "sim" | "nao" | "abstencao" | "opcao", opcaoId?: string) => Promise<void>;
   jaVotou: boolean;
-  presencaId: string;
 }
 
-export function VotacaoCard({ pauta, onVotar, jaVotou, presencaId }: VotacaoCardProps) {
+export function VotacaoCard({ pauta, onVotar, jaVotou }: VotacaoCardProps) {
   const [votoSelecionado, setVotoSelecionado] = useState<"sim" | "nao" | "abstencao" | null>(null);
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);

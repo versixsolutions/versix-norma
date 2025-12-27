@@ -1,8 +1,8 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
-import { useCallback, useState, useEffect } from 'react';
-import type { NotificacaoUsuario, NotificacaoDashboard, CreateNotificacaoInput, NotificacoesFilters, PrioridadeComunicado } from '@versix/shared/types/comunicacao';
+import type { CreateNotificacaoInput, NotificacaoDashboard, NotificacaoUsuario, NotificacoesFilters, PrioridadeComunicado } from '@versix/shared/types/comunicacao';
+import { useCallback, useState } from 'react';
 
 export function useNotificacoes() {
   const supabase = getSupabaseClient();
@@ -123,7 +123,7 @@ export function useNotificacoes() {
           setNaoLidas(prev => prev + 1);
         }
       }).subscribe();
-    
+
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
 
@@ -135,4 +135,5 @@ export function useNotificacoes() {
   };
 }
 
-export type { NotificacaoUsuario, NotificacaoDashboard, CreateNotificacaoInput, NotificacoesFilters, PrioridadeComunicado };
+export type { CreateNotificacaoInput, NotificacaoDashboard, NotificacaoUsuario, NotificacoesFilters, PrioridadeComunicado };
+
