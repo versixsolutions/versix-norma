@@ -4,11 +4,15 @@
  * Exporta constantes, utilitários e validadores compartilhados
  */
 
+// Types
+export * from './src/types/operational';
+
 // Constants
 export * from './constants';
 
 // Utilities
 export * from './utils';
 
-// Validators (Zod schemas)
-export * from './validators';
+// Input types from validators
+export { type AvaliarChamadoInput, type CreateChamadoInput, type CreateComunicadoInput, type CreateFAQInput, type CreateMensagemInput, type CreateOcorrenciaInput, type UpdateChamadoInput, type UpdateComunicadoInput, type UpdateFAQInput, type UpdateOcorrenciaInput } from './src/validators/operational';
+
