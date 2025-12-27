@@ -1,23 +1,22 @@
 'use client';
 
+import { EmergenciaButton } from '@/components/notificacoes/EmergenciaButton';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
+import { useEmergencias } from '@/hooks/useEmergencias';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { usePreferenciasCanais } from '@/hooks/usePreferenciasCanais';
-import { useEmergencias } from '@/hooks/useEmergencias';
-import { EmergenciaButton } from '@/components/notificacoes/EmergenciaButton';
+import type { CreateNotificacaoInput, NotificacaoDashboard, PrioridadeComunicado } from '@versix/shared/types/comunicacao';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import type { NotificacaoDashboard, CreateNotificacaoInput, PrioridadeComunicado } from '@versix/shared/types/comunicacao';
 
 export default function SindicoComunicacaoPage() {
   const { profile } = useAuthContext();
-  const { loading, enviarNotificacao, fetchDashboard } = useNotificacoes();
+  const { enviarNotificacao, fetchDashboard } = useNotificacoes();
   const { config, fetchConfigCondominio, updateConfig } = usePreferenciasCanais();
   const { emergencias, fetchEmergencias, dispararEmergencia } = useEmergencias();
-  
+
   const [dashboard, setDashboard] = useState<NotificacaoDashboard[]>([]);
-  const [showForm, setShowForm] = useState(false);
   const [tab, setTab] = useState<'enviar' | 'historico' | 'config' | 'emergencias'>('enviar');
   const [form, setForm] = useState<CreateNotificacaoInput>({
     tipo: 'comunicado',

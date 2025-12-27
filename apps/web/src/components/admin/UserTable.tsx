@@ -3,6 +3,7 @@
 import { useAdmin, type AdminUser } from '@/hooks/useAdmin';
 import { useImpersonate } from '@/hooks/useImpersonate';
 import type { StatusType } from '@/types/database';
+import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -46,7 +47,7 @@ export function UserTable({ onRefresh }: UserTableProps) {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {displayUsers.filter(u => !selectedStatus || u.status === selectedStatus).map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                  <td className="px-6 py-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">{user.avatar_url ? <img src={user.avatar_url} alt={user.nome} className="w-10 h-10 rounded-full object-cover" /> : <span className="text-primary font-bold">{user.nome.charAt(0).toUpperCase()}</span>}</div><div><p className="font-medium text-gray-800 dark:text-white">{user.nome}</p><p className="text-sm text-gray-500 truncate max-w-[200px]">{user.email}</p></div></div></td>
+                  <td className="px-6 py-4"><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">{user.avatar_url ? <Image src={user.avatar_url} alt={user.nome} width={40} height={40} className="w-10 h-10 rounded-full object-cover" /> : <span className="text-primary font-bold">{user.nome.charAt(0).toUpperCase()}</span>}</div><div><p className="font-medium text-gray-800 dark:text-white">{user.nome}</p><p className="text-sm text-gray-500 truncate max-w-[200px]">{user.email}</p></div></div></td>
                   <td className="px-6 py-4">{user.condominios.length > 0 ? (<div className="space-y-1">{user.condominios.slice(0, 2).map((c, i) => (<div key={i} className="text-sm"><span className="text-gray-800 dark:text-white">{c.condominio_nome}</span><span className="text-gray-500 ml-2">({ROLE_LABELS[c.role] || c.role})</span></div>))}{user.condominios.length > 2 && <span className="text-xs text-primary">+{user.condominios.length - 2} mais</span>}</div>) : <span className="text-gray-400 text-sm">Sem condomínio</span>}</td>
                   <td className="px-6 py-4"><span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_LABELS[user.status]?.color || 'bg-gray-100 text-gray-700'}`}>{STATUS_LABELS[user.status]?.label || user.status}</span></td>
                   <td className="px-6 py-4 text-sm text-gray-500">{formatDate(user.created_at)}</td>

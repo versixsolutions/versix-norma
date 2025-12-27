@@ -1,11 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import type { TipoEmergencia } from '@versix/shared/types/comunicacao';
+import { useState } from 'react';
 
 interface EmergenciaButtonProps {
   onDisparar: (tipo: TipoEmergencia, descricao: string) => Promise<void>;
-  loading?: boolean;
 }
 
 const TIPOS_EMERGENCIA: { tipo: TipoEmergencia; label: string; icon: string; color: string }[] = [
@@ -16,7 +15,7 @@ const TIPOS_EMERGENCIA: { tipo: TipoEmergencia; label: string; icon: string; col
   { tipo: 'outro', label: 'Outra Emergência', icon: 'warning', color: 'bg-gray-600' }
 ];
 
-export function EmergenciaButton({ onDisparar, loading }: EmergenciaButtonProps) {
+export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState<'tipo' | 'descricao' | 'confirmar'>('tipo');
   const [tipoSelecionado, setTipoSelecionado] = useState<TipoEmergencia | null>(null);
@@ -106,7 +105,7 @@ export function EmergenciaButton({ onDisparar, loading }: EmergenciaButtonProps)
                     <span className="material-symbols-outlined text-sm">arrow_back</span>
                     Voltar
                   </button>
-                  
+
                   <div className={`flex items-center gap-2 p-3 rounded-xl ${tipoConfig?.color} text-white mb-4`}>
                     <span className="material-symbols-outlined">{tipoConfig?.icon}</span>
                     <span className="font-medium">{tipoConfig?.label}</span>

@@ -4,6 +4,7 @@ import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useFinanceiro } from '@/hooks/useFinanceiro';
 import { usePrestacaoContas } from '@/hooks/usePrestacaoContas';
 import { useTaxas } from '@/hooks/useTaxas';
+import type { SaldoPeriodo, TaxaUnidade } from '@versix/shared/types/financial';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -13,8 +14,8 @@ export default function FinanceiroMoradorPage() {
   const { getMinhasTaxas } = useTaxas();
   const { fetchPrestacoes, prestacoes } = usePrestacaoContas();
   const [loading, setLoading] = useState(true);
-  const [minhasTaxas, setMinhasTaxas] = useState<any[]>([]);
-  const [saldo, setSaldo] = useState<any>(null);
+  const [minhasTaxas, setMinhasTaxas] = useState<TaxaUnidade[]>([]);
+  const [saldo, setSaldo] = useState<SaldoPeriodo | null>(null);
   const [tabAtiva, setTabAtiva] = useState<'taxas' | 'prestacao'>('taxas');
 
   const condominioId = profile?.condominio_atual?.id;

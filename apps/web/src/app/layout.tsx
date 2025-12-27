@@ -1,9 +1,9 @@
+import { PWAProvider } from '@/components/pwa/PWAProvider';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Montserrat } from 'next/font/google';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from 'sonner';
-import { PWAProvider } from '@/components/pwa/PWAProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -19,6 +19,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://app.versixnorma.com.br'),
   title: {
     default: 'Norma - Plataforma de Governança Condominial',
     template: '%s | Norma',
@@ -120,12 +121,12 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Norma" />
         <meta name="msapplication-TileColor" content="#0f3460" />
         <meta name="msapplication-tap-highlight" content="no" />
-        
+
         {/* Preconnect */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="preconnect" href="https://images.unsplash.com" />
-        
+
         {/* DNS Prefetch */}
         <link rel="dns-prefetch" href="https://supabase.co" />
       </head>
