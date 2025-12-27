@@ -5,12 +5,13 @@ import { useState } from 'react';
 
 interface VotacaoCardProps {
   pauta: Pauta;
-  onVotar: (voto: string, opcaoId?: string) => Promise<void>;
+  onVotar: (voto: "sim" | "nao" | "abstencao" | "opcao", opcaoId?: string) => Promise<void>;
   jaVotou: boolean;
+  presencaId: string;
 }
 
-export function VotacaoCard({ pauta, onVotar, jaVotou }: VotacaoCardProps) {
-  const [votoSelecionado, setVotoSelecionado] = useState<string | null>(null);
+export function VotacaoCard({ pauta, onVotar, jaVotou, presencaId }: VotacaoCardProps) {
+  const [votoSelecionado, setVotoSelecionado] = useState<"sim" | "nao" | "abstencao" | null>(null);
   const [opcaoSelecionada, setOpcaoSelecionada] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 

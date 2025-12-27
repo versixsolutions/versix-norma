@@ -1,23 +1,23 @@
 'use client';
 
-import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
-import { useNotificacoes } from '@/hooks/useNotificacoes';
-import { usePreferenciasCanais } from '@/hooks/usePreferenciasCanais';
-import { useEmergencias } from '@/hooks/useEmergencias';
+import { EmergenciaButton } from '@/components/notificacoes/EmergenciaButton';
 import { NotificacaoCard } from '@/components/notificacoes/NotificacaoCard';
 import { PreferenciasCanais } from '@/components/notificacoes/PreferenciasCanais';
-import { EmergenciaButton } from '@/components/notificacoes/EmergenciaButton';
+import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
+import { useEmergencias } from '@/hooks/useEmergencias';
+import { useNotificacoes } from '@/hooks/useNotificacoes';
+import { usePreferenciasCanais } from '@/hooks/usePreferenciasCanais';
+import type { NotificacaoUsuario } from '@versix/shared/types/comunicacao';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import type { NotificacaoUsuario } from '@versix/shared/types/comunicacao';
 
 export default function NotificacoesPage() {
   const { profile } = useAuthContext();
   const { notificacoes, naoLidas, loading, fetchMinhasNotificacoes, marcarComoLida, marcarTodasComoLidas, subscribeToNotificacoes } = useNotificacoes();
   const { preferencias, fetchMinhasPreferencias, updatePreferencias } = usePreferenciasCanais();
   const { dispararEmergencia } = useEmergencias();
-  
+
   const [tab, setTab] = useState<'todas' | 'nao_lidas' | 'config'>('todas');
   const [notificacaoSelecionada, setNotificacaoSelecionada] = useState<NotificacaoUsuario | null>(null);
 
@@ -129,7 +129,7 @@ export default function NotificacoesPage() {
           </div>
         )}
 
-        {profile?.role === 'sindico' && <EmergenciaButton onDisparar={handleEmergencia} />}
+        {profile?.condominio_atual?.role === 'sindico' && <EmergenciaButton onDisparar={handleEmergencia} />}
       </div>
     </AuthGuard>
   );

@@ -19,10 +19,6 @@ export default function FinanceiroMoradorPage() {
 
   const condominioId = profile?.condominio_atual?.id;
 
-  useEffect(() => {
-    loadData();
-  }, [condominioId, profile?.id, loadData]);
-
   const loadData = useCallback(async () => {
     if (!condominioId || !profile?.id) return;
     setLoading(true);
@@ -37,6 +33,10 @@ export default function FinanceiroMoradorPage() {
     setSaldo(saldoData);
     setLoading(false);
   }, [condominioId, profile?.id, getMinhasTaxas, calcularSaldoPeriodo, fetchPrestacoes]);
+
+  useEffect(() => {
+    loadData();
+  }, [condominioId, profile?.id, loadData]);
 
   const formatCurrency = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR');
