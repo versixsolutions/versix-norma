@@ -3,12 +3,10 @@
 import { createClient } from '@/lib/supabase';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
   const supabase = createClient();
 
   const [email, setEmail] = useState('');

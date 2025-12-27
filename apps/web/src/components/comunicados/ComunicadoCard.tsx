@@ -1,7 +1,6 @@
 'use client';
 
 import type { Comunicado } from '@/hooks/useComunicados';
-import Link from 'next/link';
 
 interface ComunicadoCardProps {
   comunicado: Comunicado;

@@ -2,10 +2,10 @@
 
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useFinanceiro } from '@/hooks/useFinanceiro';
-import { useTaxas } from '@/hooks/useTaxas';
 import { usePrestacaoContas } from '@/hooks/usePrestacaoContas';
+import { useTaxas } from '@/hooks/useTaxas';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function FinanceiroMoradorPage() {
   const { profile } = useAuthContext();
@@ -21,22 +21,22 @@ export default function FinanceiroMoradorPage() {
 
   useEffect(() => {
     loadData();
-  }, [condominioId, profile?.id]);
+  }, [condominioId, profile?.id, loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!condominioId || !profile?.id) return;
     setLoading(true);
-    
+
     const [taxasData, saldoData] = await Promise.all([
       getMinhasTaxas(profile.id, condominioId),
       calcularSaldoPeriodo(condominioId, `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`),
       fetchPrestacoes(condominioId)
     ]);
-    
+
     setMinhasTaxas(taxasData);
     setSaldo(saldoData);
     setLoading(false);
-  };
+  }, [condominioId, profile?.id, getMinhasTaxas, calcularSaldoPeriodo, fetchPrestacoes]);
 
   const formatCurrency = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR');

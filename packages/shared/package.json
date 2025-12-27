@@ -10,7 +10,9 @@
     "./utils": "./utils/index.ts",
     "./validators": "./validators/index.ts",
     "./types/operational": "./src/types/operational.ts",
-    "./types/financial": "./src/types/financial.ts"
+    "./types/financial": "./src/types/financial.ts",
+    "./types/assembleias": "./src/types/assembleias.ts",
+    "./types/comunicacao": "./src/types/comunicacao.ts"
   },
   "scripts": {
     "lint": "eslint .",

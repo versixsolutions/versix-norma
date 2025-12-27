@@ -14,7 +14,7 @@ const CATEGORIAS = [
 
 export default function ComunicadosPage() {
   const { profile } = useAuthContext();
-  const { comunicados, loading, pagination, fetchComunicados, marcarComoLido } = useComunicados();
+  const { comunicados, loading, fetchComunicados, marcarComoLido } = useComunicados();
   const [categoria, setCategoria] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 

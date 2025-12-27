@@ -1,9 +1,9 @@
-// Sprint 4 - Módulo Financeiro
-export { useFinanceiro } from './useFinanceiro';
-export type { CategoriaFinanceira, ContaBancaria, LancamentoFinanceiro, LancamentoFilters, CreateLancamentoInput, DashboardFinanceiro, Comprovante, LancamentoTipo, LancamentoStatus } from './useFinanceiro';
+// Sprint 7 - Módulo Comunicação Multicanal
+export { useNotificacoes } from './useNotificacoes';
+export type { NotificacaoUsuario, NotificacaoDashboard, CreateNotificacaoInput, NotificacoesFilters, PrioridadeComunicado } from './useNotificacoes';
 
-export { usePrestacaoContas } from './usePrestacaoContas';
-export type { PrestacaoContas, CreatePrestacaoInput, UpdatePrestacaoInput, PrestacaoStatus, RelatorioMensal } from './usePrestacaoContas';
+export { usePreferenciasCanais } from './usePreferenciasCanais';
+export type { UsuarioCanaisPreferencias, UpdatePreferenciasInput, NotificacoesConfig, UpdateNotificacoesConfigInput } from './usePreferenciasCanais';
 
-export { useTaxas } from './useTaxas';
-export type { TaxaUnidade, TaxaFilters, CreateTaxaInput, UpdateTaxaInput, CobrancaStatus, TaxaTipo } from './useTaxas';
+export { useEmergencias } from './useEmergencias';
+export type { EmergenciaLog, DispararEmergenciaInput, TipoEmergencia } from './useEmergencias';

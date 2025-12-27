@@ -1,244 +1,170 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Assembleia, TipoVoto } from '@/types/database';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
+import type { Assembleia, Pauta, Presenca, QuorumInfo, CreateAssembleiaInput, UpdateAssembleiaInput, CreatePautaInput, AssembleiaStatus, AssembleiaFilters } from '@versix/shared/types/assembleias';
 
-// ============================================
-// TYPES
-// ============================================
-interface Pauta {
-  id: string;
-  titulo: string;
-  descricao: string | null;
-  ordem: number;
-  requires_quorum: boolean;
-  quorum_especial: number | null;
-  resultado: {
-    sim: number;
-    nao: number;
-    abstencao: number;
-    total_votos: number;
-    aprovada: boolean | null;
-  } | null;
-  meu_voto: TipoVoto | null;
-}
+export function useAssembleias() {
+  const supabase = getSupabaseClient();
+  const [assembleias, setAssembleias] = useState<Assembleia[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-interface AssembleiaComDetalhes extends Assembleia {
-  pautas: Pauta[];
-  total_presentes: number;
-  minha_presenca: 'confirmada' | 'pendente' | 'ausente';
-}
-
-interface UseAssembleiasOptions {
-  condominioId: string | null;
-  userId: string | null;
-  unidadeId: string | null;
-}
-
-interface UseAssembleiasReturn {
-  assembleias: AssembleiaComDetalhes[];
-  proxima: AssembleiaComDetalhes | null;
-  loading: boolean;
-  error: Error | null;
-  refresh: () => Promise<void>;
-  confirmarPresenca: (assembleiaId: string) => Promise<{ success: boolean; error?: Error }>;
-  registrarVoto: (pautaId: string, voto: TipoVoto) => Promise<{ success: boolean; error?: Error }>;
-}
-
-// ============================================
-// HOOK
-// ============================================
-export function useAssembleias({ condominioId, userId, unidadeId }: UseAssembleiasOptions): UseAssembleiasReturn {
-  const supabase = getSupabaseClient() as any;
-
-  const [assembleias, setAssembleias] = useState<AssembleiaComDetalhes[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchAssembleias = useCallback(async () => {
-    if (!condominioId) {
-      setLoading(false);
-      return;
-    }
-
+  const fetchAssembleias = useCallback(async (condominioId: string, filters?: AssembleiaFilters): Promise<Assembleia[]> => {
+    setLoading(true);
     try {
-      // Buscar assembleias
-      const { data: assembleiasData, error: assError } = await supabase
-        .from('assembleias')
-        .select('*')
-        .eq('condominio_id', condominioId)
-        .in('status', ['agendada', 'convocada', 'em_andamento', 'encerrada'])
-        .order('data_primeira', { ascending: false })
-        .limit(20);
-
-      if (assError) throw assError;
-
-      // Para cada assembleia, buscar pautas e votos
-      const assembleiasComDetalhes: AssembleiaComDetalhes[] = await Promise.all(
-        (assembleiasData || []).map(async (ass: any) => {
-          // Buscar pautas
-          const { data: pautasData } = await supabase
-            .from('pautas')
-            .select('*')
-            .eq('assembleia_id', ass.id)
-            .order('ordem');
-
-          // Buscar meus votos
-          let meusVotos: Record<string, TipoVoto> = {};
-          if (unidadeId) {
-            const { data: votosData } = await supabase
-              .from('votos')
-              .select('pauta_id, voto')
-              .eq('unidade_id', unidadeId);
-
-            meusVotos = (votosData || []).reduce((acc: Record<string, TipoVoto>, v: any) => {
-              acc[v.pauta_id] = v.voto as TipoVoto;
-              return acc;
-            }, {} as Record<string, TipoVoto>);
-          }
-
-          // Buscar presença
-          let minhaPresenca: 'confirmada' | 'pendente' | 'ausente' = 'pendente';
-          if (userId) {
-            const { data: presencaData } = await supabase
-              .from('assembleias_presencas')
-              .select('status')
-              .eq('assembleia_id', ass.id)
-              .eq('usuario_id', userId)
-              .single();
-
-            if (presencaData) {
-              minhaPresenca = (presencaData as any).status === 'confirmada' ? 'confirmada' : 'ausente';
-            }
-          }
-
-          // Contar presentes
-          const { count: totalPresentes } = await supabase
-            .from('assembleias_presencas')
-            .select('*', { count: 'exact', head: true })
-            .eq('assembleia_id', ass.id)
-            .eq('status', 'confirmada');
-
-          const pautas: Pauta[] = (pautasData || []).map((p: any) => ({
-            id: p.id,
-            titulo: p.titulo,
-            descricao: p.descricao,
-            ordem: p.ordem,
-            requires_quorum: p.requires_quorum,
-            quorum_especial: p.quorum_especial,
-            resultado: p.resultado as Pauta['resultado'],
-            meu_voto: meusVotos[p.id] || null,
-          }));
-
-          return {
-            ...ass,
-            pautas,
-            total_presentes: totalPresentes || 0,
-            minha_presenca: minhaPresenca,
-          };
-        })
-      );
-
-      setAssembleias(assembleiasComDetalhes);
-    } catch (err) {
-      setError(err as Error);
+      let query = supabase.from('assembleias').select('*, pautas:assembleia_pautas(*)').eq('condominio_id', condominioId).order('data_primeira_convocacao', { ascending: false });
+      if (filters?.tipo) query = query.eq('tipo', filters.tipo);
+      if (filters?.status) query = query.eq('status', filters.status);
+      if (filters?.ano) query = query.gte('data_primeira_convocacao', `${filters.ano}-01-01`).lt('data_primeira_convocacao', `${filters.ano + 1}-01-01`);
+      
+      const { data, error: fetchError } = await query;
+      if (fetchError) throw fetchError;
+      setAssembleias(data || []);
+      return data || [];
+    } catch (err: any) {
+      setError(err.message);
+      return [];
     } finally {
       setLoading(false);
     }
-  }, [condominioId, userId, unidadeId, supabase]);
+  }, [supabase]);
 
-  useEffect(() => {
-    fetchAssembleias();
-  }, [fetchAssembleias]);
-
-  // Realtime para votos durante assembleia em andamento
-  useEffect(() => {
-    if (!condominioId) return;
-
-    const emAndamento = assembleias.find((a) => a.status === 'em_andamento');
-    if (!emAndamento) return;
-
-    const channel = supabase
-      .channel('votos-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'votos',
-        },
-        () => {
-          fetchAssembleias();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [condominioId, assembleias, supabase, fetchAssembleias]);
-
-  const confirmarPresenca = async (assembleiaId: string) => {
-    if (!userId || !unidadeId) {
-      return { success: false, error: new Error('Usuário não autenticado') };
-    }
-
+  const getAssembleia = useCallback(async (id: string): Promise<Assembleia | null> => {
     try {
-      const { error } = await supabase
-        .from('assembleias_presencas')
-        .upsert({
-          assembleia_id: assembleiaId,
-          usuario_id: userId,
-          unidade_id: unidadeId,
-          status: 'confirmada',
-          confirmado_em: new Date().toISOString(),
-        });
-
-      if (error) throw error;
-
-      await fetchAssembleias();
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: err as Error };
+      const { data, error: fetchError } = await supabase.from('assembleias').select(`*, pautas:assembleia_pautas(*, opcoes:assembleia_pauta_opcoes(*)), presencas:assembleia_presencas(*, usuario:usuario_id(nome, avatar_url), unidade:unidade_id(identificador, bloco:bloco_id(nome)))`).eq('id', id).single();
+      if (fetchError) throw fetchError;
+      
+      // Buscar quorum
+      const { data: quorum } = await supabase.from('v_assembleia_quorum').select('*').eq('assembleia_id', id).single();
+      
+      return { ...data, quorum } as Assembleia;
+    } catch (err: any) {
+      setError(err.message);
+      return null;
     }
-  };
+  }, [supabase]);
 
-  const registrarVoto = async (pautaId: string, voto: TipoVoto) => {
-    if (!userId || !unidadeId) {
-      return { success: false, error: new Error('Usuário não autenticado') };
-    }
-
+  const createAssembleia = useCallback(async (condominioId: string, criadoPor: string, input: CreateAssembleiaInput): Promise<Assembleia | null> => {
+    setLoading(true);
     try {
-      // Usar RPC para validações de quorum etc
-      const { data, error } = await supabase.rpc('registrar_voto', {
-        p_pauta_id: pautaId,
-        p_unidade_id: unidadeId,
-        p_usuario_id: userId,
-        p_voto: voto,
-      });
-
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.message || 'Erro ao registrar voto');
-
-      await fetchAssembleias();
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: err as Error };
+      const { data, error: insertError } = await supabase.from('assembleias').insert({ condominio_id: condominioId, criado_por: criadoPor, ...input }).select().single();
+      if (insertError) throw insertError;
+      setAssembleias(prev => [data, ...prev]);
+      return data;
+    } catch (err: any) {
+      setError(err.message);
+      return null;
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const proxima = assembleias.find(
-    (a) => a.status === 'agendada' || a.status === 'convocada' || a.status === 'em_andamento'
-  ) || null;
+  const updateAssembleia = useCallback(async (input: UpdateAssembleiaInput): Promise<Assembleia | null> => {
+    setLoading(true);
+    try {
+      const { id, ...updates } = input;
+      const { data, error: updateError } = await supabase.from('assembleias').update(updates).eq('id', id).select().single();
+      if (updateError) throw updateError;
+      setAssembleias(prev => prev.map(a => a.id === id ? data : a));
+      return data;
+    } catch (err: any) {
+      setError(err.message);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const deleteAssembleia = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const { error: deleteError } = await supabase.from('assembleias').delete().eq('id', id);
+      if (deleteError) throw deleteError;
+      setAssembleias(prev => prev.filter(a => a.id !== id));
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  }, [supabase]);
+
+  // Ações de workflow
+  const convocarAssembleia = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const { data, error: rpcError } = await supabase.rpc('convocar_assembleia', { p_assembleia_id: id });
+      if (rpcError) throw rpcError;
+      setAssembleias(prev => prev.map(a => a.id === id ? { ...a, status: 'convocada' as AssembleiaStatus } : a));
+      return data;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  }, [supabase]);
+
+  const iniciarAssembleia = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const { data, error: rpcError } = await supabase.rpc('iniciar_assembleia', { p_assembleia_id: id });
+      if (rpcError) throw rpcError;
+      setAssembleias(prev => prev.map(a => a.id === id ? { ...a, status: 'em_andamento' as AssembleiaStatus } : a));
+      return data;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  }, [supabase]);
+
+  const encerrarAssembleia = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const { data, error: rpcError } = await supabase.rpc('encerrar_assembleia', { p_assembleia_id: id });
+      if (rpcError) throw rpcError;
+      setAssembleias(prev => prev.map(a => a.id === id ? { ...a, status: 'encerrada' as AssembleiaStatus } : a));
+      return data;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  }, [supabase]);
+
+  // Pautas
+  const addPauta = useCallback(async (assembleiaId: string, input: CreatePautaInput): Promise<Pauta | null> => {
+    try {
+      const { data, error: insertError } = await supabase.from('assembleia_pautas').insert({ assembleia_id: assembleiaId, ...input }).select().single();
+      if (insertError) throw insertError;
+      return data;
+    } catch (err: any) {
+      setError(err.message);
+      return null;
+    }
+  }, [supabase]);
+
+  const removePauta = useCallback(async (pautaId: string): Promise<boolean> => {
+    try {
+      const { error: deleteError } = await supabase.from('assembleia_pautas').delete().eq('id', pautaId);
+      if (deleteError) throw deleteError;
+      return true;
+    } catch (err: any) {
+      setError(err.message);
+      return false;
+    }
+  }, [supabase]);
+
+  // Realtime quorum
+  const subscribeToQuorum = useCallback((assembleiaId: string, onUpdate: (quorum: QuorumInfo) => void) => {
+    const channel = supabase.channel(`quorum-${assembleiaId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'assembleia_presencas', filter: `assembleia_id=eq.${assembleiaId}` }, async () => {
+        const { data } = await supabase.from('v_assembleia_quorum').select('*').eq('assembleia_id', assembleiaId).single();
+        if (data) onUpdate(data);
+      }).subscribe();
+    
+    return () => { supabase.removeChannel(channel); };
+  }, [supabase]);
 
   return {
-    assembleias,
-    proxima,
-    loading,
-    error,
-    refresh: fetchAssembleias,
-    confirmarPresenca,
-    registrarVoto,
+    assembleias, loading, error,
+    fetchAssembleias, getAssembleia, createAssembleia, updateAssembleia, deleteAssembleia,
+    convocarAssembleia, iniciarAssembleia, encerrarAssembleia,
+    addPauta, removePauta, subscribeToQuorum
   };
 }
+
+export type { Assembleia, Pauta, Presenca, QuorumInfo, CreateAssembleiaInput, UpdateAssembleiaInput, CreatePautaInput, AssembleiaFilters };

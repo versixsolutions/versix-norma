@@ -76,9 +76,6 @@ function HomeContent() {
     ? profile.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
     : 'US';
   const condominioNome = profile?.condominio_atual?.nome || 'Condomínio';
-  const unidadeId = profile?.condominios?.find(
-    c => c.condominio_id === profile?.condominio_atual?.id
-  )?.unidade_id || null;
 
   const isLoading = authLoading || (financialLoading && !dataLoadingTimeout);
 
