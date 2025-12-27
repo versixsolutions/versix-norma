@@ -110,23 +110,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
-        {/* PWA Meta Tags */}
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Norma" />
-        <meta name="msapplication-TileColor" content="#0f3460" />
-        <meta name="msapplication-tap-highlight" content="no" />
-
-        {/* Preconnect */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="preconnect" href="https://images.unsplash.com" />
-
-        {/* DNS Prefetch */}
-        <link rel="dns-prefetch" href="https://supabase.co" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className={`${inter.variable} ${montserrat.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${montserrat.variable} antialiased`}>
         <ThemeProvider defaultTheme="light">
           <AuthProvider>
             <PWAProvider>
