@@ -94,7 +94,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
         {!loading && comunicados.length > 0 && (
           <div className="max-h-80 overflow-y-auto">
             {comunicados.slice(0, 10).map((notif) => {
-              const { icon, color } = getIconForType(notif.tipo);
+              const { icon, color } = getIconForType(notif.categoria);
               return (
                 <div
                   key={notif.id}
@@ -113,7 +113,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
                           {notif.titulo}
                         </h4>
                         <span className="text-[10px] text-gray-400 shrink-0 ml-2">
-                          {formatTime(notif.data_publicacao)}
+                          {formatTime(notif.created_at)}
                         </span>
                       </div>
                       <p className="text-xs text-text-sub dark:text-text-sub-dark mt-0.5 line-clamp-2">

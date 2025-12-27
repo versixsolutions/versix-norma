@@ -1,10 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { toast } from 'sonner';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useChamados } from '@/hooks/useChamados';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface ProfilePageProps {
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
@@ -13,7 +12,7 @@ interface ProfilePageProps {
 export function ProfilePage({ onScroll }: ProfilePageProps) {
   const router = useRouter();
   const { profile, logout } = useAuthContext();
-  
+
   const unidadeInfo = profile?.condominios?.find(
     c => c.condominio_id === profile?.condominio_atual?.id
   );
@@ -130,12 +129,12 @@ export function ProfilePage({ onScroll }: ProfilePageProps) {
                 <div className="flex flex-col items-center">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${
                     chamado.status === 'resolvido' ? 'bg-green-100 text-green-600' :
-                    chamado.status === 'em_andamento' ? 'bg-blue-100 text-blue-600' :
+                    chamado.status === 'em_atendimento' ? 'bg-blue-100 text-blue-600' :
                     'bg-orange-100 text-orange-600'
                   }`}>
                     <span className="material-symbols-outlined text-sm">
-                      {chamado.status === 'resolvido' ? 'check_circle' : 
-                       chamado.status === 'em_andamento' ? 'pending' : 'schedule'}
+                      {chamado.status === 'resolvido' ? 'check_circle' :
+                       chamado.status === 'em_atendimento' ? 'pending' : 'schedule'}
                     </span>
                   </div>
                   {i < meusChamados.length - 1 && (
@@ -148,7 +147,7 @@ export function ProfilePage({ onScroll }: ProfilePageProps) {
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                       chamado.status === 'resolvido' ? 'bg-green-100 text-green-600' :
-                      chamado.status === 'em_andamento' ? 'bg-blue-100 text-blue-600' :
+                      chamado.status === 'em_atendimento' ? 'bg-blue-100 text-blue-600' :
                       'bg-orange-100 text-orange-600'
                     }`}>
                       {chamado.status.replace('_', ' ')}

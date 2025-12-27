@@ -62,6 +62,7 @@ export function useImpersonate() {
       if (sessionData?.session?.access_token) {
         localStorage.setItem(ORIGINAL_TOKEN_KEY, sessionData.session.access_token);
       }
+      // @ts-expect-error - Supabase function invoke typing
       const response = await supabase.functions.invoke<ImpersonateResponse>('impersonate', {
         body: { usuario_alvo_id: userId, motivo },
       });

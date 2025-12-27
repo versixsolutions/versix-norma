@@ -1,10 +1,15 @@
-export { useApproveUser } from './useApproveUser';
-export type { PendingUser } from './useApproveUser';
-export { useImpersonate } from './useImpersonate';
-export type { ImpersonateSession } from './useImpersonate';
-export { useAdmin } from './useAdmin';
-export type { AdminUser, AdminCondominio, AdminStats } from './useAdmin';
-export { useAuditLogs } from './useAuditLogs';
-export type { AuditLog, AuditLogFilters } from './useAuditLogs';
-export { useFeatureFlags, FEATURE_FLAGS } from './useFeatureFlags';
-export type { FeatureFlag } from './useFeatureFlags';
+// Sprint 3 - Módulos Operacionais
+export { useComunicados } from './useComunicados';
+export type { Comunicado, ComunicadoFilters, CreateComunicadoInput, UpdateComunicadoInput, ComunicadoStatus, ComunicadoCategoria } from './useComunicados';
+
+export { useOcorrencias } from './useOcorrencias';
+export type { Ocorrencia, OcorrenciaFilters, CreateOcorrenciaInput, UpdateOcorrenciaInput, OcorrenciaHistorico, OcorrenciaStatus, OcorrenciaCategoria, Prioridade } from './useOcorrencias';
+
+export { useChamados } from './useChamados';
+export type { Chamado, ChamadoFilters, CreateChamadoInput, UpdateChamadoInput, ChamadoMensagem, CreateMensagemInput, AvaliarChamadoInput, ChamadoStatus, ChamadoCategoria } from './useChamados';
+
+export { useFAQ } from './useFAQ';
+export type { FAQ, FAQFilters, CreateFAQInput, UpdateFAQInput } from './useFAQ';
+
+export { useAnexos } from './useAnexos';
+export type { Anexo } from './useAnexos';

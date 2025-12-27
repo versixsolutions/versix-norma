@@ -1,197 +1,162 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Comunicado } from '@/types/database';
-import { useCallback, useEffect, useState } from 'react';
+import type { Comunicado, ComunicadoCategoria, ComunicadoFilters, ComunicadoStatus, CreateComunicadoInput, PaginatedResponse, UpdateComunicadoInput } from '@versix/shared';
+import { useCallback, useState } from 'react';
 
-// ============================================
-// TYPES
-// ============================================
-interface ComunicadoComLeitura extends Comunicado {
-  lido: boolean;
-  autor_nome?: string;
-}
-
-interface UseComunicadosOptions {
-  condominioId: string | null;
-  userId: string | null;
-}
-
-interface UseComunicadosReturn {
-  comunicados: ComunicadoComLeitura[];
-  naoLidos: number;
-  loading: boolean;
-  error: Error | null;
-  refresh: () => Promise<void>;
-  marcarComoLido: (comunicadoId: string) => Promise<void>;
-  marcarTodosComoLidos: () => Promise<void>;
-}
-
-// ============================================
-// HOOK
-// ============================================
-export function useComunicados({ condominioId, userId }: UseComunicadosOptions): UseComunicadosReturn {
+export function useComunicados(options?: { condominioId?: string | null; userId?: string | null }) {
   const supabase = getSupabaseClient();
+  const [comunicados, setComunicados] = useState<Comunicado[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false });
+  const [naoLidos, setNaoLidos] = useState(0);
 
-  const [comunicados, setComunicados] = useState<ComunicadoComLeitura[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchComunicados = useCallback(async () => {
-    if (!condominioId) {
-      setLoading(false);
-      return;
-    }
-
+  const fetchComunicados = useCallback(async (condominioId: string, filters?: ComunicadoFilters): Promise<PaginatedResponse<Comunicado>> => {
+    setLoading(true);
+    setError(null);
     try {
-      // Buscar comunicados
-      const { data: comunicadosData, error: comError } = await supabase
-        .from('comunicados')
-        .select(`
-          *,
-          usuarios:created_by (nome)
-        `)
-        .eq('condominio_id', condominioId)
-        .gte('data_publicacao', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()) // últimos 90 dias
-        .or(`data_expiracao.is.null,data_expiracao.gte.${new Date().toISOString()}`)
-        .order('is_fixado', { ascending: false })
-        .order('data_publicacao', { ascending: false });
+      const page = filters?.page || 1;
+      const pageSize = filters?.pageSize || 20;
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
 
-      if (comError) throw comError;
+      let query = supabase.from('comunicados').select(`*, autor:autor_id (nome, avatar_url)`, { count: 'exact' })
+        .eq('condominio_id', condominioId).is('deleted_at', null).order(filters?.orderBy || 'created_at', { ascending: filters?.orderDir === 'asc' }).range(from, to);
 
-      // Buscar leituras do usuário
-      let leituras: string[] = [];
-      if (userId) {
-        const { data: leiturasData } = await supabase
-          .from('comunicados_leituras')
-          .select('comunicado_id')
-          .eq('usuario_id', userId);
+      if (filters?.status) query = query.eq('status', filters.status);
+      if (filters?.categoria) query = query.eq('categoria', filters.categoria);
+      if (filters?.fixado !== undefined) query = query.eq('fixado', filters.fixado);
+      if (filters?.busca) query = query.or(`titulo.ilike.%${filters.busca}%,conteudo.ilike.%${filters.busca}%`);
 
-        leituras = leiturasData?.map((l) => l.comunicado_id) || [];
-      }
+      const { data, error: fetchError, count } = await query;
+      if (fetchError) throw fetchError;
 
-      const comunicadosComLeitura = (comunicadosData || []).map((c: any) => ({
-        ...c,
-        lido: leituras.includes(c.id),
-        autor_nome: c.usuarios?.nome,
-      }));
-
-      setComunicados(comunicadosComLeitura);
-    } catch (err) {
-      setError(err as Error);
+      const total = count || 0;
+      const result: PaginatedResponse<Comunicado> = {
+        data: data || [],
+        pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize), hasMore: to < total - 1 }
+      };
+      setComunicados(result.data);
+      setPagination(result.pagination);
+      return result;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao carregar comunicados');
+      return { data: [], pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false } };
     } finally {
       setLoading(false);
     }
-  }, [condominioId, userId, supabase]);
+  }, [supabase]);
 
-  useEffect(() => {
-    const checkAndFetch = async () => {
-      if (!condominioId) {
-        setLoading(false);
-        return;
+  const getComunicado = useCallback(async (id: string): Promise<Comunicado | null> => {
+    try {
+      const { data, error: fetchError } = await supabase.from('comunicados').select(`*, autor:autor_id (nome, avatar_url)`).eq('id', id).single();
+      if (fetchError) throw fetchError;
+      // Incrementar visualização
+      await supabase.rpc('increment_comunicado_views', { p_comunicado_id: id });
+      return data;
+    } catch (err) {
+      console.error('Erro ao buscar comunicado:', err);
+      return null;
+    }
+  }, [supabase]);
+
+  const createComunicado = useCallback(async (condominioId: string, autorId: string, input: CreateComunicadoInput): Promise<Comunicado | null> => {
+    setLoading(true);
+    try {
+      const { data, error: insertError } = await supabase.from('comunicados').insert({
+        condominio_id: condominioId, autor_id: autorId, ...input,
+        published_at: input.status === 'publicado' ? new Date().toISOString() : null
+      }).select().single();
+      if (insertError) throw insertError;
+      setComunicados(prev => [data, ...prev]);
+      return data;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao criar comunicado');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const updateComunicado = useCallback(async (input: UpdateComunicadoInput): Promise<Comunicado | null> => {
+    setLoading(true);
+    try {
+      const { id, ...updates } = input;
+      // Se publicando agora, definir published_at
+      if (updates.status === 'publicado') {
+        const current = comunicados.find(c => c.id === id);
+        if (current?.status !== 'publicado') (updates as any).published_at = new Date().toISOString();
+      }
+      const { data, error: updateError } = await supabase.from('comunicados').update(updates).eq('id', id).select().single();
+      if (updateError) throw updateError;
+      setComunicados(prev => prev.map(c => c.id === id ? data : c));
+      return data;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao atualizar comunicado');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase, comunicados]);
+
+  const deleteComunicado = useCallback(async (id: string): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const { error: deleteError } = await supabase.from('comunicados').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+      if (deleteError) throw deleteError;
+      setComunicados(prev => prev.filter(c => c.id !== id));
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao excluir comunicado');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const marcarComoLido = useCallback(async (comunicadoId: string): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      await supabase.rpc('mark_comunicado_read', { p_comunicado_id: comunicadoId, p_usuario_id: user.id });
+      // Update local state
+      setComunicados(prev => prev.map(c => c.id === comunicadoId ? { ...c, lido: true } : c));
+      setNaoLidos(prev => Math.max(0, prev - 1));
+      return true;
+    } catch { return false; }
+  }, [supabase]);
+
+  const marcarTodosComoLidos = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const comunicadoIds = comunicados.filter(c => !c.lido).map(c => c.id);
+      if (comunicadoIds.length === 0) return true;
+
+      // Mark each as read
+      for (const id of comunicadoIds) {
+        await supabase.rpc('mark_comunicado_read', { p_comunicado_id: id, p_usuario_id: user.id });
       }
 
-      // Verificar se há sessão válida
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
-          setLoading(false);
-          return;
-        }
-      } catch (error) {
-        console.error('Session check failed:', error);
-        setLoading(false);
-        return;
-      }
+      // Update local state
+      setComunicados(prev => prev.map(c => ({ ...c, lido: true })));
+      setNaoLidos(0);
+      return true;
+    } catch { return false; }
+  }, [supabase, comunicados]);
 
-      fetchComunicados();
-    };
-
-    checkAndFetch();
-  }, [fetchComunicados, condominioId, supabase]);
-
-  // Realtime subscription
-  useEffect(() => {
-    if (!condominioId) return;
-
-    const channel = supabase
-      .channel('comunicados-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'comunicados',
-          filter: `condominio_id=eq.${condominioId}`,
-        },
-        () => {
-          fetchComunicados();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [condominioId, supabase, fetchComunicados]);
-
-  const marcarComoLido = async (comunicadoId: string) => {
-    if (!userId) return;
-
+  const getLeituras = useCallback(async (comunicadoId: string) => {
     try {
-      await supabase
-        .from('comunicados_leituras')
-        .upsert({
-          comunicado_id: comunicadoId,
-          usuario_id: userId,
-          lido_em: new Date().toISOString(),
-        });
+      const { data } = await supabase.from('comunicados_leitura').select(`*, usuario:usuario_id (nome)`).eq('comunicado_id', comunicadoId).order('lido_em', { ascending: false });
+      return data || [];
+    } catch { return []; }
+  }, [supabase]);
 
-      setComunicados((prev) =>
-        prev.map((c) =>
-          c.id === comunicadoId ? { ...c, lido: true } : c
-        )
-      );
-    } catch (err) {
-      console.error('Erro ao marcar como lido:', err);
-    }
-  };
-
-  const marcarTodosComoLidos = async () => {
-    if (!userId) return;
-
-    try {
-      const naoLidosIds = comunicados.filter((c) => !c.lido).map((c) => c.id);
-
-      if (naoLidosIds.length === 0) return;
-
-      await supabase
-        .from('comunicados_leituras')
-        .upsert(
-          naoLidosIds.map((id) => ({
-            comunicado_id: id,
-            usuario_id: userId,
-            lido_em: new Date().toISOString(),
-          }))
-        );
-
-      setComunicados((prev) =>
-        prev.map((c) => ({ ...c, lido: true }))
-      );
-    } catch (err) {
-      console.error('Erro ao marcar todos como lidos:', err);
-    }
-  };
-
-  const naoLidos = comunicados.filter((c) => !c.lido).length;
-
-  return {
-    comunicados,
-    naoLidos,
-    loading,
-    error,
-    refresh: fetchComunicados,
-    marcarComoLido,
-    marcarTodosComoLidos,
-  };
+  return { comunicados, naoLidos, loading, error, pagination, fetchComunicados, getComunicado, createComunicado, updateComunicado, deleteComunicado, marcarComoLido, marcarTodosComoLidos, getLeituras };
 }
+
+export type { Comunicado, ComunicadoCategoria, ComunicadoFilters, ComunicadoStatus, CreateComunicadoInput, UpdateComunicadoInput };
+

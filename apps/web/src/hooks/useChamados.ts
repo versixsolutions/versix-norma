@@ -1,264 +1,176 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Chamado, StatusChamado, PrioridadeChamado } from '@/types/database';
+import type { AvaliarChamadoInput, Chamado, ChamadoCategoria, ChamadoFilters, ChamadoMensagem, ChamadoStats, ChamadoStatus, CreateChamadoInput, CreateMensagemInput, PaginatedResponse, UpdateChamadoInput } from '@versix/shared';
+import { useCallback, useEffect, useState } from 'react';
 
-// ============================================
-// TYPES
-// ============================================
-interface ChamadoComDetalhes extends Chamado {
-  unidade_identificador?: string;
-  responsavel_nome?: string;
-  total_comentarios: number;
-}
-
-interface ComentarioChamado {
-  id: string;
-  chamado_id: string;
-  usuario_id: string;
-  usuario_nome: string;
-  conteudo: string;
-  is_interno: boolean;
-  created_at: string;
-}
-
-interface UseChamadosOptions {
-  condominioId: string | null;
-  userId: string | null;
-  unidadeId?: string | null;
-  apenasMinhaUnidade?: boolean;
-}
-
-interface UseChamadosReturn {
-  chamados: ChamadoComDetalhes[];
-  meusChamados: ChamadoComDetalhes[];
-  abertos: number;
-  loading: boolean;
-  error: Error | null;
-  refresh: () => Promise<void>;
-  criarChamado: (data: CriarChamadoInput) => Promise<{ success: boolean; id?: string; error?: Error }>;
-  atualizarStatus: (chamadoId: string, status: StatusChamado) => Promise<{ success: boolean; error?: Error }>;
-  adicionarComentario: (chamadoId: string, conteudo: string) => Promise<{ success: boolean; error?: Error }>;
-  buscarComentarios: (chamadoId: string) => Promise<ComentarioChamado[]>;
-}
-
-interface CriarChamadoInput {
-  categoria: string;
-  titulo: string;
-  descricao: string;
-  prioridade?: PrioridadeChamado;
-  unidade_id?: string;
-}
-
-// ============================================
-// HOOK
-// ============================================
-export function useChamados({ 
-  condominioId, 
-  userId, 
-  unidadeId,
-  apenasMinhaUnidade = false 
-}: UseChamadosOptions): UseChamadosReturn {
+export function useChamados(options?: { condominioId?: string | null; userId?: string | null; apenasMinhaUnidade?: boolean }) {
   const supabase = getSupabaseClient();
-  
-  const [chamados, setChamados] = useState<ChamadoComDetalhes[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [chamados, setChamados] = useState<Chamado[]>([]);
+  const [meusChamados, setMeusChamados] = useState<Chamado[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false });
 
-  const fetchChamados = useCallback(async () => {
-    if (!condominioId) {
-      setLoading(false);
-      return;
-    }
-
+  const fetchChamados = useCallback(async (condominioId: string, filters?: ChamadoFilters): Promise<PaginatedResponse<Chamado>> => {
+    setLoading(true);
+    setError(null);
     try {
-      let query = supabase
-        .from('chamados')
-        .select(`
-          *,
-          unidades:unidade_id (identificador),
-          responsavel:responsavel_id (nome)
-        `)
-        .eq('condominio_id', condominioId)
-        .order('created_at', { ascending: false })
-        .limit(100);
+      const page = filters?.page || 1;
+      const pageSize = filters?.pageSize || 20;
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
 
-      if (apenasMinhaUnidade && unidadeId) {
-        query = query.eq('unidade_id', unidadeId);
-      }
+      let query = supabase.from('chamados').select(`*, solicitante:solicitante_id (nome, avatar_url, email), atendente:atendente_id (nome)`, { count: 'exact' })
+        .eq('condominio_id', condominioId).is('deleted_at', null).order(filters?.orderBy || 'created_at', { ascending: filters?.orderDir === 'asc' }).range(from, to);
 
-      const { data, error: fetchError } = await query;
+      if (filters?.status) query = query.eq('status', filters.status);
+      if (filters?.categoria) query = query.eq('categoria', filters.categoria);
+      if (filters?.prioridade) query = query.eq('prioridade', filters.prioridade);
+      if (filters?.atendente_id) query = query.eq('atendente_id', filters.atendente_id);
+      if (filters?.solicitante_id) query = query.eq('solicitante_id', filters.solicitante_id);
+      if (filters?.busca) query = query.or(`titulo.ilike.%${filters.busca}%,descricao.ilike.%${filters.busca}%`);
 
+      const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;
 
-      // Contar comentários para cada chamado
-      const chamadosComDetalhes: ChamadoComDetalhes[] = await Promise.all(
-        (data || []).map(async (c: any) => {
-          const { count } = await supabase
-            .from('chamados_comentarios')
-            .select('*', { count: 'exact', head: true })
-            .eq('chamado_id', c.id);
-
-          return {
-            ...c,
-            unidade_identificador: c.unidades?.identificador,
-            responsavel_nome: c.responsavel?.nome,
-            total_comentarios: count || 0,
-          };
-        })
-      );
-
-      setChamados(chamadosComDetalhes);
-    } catch (err) {
-      setError(err as Error);
+      const total = count || 0;
+      const result: PaginatedResponse<Chamado> = {
+        data: data || [],
+        pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize), hasMore: to < total - 1 }
+      };
+      setChamados(result.data);
+      setPagination(result.pagination);
+      return result;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao carregar chamados');
+      return { data: [], pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false } };
     } finally {
       setLoading(false);
     }
-  }, [condominioId, unidadeId, apenasMinhaUnidade, supabase]);
+  }, [supabase]);
 
   useEffect(() => {
-    fetchChamados();
-  }, [fetchChamados]);
-
-  // Realtime subscription
-  useEffect(() => {
-    if (!condominioId) return;
-
-    const channel = supabase
-      .channel('chamados-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chamados',
-          filter: `condominio_id=eq.${condominioId}`,
-        },
-        () => {
-          fetchChamados();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [condominioId, supabase, fetchChamados]);
-
-  const criarChamado = async (data: CriarChamadoInput) => {
-    if (!condominioId || !userId) {
-      return { success: false, error: new Error('Dados incompletos') };
-    }
-
-    try {
-      const { data: novoChamado, error } = await supabase
-        .from('chamados')
-        .insert({
-          condominio_id: condominioId,
-          usuario_id: userId,
-          unidade_id: data.unidade_id || unidadeId || null,
-          categoria: data.categoria,
-          titulo: data.titulo,
-          descricao: data.descricao,
-          prioridade: data.prioridade || 'media',
-          status: 'aberto',
-        })
-        .select('id')
-        .single();
-
-      if (error) throw error;
-
-      await fetchChamados();
-      return { success: true, id: novoChamado?.id };
-    } catch (err) {
-      return { success: false, error: err as Error };
-    }
-  };
-
-  const atualizarStatus = async (chamadoId: string, status: StatusChamado) => {
-    try {
-      const updateData: any = { status };
-      
-      if (status === 'resolvido') {
-        updateData.data_resolucao = new Date().toISOString();
+    if (options?.condominioId && options?.userId) {
+      const filters: ChamadoFilters = {};
+      if (options.apenasMinhaUnidade) {
+        filters.solicitante_id = options.userId;
       }
-
-      const { error } = await supabase
-        .from('chamados')
-        .update(updateData)
-        .eq('id', chamadoId);
-
-      if (error) throw error;
-
-      await fetchChamados();
-      return { success: true };
-    } catch (err) {
-      return { success: false, error: err as Error };
+      fetchChamados(options.condominioId, filters).then(result => {
+        setMeusChamados(result.data);
+      });
     }
-  };
+  }, [options, fetchChamados]);
 
-  const adicionarComentario = async (chamadoId: string, conteudo: string) => {
-    if (!userId) {
-      return { success: false, error: new Error('Usuário não autenticado') };
-    }
-
+  const getChamado = useCallback(async (id: string): Promise<Chamado | null> => {
     try {
-      const { error } = await supabase
-        .from('chamados_comentarios')
-        .insert({
-          chamado_id: chamadoId,
-          usuario_id: userId,
-          conteudo,
-          is_interno: false,
-        });
-
-      if (error) throw error;
-
-      await fetchChamados();
-      return { success: true };
+      const { data, error: fetchError } = await supabase.from('chamados').select(`*, solicitante:solicitante_id (nome, avatar_url, email), atendente:atendente_id (nome)`).eq('id', id).single();
+      if (fetchError) throw fetchError;
+      // Buscar mensagens
+      const { data: mensagens } = await supabase.from('chamados_mensagens').select(`*, autor:autor_id (nome, avatar_url)`).eq('chamado_id', id).is('deleted_at', null).order('created_at', { ascending: true });
+      return { ...data, mensagens: mensagens || [], total_mensagens: mensagens?.length || 0 };
     } catch (err) {
-      return { success: false, error: err as Error };
+      console.error('Erro ao buscar chamado:', err);
+      return null;
     }
-  };
+  }, [supabase]);
 
-  const buscarComentarios = async (chamadoId: string): Promise<ComentarioChamado[]> => {
+  const createChamado = useCallback(async (condominioId: string, solicitanteId: string, input: CreateChamadoInput): Promise<Chamado | null> => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('chamados_comentarios')
-        .select(`
-          *,
-          usuarios:usuario_id (nome)
-        `)
-        .eq('chamado_id', chamadoId)
-        .eq('is_interno', false)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      return (data || []).map((c: any) => ({
-        ...c,
-        usuario_nome: c.usuarios?.nome || 'Usuário',
-      }));
-    } catch (err) {
-      console.error('Erro ao buscar comentários:', err);
-      return [];
+      const { data, error: insertError } = await supabase.from('chamados').insert({ condominio_id: condominioId, solicitante_id: solicitanteId, ...input }).select().single();
+      if (insertError) throw insertError;
+      setChamados(prev => [data, ...prev]);
+      return data;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao criar chamado');
+      return null;
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const meusChamados = chamados.filter((c) => c.usuario_id === userId);
-  const abertos = chamados.filter((c) => c.status === 'aberto' || c.status === 'em_andamento').length;
+  const updateChamado = useCallback(async (input: UpdateChamadoInput): Promise<Chamado | null> => {
+    setLoading(true);
+    try {
+      const { id, ...updates } = input;
+      const updateData: any = { ...updates };
+      if (updates.status === 'resolvido') updateData.resolvido_em = new Date().toISOString();
+      const { data, error: updateError } = await supabase.from('chamados').update(updateData).eq('id', id).select().single();
+      if (updateError) throw updateError;
+      setChamados(prev => prev.map(c => c.id === id ? data : c));
+      return data;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao atualizar chamado');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
 
-  return {
-    chamados,
-    meusChamados,
-    abertos,
-    loading,
-    error,
-    refresh: fetchChamados,
-    criarChamado,
-    atualizarStatus,
-    adicionarComentario,
-    buscarComentarios,
-  };
+  const deleteChamado = useCallback(async (id: string): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const { error: deleteError } = await supabase.from('chamados').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+      if (deleteError) throw deleteError;
+      setChamados(prev => prev.filter(c => c.id !== id));
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao excluir chamado');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  const addMensagem = useCallback(async (autorId: string, input: CreateMensagemInput): Promise<ChamadoMensagem | null> => {
+    try {
+      const { data, error: insertError } = await supabase.from('chamados_mensagens').insert({ autor_id: autorId, ...input }).select(`*, autor:autor_id (nome, avatar_url)`).single();
+      if (insertError) throw insertError;
+      return data;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao enviar mensagem');
+      return null;
+    }
+  }, [supabase]);
+
+  const avaliarChamado = useCallback(async (input: AvaliarChamadoInput): Promise<boolean> => {
+    try {
+      const { id, ...avaliacaoData } = input;
+      const { error: updateError } = await supabase.from('chamados').update({ ...avaliacaoData, avaliado_em: new Date().toISOString() }).eq('id', id);
+      if (updateError) throw updateError;
+      setChamados(prev => prev.map(c => c.id === id ? { ...c, ...avaliacaoData, avaliado_em: new Date().toISOString() } : c));
+      return true;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao avaliar chamado');
+      return false;
+    }
+  }, [supabase]);
+
+  const getStats = useCallback(async (condominioId: string): Promise<ChamadoStats | null> => {
+    try {
+      const { data } = await supabase.from('chamados').select('status, categoria, avaliacao_nota, created_at, resolvido_em').eq('condominio_id', condominioId).is('deleted_at', null);
+      if (!data) return null;
+      const stats: ChamadoStats = {
+        total: data.length, novos: data.filter(c => c.status === 'novo').length,
+        em_atendimento: data.filter(c => c.status === 'em_atendimento').length,
+        resolvidos: data.filter(c => ['resolvido', 'fechado'].includes(c.status)).length,
+        por_categoria: {} as any, avaliacao_media: null, tempo_medio_resolucao_horas: null
+      };
+      data.forEach(c => { stats.por_categoria[c.categoria] = (stats.por_categoria[c.categoria] || 0) + 1; });
+      const comNota = data.filter(c => c.avaliacao_nota);
+      if (comNota.length > 0) stats.avaliacao_media = comNota.reduce((a, c) => a + c.avaliacao_nota!, 0) / comNota.length;
+      const resolvidos = data.filter(c => c.resolvido_em);
+      if (resolvidos.length > 0) {
+        const tempos = resolvidos.map(c => (new Date(c.resolvido_em!).getTime() - new Date(c.created_at).getTime()) / 3600000);
+        stats.tempo_medio_resolucao_horas = tempos.reduce((a, b) => a + b, 0) / tempos.length;
+      }
+      return stats;
+    } catch { return null; }
+  }, [supabase]);
+
+  return { chamados, meusChamados, loading, error, pagination, fetchChamados, getChamado, createChamado, updateChamado, deleteChamado, addMensagem, avaliarChamado, getStats };
 }
+
+export type { AvaliarChamadoInput, Chamado, ChamadoCategoria, ChamadoFilters, ChamadoMensagem, ChamadoStatus, CreateChamadoInput, CreateMensagemInput, UpdateChamadoInput };
+

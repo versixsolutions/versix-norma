@@ -1,12 +1,12 @@
 'use client';
+import { UserTable } from '@/components/admin/UserTable';
 import { AuthGuard } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
-import { UserTable } from '@/components/admin/UserTable';
 import Link from 'next/link';
-import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
 
-export default function AdminUsuariosPage() {
+function AdminUsuariosContent() {
   const { fetchUsers } = useAdmin();
   const searchParams = useSearchParams();
   const statusFilter = searchParams.get('status') || undefined;
@@ -19,5 +19,13 @@ export default function AdminUsuariosPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"><UserTable onRefresh={() => fetchUsers({ status: statusFilter, condominio_id: condominioFilter })} /></main>
       </div>
     </AuthGuard>
+  );
+}
+
+export default function AdminUsuariosPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-bg-light dark:bg-bg-dark flex items-center justify-center"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto"></div><p className="mt-4 text-gray-600 dark:text-gray-400">Carregando...</p></div></div>}>
+      <AdminUsuariosContent />
+    </Suspense>
   );
 }

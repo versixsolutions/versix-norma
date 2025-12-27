@@ -58,13 +58,13 @@ export function useApproveUser() {
     setLoading(true);
     setError(null);
     try {
-      const response = await supabase.functions.invoke<ApproveUserResponse>('approve-user', {
+      const response = await supabase.functions.invoke('approve-user', {
         body: { usuario_id: userId, acao: 'approve', unidade_id: unidadeId },
       });
       if (response.error) throw new Error(response.error.message);
       if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao aprovar usuário');
       setPendingUsers(prev => prev.filter(u => u.id !== userId));
-      return response.data;
+      return response.data as ApproveUserResponse;
     } catch (err: any) {
       const errorMessage = err.message || 'Erro ao aprovar usuário';
       setError(errorMessage);
@@ -78,13 +78,13 @@ export function useApproveUser() {
     setLoading(true);
     setError(null);
     try {
-      const response = await supabase.functions.invoke<ApproveUserResponse>('approve-user', {
+      const response = await supabase.functions.invoke('approve-user', {
         body: { usuario_id: userId, acao: 'reject', motivo_rejeicao: motivo },
       });
       if (response.error) throw new Error(response.error.message);
       if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao rejeitar usuário');
       setPendingUsers(prev => prev.filter(u => u.id !== userId));
-      return response.data;
+      return response.data as ApproveUserResponse;
     } catch (err: any) {
       const errorMessage = err.message || 'Erro ao rejeitar usuário';
       setError(errorMessage);
