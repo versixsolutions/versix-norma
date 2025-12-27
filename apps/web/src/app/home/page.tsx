@@ -136,7 +136,7 @@ function HomeContent() {
               </div>
 
               <h1
-                className={`absolute top-1/2 text-white font-display font-bold text-2xl tracking-widest drop-shadow-md transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap pointer-events-none ${
+                className={`absolute top-1/2 text-white font-display font-bold text-2xl tracking-widest drop-shadow-md transition-all duration-500 ease-in-out whitespace-nowrap pointer-events-none ${
                   isScrolled
                     ? 'left-14 -translate-y-1/2 translate-x-0 scale-90 origin-left'
                     : 'left-1/2 -translate-y-1/2 -translate-x-1/2 scale-100 origin-center'

@@ -21,8 +21,9 @@ export function useVotacao() {
       });
       if (rpcError) throw rpcError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -36,8 +37,9 @@ export function useVotacao() {
       const { data, error: fetchError } = await supabase.from('assembleia_presencas').select('*').eq('assembleia_id', assembleiaId).or(`usuario_id.eq.${userId},representante_id.eq.${userId}`).single();
       if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     }
   }, [supabase]);
@@ -48,8 +50,9 @@ export function useVotacao() {
       const { data, error: rpcError } = await supabase.rpc('iniciar_votacao_pauta', { p_pauta_id: pautaId });
       if (rpcError) throw rpcError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return false;
     }
   }, [supabase]);
@@ -66,8 +69,9 @@ export function useVotacao() {
       });
       if (rpcError) throw rpcError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -91,8 +95,9 @@ export function useVotacao() {
       const { data, error: rpcError } = await supabase.rpc('encerrar_pauta', { p_pauta_id: pautaId });
       if (rpcError) throw rpcError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     }
   }, [supabase]);
@@ -103,8 +108,9 @@ export function useVotacao() {
       const { data, error: fetchError } = await supabase.from('v_pauta_resultado').select('*').eq('pauta_id', pautaId).single();
       if (fetchError) throw fetchError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     }
   }, [supabase]);
@@ -115,8 +121,9 @@ export function useVotacao() {
       const { data, error: fetchError } = await supabase.from('assembleia_comentarios').select('*, usuario:usuario_id(nome, avatar_url)').eq('pauta_id', pautaId).eq('visivel', true).order('created_at');
       if (fetchError) throw fetchError;
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return [];
     }
   }, [supabase]);
@@ -127,8 +134,9 @@ export function useVotacao() {
       const { data, error: insertError } = await supabase.from('assembleia_comentarios').insert({ ...input, usuario_id: userId }).select('*, usuario:usuario_id(nome, avatar_url)').single();
       if (insertError) throw insertError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     }
   }, [supabase]);
@@ -141,8 +149,9 @@ export function useVotacao() {
       }).eq('id', comentarioId);
       if (updateError) throw updateError;
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return false;
     }
   }, [supabase]);

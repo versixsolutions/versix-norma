@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { toast } from 'sonner';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { getSupabaseClient } from '@/lib/supabase';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function SignupSindicoPage() {
   const router = useRouter();
@@ -43,7 +43,11 @@ export default function SignupSindicoPage() {
       await supabase.storage.from('atas-eleicao').upload(fileName, ataFile);
       toast.success('Cadastro enviado!');
       router.push('/aguardando-validacao-ata');
-    } catch (error: any) { toast.error(error.message || 'Erro'); setLoading(false); }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro';
+      toast.error(errorMessage);
+      setLoading(false);
+    }
   };
 
   if (authLoading) return <div className="h-screen flex items-center justify-center bg-primary"><div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin" /></div>;

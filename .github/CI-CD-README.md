@@ -62,6 +62,45 @@ O workflow executa 4 jobs em sequência:
 3. **Deploy Preview** - Deploy para PRs
 4. **Deploy Production** - Deploy para produção (main)
 
+## ⚠️ Limites de Avisos
+
+O CI/CD impõe limites rigorosos de avisos para manter a qualidade do código:
+
+### ESLint:
+- **Máximo de avisos**: 50
+- **Erros**: 0 (qualquer erro falha o build)
+
+### Build (Next.js):
+- **Preview (PRs)**: Máximo 100 avisos
+- **Produção (main)**: Máximo 80 avisos
+
+### Configuração:
+Os limites são definidos em `.warnings-config.json` na raiz do projeto:
+
+```json
+{
+  "eslint": {
+    "maxWarnings": 50,
+    "maxErrors": 0
+  },
+  "build": {
+    "preview": {
+      "maxWarnings": 100,
+      "maxErrors": 0
+    },
+    "production": {
+      "maxWarnings": 80,
+      "maxErrors": 0
+    }
+  }
+}
+```
+
+### Como Ajustar Limites:
+1. Edite `.warnings-config.json`
+2. Faça commit e push
+3. O CI/CD usará os novos limites
+
 ## 🔍 Monitoramento
 
 - **GitHub Actions**: [github.com/versixsolutions/versix-norma/actions](https://github.com/versixsolutions/versix-norma/actions)

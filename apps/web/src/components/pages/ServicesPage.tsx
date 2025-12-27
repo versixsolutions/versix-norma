@@ -99,6 +99,8 @@ export function ServicesPage({ onScroll }: ServicesPageProps) {
                   src={partner.img}
                   alt={partner.title}
                   fill
+                  width={0}
+                  height={0}
                   className="w-full h-full object-cover"
                 />
               </div>

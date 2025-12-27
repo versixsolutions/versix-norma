@@ -127,6 +127,9 @@ export interface LancamentoFinanceiro {
   categoria?: { codigo: string; nome: string };
   conta_bancaria?: { nome_exibicao: string };
   criador?: { nome: string };
+  categorias?: { nome: string };
+  unidades?: { identificador: string | null };
+  unidade_id?: string;
 }
 
 export interface CreateLancamentoInput {

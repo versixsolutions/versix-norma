@@ -96,9 +96,9 @@ export function useAuth() {
         console.error('Erro ao buscar condomínios:', condError);
       }
 
-      const userCondominios = (condominios || []).map((c: any) => ({
+      const userCondominios = (condominios || []).map((c: { condominio_id: string; nome: string; role: RoleType; unidade_id: string | null; unidades?: { identificador: string | null } }) => ({
         condominio_id: c.condominio_id,
-        nome: c.condominios?.nome || '',
+        nome: c.nome,
         role: c.role as RoleType,
         unidade_id: c.unidade_id,
         unidade_identificador: c.unidades?.identificador || null,
@@ -110,7 +110,7 @@ export function useAuth() {
         : null;
 
       const condominioAtual = userCondominios.find(
-        (c: any) => c.condominio_id === storedCondominioId
+        (c: { condominio_id: string; nome: string; role: RoleType; unidade_id: string | null; unidade_identificador: string | null; }) => c.condominio_id === storedCondominioId
       ) || userCondominios[0] || null;
 
       return {
@@ -182,7 +182,7 @@ export function useAuth() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: string, session: any) => {
+      async (event: string, session: Session | null) => {
         console.log('Auth event:', event);
 
         if (event === 'SIGNED_IN' && session?.user) {

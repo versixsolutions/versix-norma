@@ -2,6 +2,7 @@
 
 import { getSupabaseClient } from '@/lib/supabase';
 import type { Lancamento, StatusLancamento, TipoLancamento } from '@/types/database';
+import type { LancamentoFinanceiro } from '@versix/shared/types/financial';
 import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
@@ -179,7 +180,7 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
       .limit(50);
 
     if (!error && data) {
-      setLancamentos(data.map((l: any) => ({
+      setLancamentos(data.map((l: LancamentoFinanceiro) => ({
         ...l,
         categoria_nome: l.categorias?.nome,
         unidade_identificador: l.unidades?.identificador,
@@ -205,8 +206,8 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
     if (!error && data) {
       // Agrupar por unidade
-      const grouped = data.reduce((acc: any, l: any) => {
-        const key = l.unidade_id;
+      const grouped = data.reduce((acc: Record<string, { unidade_id: string; identificador: string; valor_devido: number; meses_atraso: number }>, l: LancamentoFinanceiro) => {
+        const key = l.unidade_id!;
         if (!acc[key]) {
           acc[key] = {
             unidade_id: key,
@@ -270,7 +271,7 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
     };
 
     checkAndLoad();
-  }, [condominioId, refresh]);
+  }, [condominioId, refresh, supabase.auth]);
 
   // ============================================
   // MUTATIONS

@@ -39,8 +39,25 @@ jobs:
         run: pnpm lint
         continue-on-error: true
 
-      - name: Run TypeScript check
-        run: pnpm type-check
+      - name: Check ESLint warnings
+        run: |
+          WARNING_COUNT=$(pnpm lint 2>&1 | grep -c "warning\|Warning" || true)
+          ERROR_COUNT=$(pnpm lint 2>&1 | grep -c "error\|Error" || true)
+
+          MAX_WARNINGS=$(jq -r '.eslint.maxWarnings' .warnings-config.json)
+          MAX_ERRORS=$(jq -r '.eslint.maxErrors' .warnings-config.json)
+
+          echo "ESLint Warnings: $WARNING_COUNT (max: $MAX_WARNINGS)"
+          echo "ESLint Errors: $ERROR_COUNT (max: $MAX_ERRORS)"
+
+          if [ "$ERROR_COUNT" -gt "$MAX_ERRORS" ]; then
+            echo "ESLint errors found ($ERROR_COUNT > $MAX_ERRORS). Failing build."
+            exit 1
+          fi
+
+          if [ "$WARNING_COUNT" -gt "$MAX_WARNINGS" ]; then
+            echo "Too many ESLint warnings ($WARNING_COUNT > $MAX_WARNINGS). Failing build."
+            echo "Please fix warnings or update the warning limit in .warnings-config.json if necessary."
 
   # ============================================
   # DEPLOY PREVIEW (apenas para PRs)
@@ -72,8 +89,31 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build application
-        run: pnpm build
-        working-directory: ./apps/web
+        id: build
+        run: |
+          cd apps/web
+          BUILD_OUTPUT=$(pnpm build 2>&1)
+          echo "$BUILD_OUTPUT"
+
+          WARNING_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "Warning\|warning" || true)
+          ERROR_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "Error\|error" || true)
+
+          MAX_WARNINGS=$(jq -r '.build.preview.maxWarnings' ../../../.warnings-config.json)
+          MAX_ERRORS=$(jq -r '.build.preview.maxErrors' ../../../.warnings-config.json)
+
+          echo "Build Warnings: $WARNING_COUNT (max: $MAX_WARNINGS)"
+          echo "Build Errors: $ERROR_COUNT (max: $MAX_ERRORS)"
+
+          if [ "$ERROR_COUNT" -gt "$MAX_ERRORS" ]; then
+            echo "Build errors found ($ERROR_COUNT > $MAX_ERRORS). Failing build."
+            exit 1
+          fi
+
+          if [ "$WARNING_COUNT" -gt "$MAX_WARNINGS" ]; then
+            echo "Too many build warnings ($WARNING_COUNT > $MAX_WARNINGS). Failing build."
+            echo "Please fix warnings or update the warning limit in .warnings-config.json if necessary."
+            exit 1
+          fi
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -155,7 +195,29 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build application
-        run: pnpm build
+        run: |
+          BUILD_OUTPUT=$(pnpm build 2>&1)
+          echo "$BUILD_OUTPUT"
+
+          WARNING_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "Warning\|warning" || true)
+          ERROR_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "Error\|error" || true)
+
+          MAX_WARNINGS=$(jq -r '.build.production.maxWarnings' .warnings-config.json)
+          MAX_ERRORS=$(jq -r '.build.production.maxErrors' .warnings-config.json)
+
+          echo "Build Warnings: $WARNING_COUNT (max: $MAX_WARNINGS)"
+          echo "Build Errors: $ERROR_COUNT (max: $MAX_ERRORS)"
+
+          if [ "$ERROR_COUNT" -gt "$MAX_ERRORS" ]; then
+            echo "Build errors found ($ERROR_COUNT > $MAX_ERRORS). Failing production build."
+            exit 1
+          fi
+
+          if [ "$WARNING_COUNT" -gt "$MAX_WARNINGS" ]; then
+            echo "Too many build warnings ($WARNING_COUNT > $MAX_WARNINGS). Failing production build."
+            echo "Please fix warnings before deploying to production."
+            exit 1
+          fi
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest

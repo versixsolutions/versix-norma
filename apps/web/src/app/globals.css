@@ -13,7 +13,7 @@
     --primary-foreground: #ffffff;
     --secondary: #53a5b6;
     --secondary-foreground: #ffffff;
-    
+
     /* shadcn/ui compatibility */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -31,7 +31,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
-    
+
     /* Chart colors */
     --chart-1: #53a5b6;
     --chart-2: #78b598;
@@ -63,12 +63,13 @@
   * {
     @apply border-border;
   }
-  
+
   body {
-    @apply bg-bg-light text-foreground font-sans;
+    @apply bg-bg-light text-foreground;
+    font-family: var(--font-inter), sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
-  
+
   .dark body {
     @apply bg-bg-dark;
   }
@@ -82,7 +83,7 @@
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.18);
   }
-  
+
   .dark .glass {
     background: rgba(255, 255, 255, 0.1);
   }
@@ -95,7 +96,7 @@
     background-size: 1000px 100%;
     animation: shimmer 1.5s infinite linear;
   }
-  
+
   .dark .skeleton-bg {
     background: #2d2d2d;
     background-image: linear-gradient(to right, #2d2d2d 0%, #3d3d3d 20%, #2d2d2d 40%, #2d2d2d 100%);
@@ -105,7 +106,7 @@
   .hide-scroll::-webkit-scrollbar {
     display: none;
   }
-  
+
   .hide-scroll {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -145,19 +146,19 @@
   .animation-delay-100 {
     animation-delay: 0.1s;
   }
-  
+
   .animation-delay-200 {
     animation-delay: 0.2s;
   }
-  
+
   .animation-delay-300 {
     animation-delay: 0.3s;
   }
-  
+
   .animation-delay-400 {
     animation-delay: 0.4s;
   }
-  
+
   .animation-delay-500 {
     animation-delay: 0.5s;
   }

@@ -1,8 +1,8 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
-import { useCallback, useState, useEffect } from 'react';
-import type { Assembleia, Pauta, Presenca, QuorumInfo, CreateAssembleiaInput, UpdateAssembleiaInput, CreatePautaInput, AssembleiaStatus, AssembleiaFilters } from '@versix/shared/types/assembleias';
+import type { Assembleia, AssembleiaFilters, AssembleiaStatus, CreateAssembleiaInput, CreatePautaInput, Pauta, Presenca, QuorumInfo, UpdateAssembleiaInput } from '@versix/shared/types/assembleias';
+import { useCallback, useState } from 'react';
 
 export function useAssembleias() {
   const supabase = getSupabaseClient();
@@ -17,13 +17,14 @@ export function useAssembleias() {
       if (filters?.tipo) query = query.eq('tipo', filters.tipo);
       if (filters?.status) query = query.eq('status', filters.status);
       if (filters?.ano) query = query.gte('data_primeira_convocacao', `${filters.ano}-01-01`).lt('data_primeira_convocacao', `${filters.ano + 1}-01-01`);
-      
+
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
       setAssembleias(data || []);
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return [];
     } finally {
       setLoading(false);
@@ -34,13 +35,14 @@ export function useAssembleias() {
     try {
       const { data, error: fetchError } = await supabase.from('assembleias').select(`*, pautas:assembleia_pautas(*, opcoes:assembleia_pauta_opcoes(*)), presencas:assembleia_presencas(*, usuario:usuario_id(nome, avatar_url), unidade:unidade_id(identificador, bloco:bloco_id(nome)))`).eq('id', id).single();
       if (fetchError) throw fetchError;
-      
+
       // Buscar quorum
       const { data: quorum } = await supabase.from('v_assembleia_quorum').select('*').eq('assembleia_id', id).single();
-      
+
       return { ...data, quorum } as Assembleia;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     }
   }, [supabase]);
@@ -52,8 +54,9 @@ export function useAssembleias() {
       if (insertError) throw insertError;
       setAssembleias(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -68,8 +71,9 @@ export function useAssembleias() {
       if (updateError) throw updateError;
       setAssembleias(prev => prev.map(a => a.id === id ? data : a));
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -82,8 +86,9 @@ export function useAssembleias() {
       if (deleteError) throw deleteError;
       setAssembleias(prev => prev.filter(a => a.id !== id));
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return false;
     }
   }, [supabase]);
@@ -95,8 +100,9 @@ export function useAssembleias() {
       if (rpcError) throw rpcError;
       setAssembleias(prev => prev.map(a => a.id === id ? { ...a, status: 'convocada' as AssembleiaStatus } : a));
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return false;
     }
   }, [supabase]);
@@ -107,8 +113,9 @@ export function useAssembleias() {
       if (rpcError) throw rpcError;
       setAssembleias(prev => prev.map(a => a.id === id ? { ...a, status: 'em_andamento' as AssembleiaStatus } : a));
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return false;
     }
   }, [supabase]);
@@ -119,8 +126,9 @@ export function useAssembleias() {
       if (rpcError) throw rpcError;
       setAssembleias(prev => prev.map(a => a.id === id ? { ...a, status: 'encerrada' as AssembleiaStatus } : a));
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return false;
     }
   }, [supabase]);
@@ -131,8 +139,9 @@ export function useAssembleias() {
       const { data, error: insertError } = await supabase.from('assembleia_pautas').insert({ assembleia_id: assembleiaId, ...input }).select().single();
       if (insertError) throw insertError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     }
   }, [supabase]);
@@ -142,8 +151,9 @@ export function useAssembleias() {
       const { error: deleteError } = await supabase.from('assembleia_pautas').delete().eq('id', pautaId);
       if (deleteError) throw deleteError;
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return false;
     }
   }, [supabase]);
@@ -155,7 +165,7 @@ export function useAssembleias() {
         const { data } = await supabase.from('v_assembleia_quorum').select('*').eq('assembleia_id', assembleiaId).single();
         if (data) onUpdate(data);
       }).subscribe();
-    
+
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
 
@@ -167,4 +177,5 @@ export function useAssembleias() {
   };
 }
 
-export type { Assembleia, Pauta, Presenca, QuorumInfo, CreateAssembleiaInput, UpdateAssembleiaInput, CreatePautaInput, AssembleiaFilters };
+export type { Assembleia, AssembleiaFilters, CreateAssembleiaInput, CreatePautaInput, Pauta, Presenca, QuorumInfo, UpdateAssembleiaInput };
+

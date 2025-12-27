@@ -1,9 +1,10 @@
 'use client';
 
-import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
-import { useComunicados, type CreateComunicadoInput, type ComunicadoStatus } from '@/hooks/useComunicados';
 import { ComunicadoCard } from '@/components/comunicados/ComunicadoCard';
 import { ComunicadoForm } from '@/components/comunicados/ComunicadoForm';
+import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
+import { useComunicados, type ComunicadoStatus, type CreateComunicadoInput } from '@/hooks/useComunicados';
+import type { ComunicadoLeitura } from '@versix/shared/types/operational';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -14,7 +15,7 @@ export default function SindicoComunicadosPage() {
   const [statusFilter, setStatusFilter] = useState<ComunicadoStatus | ''>('');
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [viewingLeituras, setViewingLeituras] = useState<{ id: string; leituras: any[] } | null>(null);
+  const [viewingLeituras, setViewingLeituras] = useState<{ id: string; leituras: ComunicadoLeitura[] } | null>(null);
 
   const condominioId = profile?.condominio_atual?.id;
 
@@ -120,7 +121,7 @@ export default function SindicoComunicadosPage() {
                   <p className="text-center text-gray-500 py-8">Nenhuma leitura registrada</p>
                 ) : (
                   <div className="space-y-2">
-                    {viewingLeituras.leituras.map((l: any) => (
+                    {viewingLeituras.leituras.map((l: ComunicadoLeitura) => (
                       <div key={l.id} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
                         <span className="text-gray-800 dark:text-white">{l.usuario?.nome || 'Usuário'}</span>
                         <span className="text-xs text-gray-400">{new Date(l.lido_em).toLocaleString('pt-BR')}</span>

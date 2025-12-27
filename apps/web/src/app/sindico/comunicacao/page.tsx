@@ -5,7 +5,7 @@ import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useEmergencias } from '@/hooks/useEmergencias';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { usePreferenciasCanais } from '@/hooks/usePreferenciasCanais';
-import type { CreateNotificacaoInput, NotificacaoDashboard, PrioridadeComunicado } from '@versix/shared/types/comunicacao';
+import type { CreateNotificacaoInput, NotificacaoDashboard, PrioridadeComunicado, TipoEmergencia } from '@versix/shared/types/comunicacao';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -54,7 +54,7 @@ export default function SindicoComunicacaoPage() {
     setSubmitting(false);
   };
 
-  const handleEmergencia = async (tipo: any, descricao: string) => {
+  const handleEmergencia = async (tipo: TipoEmergencia, descricao: string) => {
     if (!condominioId) return;
     const id = await dispararEmergencia(condominioId, { tipo, descricao });
     if (id) {

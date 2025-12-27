@@ -1,8 +1,8 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
+import type { DispararEmergenciaInput, EmergenciaLog, TipoEmergencia } from '@versix/shared/types/comunicacao';
 import { useCallback, useState } from 'react';
-import type { EmergenciaLog, DispararEmergenciaInput, TipoEmergencia } from '@versix/shared/types/comunicacao';
 
 export function useEmergencias() {
   const supabase = getSupabaseClient();
@@ -18,8 +18,9 @@ export function useEmergencias() {
       if (fetchError) throw fetchError;
       setEmergencias(data || []);
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return [];
     } finally {
       setLoading(false);
@@ -38,13 +39,14 @@ export function useEmergencias() {
         p_disparado_por: userId
       });
       if (rpcError) throw rpcError;
-      
+
       // Recarregar lista
       await fetchEmergencias(condominioId);
-      
+
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -57,8 +59,9 @@ export function useEmergencias() {
       const { data, error: fetchError } = await supabase.from('emergencias_log').select('*').eq('id', id).single();
       if (fetchError) throw fetchError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
       return null;
     }
   }, [supabase]);
@@ -69,4 +72,5 @@ export function useEmergencias() {
   };
 }
 
-export type { EmergenciaLog, DispararEmergenciaInput, TipoEmergencia };
+export type { DispararEmergenciaInput, EmergenciaLog, TipoEmergencia };
+

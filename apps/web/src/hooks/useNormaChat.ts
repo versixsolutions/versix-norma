@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
 import { getSupabaseClient } from '@/lib/supabase';
+import { useCallback, useRef, useState } from 'react';
 
 // ============================================
 // TYPES
@@ -40,11 +40,11 @@ interface UseNormaChatReturn {
 // ============================================
 export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): UseNormaChatReturn {
   const supabase = getSupabaseClient();
-  
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
+
   const conversaIdRef = useRef<string | null>(null);
 
   // ============================================
@@ -83,6 +83,51 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
       }
     } catch (err) {
       console.error('Erro ao carregar histórico:', err);
+    }
+  }, [condominioId, userId, supabase]);
+
+  // ============================================
+  // SAVE CONVERSATION
+  // ============================================
+  const saveConversation = useCallback(async (msgs: Message[]) => {
+    if (!condominioId || !userId) return;
+
+    const mensagensParaSalvar = msgs.map((m) => ({
+      text: m.text,
+      sender: m.sender,
+      citation: m.citation,
+      sources: m.sources,
+      timestamp: m.timestamp.toISOString(),
+    }));
+
+    try {
+      if (conversaIdRef.current) {
+        // Atualizar conversa existente
+        await supabase
+          .from('conversas_norma')
+          .update({
+            mensagens: mensagensParaSalvar,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', conversaIdRef.current);
+      } else {
+        // Criar nova conversa
+        const { data } = await supabase
+          .from('conversas_norma')
+          .insert({
+            usuario_id: userId,
+            condominio_id: condominioId,
+            mensagens: mensagensParaSalvar,
+          })
+          .select('id')
+          .single();
+
+        if (data) {
+          conversaIdRef.current = data.id;
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao salvar conversa:', err);
     }
   }, [condominioId, userId, supabase]);
 
@@ -158,52 +203,7 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
     } finally {
       setIsTyping(false);
     }
-  }, [condominioId, userId, messages, supabase]);
-
-  // ============================================
-  // SAVE CONVERSATION
-  // ============================================
-  const saveConversation = async (msgs: Message[]) => {
-    if (!condominioId || !userId) return;
-
-    const mensagensParaSalvar = msgs.map((m) => ({
-      text: m.text,
-      sender: m.sender,
-      citation: m.citation,
-      sources: m.sources,
-      timestamp: m.timestamp.toISOString(),
-    }));
-
-    try {
-      if (conversaIdRef.current) {
-        // Atualizar conversa existente
-        await supabase
-          .from('conversas_norma')
-          .update({
-            mensagens: mensagensParaSalvar,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', conversaIdRef.current);
-      } else {
-        // Criar nova conversa
-        const { data } = await supabase
-          .from('conversas_norma')
-          .insert({
-            usuario_id: userId,
-            condominio_id: condominioId,
-            mensagens: mensagensParaSalvar,
-          })
-          .select('id')
-          .single();
-
-        if (data) {
-          conversaIdRef.current = data.id;
-        }
-      }
-    } catch (err) {
-      console.error('Erro ao salvar conversa:', err);
-    }
-  };
+  }, [condominioId, userId, messages, supabase, saveConversation]);
 
   // ============================================
   // CLEAR MESSAGES

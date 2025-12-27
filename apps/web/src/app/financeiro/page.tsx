@@ -37,7 +37,7 @@ export default function FinanceiroMoradorPage() {
 
   useEffect(() => {
     loadData();
-  }, [condominioId, profile?.id, loadData]);
+  }, [loadData]);
 
   const formatCurrency = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR');

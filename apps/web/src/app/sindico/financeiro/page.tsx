@@ -1,23 +1,41 @@
 'use client';
 
+import { DashboardFinanceiroCards } from '@/components/financeiro/DashboardFinanceiroCards';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useFinanceiro } from '@/hooks/useFinanceiro';
-import { DashboardFinanceiroCards } from '@/components/financeiro/DashboardFinanceiroCards';
-import { LancamentoCard } from '@/components/financeiro/LancamentoCard';
+import type { CategoriaFinanceira, ContaBancaria, DashboardFinanceiro } from '@versix/shared/types/financial';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function FinanceiroDashboardPage() {
   const { profile } = useAuthContext();
-  const { loading, error, getDashboard, fetchLancamentos, lancamentos, createLancamento, confirmarLancamento, fetchCategorias, fetchContas } = useFinanceiro();
-  const [dashboard, setDashboard] = useState<any>(null);
+  const { loading, getDashboard, createLancamento, fetchCategorias, fetchContas } = useFinanceiro();
+  const [dashboard, setDashboard] = useState<DashboardFinanceiro | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [categorias, setCategorias] = useState<any[]>([]);
-  const [contas, setContas] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<CategoriaFinanceira[]>([]);
+  const [contas, setContas] = useState<ContaBancaria[]>([]);
   const [form, setForm] = useState({ tipo: 'despesa', categoria_id: '', conta_bancaria_id: '', valor: '', data_competencia: new Date().toISOString().slice(0, 10), descricao: '', fornecedor_nome: '', status: 'pendente' });
 
   const condominioId = profile?.condominio_atual?.id;
+
+  const loadDashboard = useCallback(async () => {
+    if (!condominioId) return;
+    const data = await getDashboard(condominioId);
+    setDashboard(data);
+  }, [condominioId, getDashboard]);
+
+  const loadCategorias = useCallback(async () => {
+    if (!condominioId) return;
+    const cats = await fetchCategorias(condominioId);
+    setCategorias(cats);
+  }, [condominioId, fetchCategorias]);
+
+  const loadContas = useCallback(async () => {
+    if (!condominioId) return;
+    const data = await fetchContas(condominioId);
+    setContas(data);
+  }, [condominioId, fetchContas]);
 
   useEffect(() => {
     if (condominioId) {
@@ -25,31 +43,13 @@ export default function FinanceiroDashboardPage() {
       loadCategorias();
       loadContas();
     }
-  }, [condominioId]);
-
-  const loadDashboard = async () => {
-    if (!condominioId) return;
-    const data = await getDashboard(condominioId);
-    setDashboard(data);
-  };
-
-  const loadCategorias = async () => {
-    if (!condominioId) return;
-    const cats = await fetchCategorias(condominioId);
-    setCategorias(cats);
-  };
-
-  const loadContas = async () => {
-    if (!condominioId) return;
-    const data = await fetchContas(condominioId);
-    setContas(data);
-  };
+  }, [condominioId, loadDashboard, loadCategorias, loadContas]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!condominioId || !profile?.id) return;
     if (!form.categoria_id || !form.valor || !form.descricao) { toast.error('Preencha os campos obrigatórios'); return; }
-    
+
     const result = await createLancamento(condominioId, profile.id, {
       ...form,
       tipo: form.tipo as 'receita' | 'despesa',
@@ -57,19 +57,13 @@ export default function FinanceiroDashboardPage() {
       status: form.status as 'pendente' | 'confirmado',
       conta_bancaria_id: form.conta_bancaria_id || undefined
     });
-    
+
     if (result) {
       toast.success('Lançamento criado!');
       setShowForm(false);
       setForm({ tipo: 'despesa', categoria_id: '', conta_bancaria_id: '', valor: '', data_competencia: new Date().toISOString().slice(0, 10), descricao: '', fornecedor_nome: '', status: 'pendente' });
       loadDashboard();
     }
-  };
-
-  const handleConfirmar = async (id: string) => {
-    if (!profile?.id) return;
-    const success = await confirmarLancamento(id, profile.id);
-    if (success) { toast.success('Lançamento confirmado!'); loadDashboard(); }
   };
 
   const categoriasFiltered = categorias.flatMap(c => [c, ...(c.children || [])]).filter(c => c.tipo === form.tipo);

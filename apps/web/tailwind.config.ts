@@ -22,13 +22,13 @@ const config: Config = {
         'splash-primary': '#113B6B',
         'text-sub': '#475569',
         'text-sub-dark': '#94A3B8',
-        
+
         // Backgrounds
         'bg-light': '#f8fafc',
         'bg-dark': '#0f172a',
         'card-light': '#ffffff',
         'card-dark': '#1a1a1a',
-        
+
         // shadcn/ui compatibility
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -53,8 +53,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-        display: ['Montserrat', 'sans-serif'],
+        sans: ['var(--font-inter)', 'sans-serif'],
+        display: ['var(--font-montserrat)', 'sans-serif'],
       },
       borderRadius: {
         'home-default': '1rem',

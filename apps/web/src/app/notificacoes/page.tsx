@@ -7,7 +7,7 @@ import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useEmergencias } from '@/hooks/useEmergencias';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { usePreferenciasCanais } from '@/hooks/usePreferenciasCanais';
-import type { NotificacaoUsuario } from '@versix/shared/types/comunicacao';
+import type { NotificacaoUsuario, TipoEmergencia } from '@versix/shared/types/comunicacao';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -46,7 +46,7 @@ export default function NotificacoesPage() {
     if (count > 0) toast.success(`${count} notificações marcadas como lidas`);
   };
 
-  const handleEmergencia = async (tipo: any, descricao: string) => {
+  const handleEmergencia = async (tipo: TipoEmergencia, descricao: string) => {
     if (!condominioId) return;
     const id = await dispararEmergencia(condominioId, { tipo, descricao });
     if (id) toast.success('Emergência disparada com sucesso!');

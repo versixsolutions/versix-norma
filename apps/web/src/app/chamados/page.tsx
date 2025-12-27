@@ -3,6 +3,7 @@
 import { ChamadoCard } from '@/components/chamados/ChamadoCard';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useChamados, type ChamadoCategoria, type CreateChamadoInput } from '@/hooks/useChamados';
+import type { ChamadoMensagem } from '@versix/shared/types/operational';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -101,7 +102,7 @@ export default function ChamadosPage() {
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4"><p className="text-sm whitespace-pre-wrap">{detailedChamado.descricao}</p><p className="text-xs text-gray-400 mt-2">{new Date(detailedChamado.created_at).toLocaleString('pt-BR')}</p></div>
-              {detailedChamado.mensagens?.map((m: any) => (<div key={m.id} className={`rounded-2xl p-4 max-w-[80%] ${m.autor_id === profile?.id ? 'bg-primary text-white ml-auto' : 'bg-gray-100 dark:bg-gray-800'}`}><p className="text-sm whitespace-pre-wrap">{m.mensagem}</p><p className={`text-xs mt-1 ${m.autor_id === profile?.id ? 'text-white/70' : 'text-gray-400'}`}>{m.autor?.nome} • {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p></div>))}
+              {detailedChamado.mensagens?.map((m: ChamadoMensagem) => (<div key={m.id} className={`rounded-2xl p-4 max-w-[80%] ${m.autor_id === profile?.id ? 'bg-primary text-white ml-auto' : 'bg-gray-100 dark:bg-gray-800'}`}><p className="text-sm whitespace-pre-wrap">{m.mensagem}</p><p className={`text-xs mt-1 ${m.autor_id === profile?.id ? 'text-white/70' : 'text-gray-400'}`}>{m.autor?.nome} • {new Date(m.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p></div>))}
               {detailedChamado.status === 'resolvido' && !detailedChamado.avaliacao_nota && (
                 <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl p-4 text-center">
                   <p className="font-medium text-green-800 dark:text-green-200 mb-3">Chamado resolvido! Como foi o atendimento?</p>

@@ -1,9 +1,10 @@
 'use client';
 
-import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
-import { useOcorrencias, type CreateOcorrenciaInput, type OcorrenciaCategoria } from '@/hooks/useOcorrencias';
 import { OcorrenciaCard } from '@/components/ocorrencias/OcorrenciaCard';
+import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useAnexos } from '@/hooks/useAnexos';
+import { useOcorrencias, type CreateOcorrenciaInput, type OcorrenciaCategoria } from '@/hooks/useOcorrencias';
+import type { OcorrenciaHistorico } from '@versix/shared/types/operational';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -129,7 +130,7 @@ export default function OcorrenciasPage() {
                 <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap mb-6">{detailedOcorrencia.descricao}</p>
                 {detailedOcorrencia.resolucao && (<div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 mb-6"><h4 className="font-medium text-green-800 dark:text-green-200 mb-2">Resolução</h4><p className="text-green-700 dark:text-green-300 text-sm">{detailedOcorrencia.resolucao}</p></div>)}
                 {detailedOcorrencia.historico && detailedOcorrencia.historico.length > 0 && (
-                  <div><h4 className="font-medium mb-3">Histórico</h4><div className="space-y-3">{detailedOcorrencia.historico.map((h: any) => (<div key={h.id} className="flex gap-3 text-sm"><div className="w-2 h-2 rounded-full bg-primary mt-2" /><div><p className="text-gray-800 dark:text-white">{h.status_anterior} → {h.status_novo}</p><p className="text-gray-500 text-xs">{new Date(h.created_at).toLocaleString('pt-BR')}</p></div></div>))}</div></div>
+                  <div><h4 className="font-medium mb-3">Histórico</h4><div className="space-y-3">{detailedOcorrencia.historico.map((h: OcorrenciaHistorico) => (<div key={h.id} className="flex gap-3 text-sm"><div className="w-2 h-2 rounded-full bg-primary mt-2" /><div><p className="text-gray-800 dark:text-white">{h.status_anterior} → {h.status_novo}</p><p className="text-gray-500 text-xs">{new Date(h.created_at).toLocaleString('pt-BR')}</p></div></div>))}</div></div>
                 )}
               </div>
             </div>

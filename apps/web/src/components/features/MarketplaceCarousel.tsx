@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
 import Image from 'next/image';
+import { useRef } from 'react';
 
 const items = [
   {
@@ -74,6 +74,8 @@ export function MarketplaceCarousel() {
                 src={item.image}
                 alt={item.title}
                 fill
+                width={0}
+                height={0}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
               <div className={`absolute inset-0 bg-gradient-to-r ${item.color} opacity-80 mix-blend-multiply`} />
