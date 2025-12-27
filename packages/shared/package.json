@@ -9,7 +9,8 @@
     "./constants": "./constants/index.ts",
     "./utils": "./utils/index.ts",
     "./validators": "./validators/index.ts",
-    "./types/operational": "./src/types/operational.ts"
+    "./types/operational": "./src/types/operational.ts",
+    "./types/financial": "./src/types/financial.ts"
   },
   "scripts": {
     "lint": "eslint .",

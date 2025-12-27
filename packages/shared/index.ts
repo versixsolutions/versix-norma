@@ -5,6 +5,7 @@
  */
 
 // Types
+export * from './src/types/financial';
 export * from './src/types/operational';
 
 // Constants
