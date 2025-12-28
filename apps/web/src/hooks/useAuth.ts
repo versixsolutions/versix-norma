@@ -228,7 +228,7 @@ export function useAuth() {
         console.log('Auth event:', event);
 
         // Evitar processamento desnecessário para eventos que não alteram o estado
-        if (event === 'TOKEN_REFRESHED' && session && state.user) {
+        if (event === 'TOKEN_REFRESHED' && session && session.user) {
           // Apenas atualizar a sessão, manter o resto do estado
           setState((prev) => ({
             ...prev,

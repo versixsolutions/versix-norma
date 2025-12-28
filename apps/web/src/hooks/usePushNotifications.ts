@@ -35,7 +35,7 @@ export function usePushNotifications() {
   }, [supported]);
 
   // Solicitar permissão e assinar
-  const enablePush = useCallback(async (userId: string): Promise<boolean> => {
+  const enablePush = useCallback(async (): Promise<boolean> => {
     if (!supported || !VAPID_PUBLIC_KEY) return false;
     setLoading(true);
 

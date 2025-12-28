@@ -5,17 +5,17 @@
 
 import { getSupabaseClient } from '@/lib/supabase';
 import type {
-  AlertaSistema,
-  AlertasResumo,
-  DashboardObservabilidade,
-  FiltroAlertas,
-  MetricasPerformance,
-  MetricasUso,
-  ResolverAlertaInput,
-  StatusAlerta,
-  SystemStatus,
-  TipoPeriodo,
-  UptimeCheck,
+    AlertaSistema,
+    AlertasResumo,
+    DashboardObservabilidade,
+    FiltroAlertas,
+    MetricasPerformance,
+    MetricasUso,
+    ResolverAlertaInput,
+    StatusAlerta,
+    SystemStatus,
+    TipoPeriodo,
+    UptimeCheck,
 } from '@/types/observabilidade';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -424,7 +424,6 @@ async function fetchUptime() {
 }
 
 async function fetchCustos() {
-  const hoje = new Date().toISOString().split('T')[0];
   const mesAtras = new Date();
   mesAtras.setMonth(mesAtras.getMonth() - 1);
 

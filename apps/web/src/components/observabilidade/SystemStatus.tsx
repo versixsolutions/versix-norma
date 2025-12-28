@@ -5,21 +5,19 @@
 
 'use client';
 
-import { Activity, CheckCircle, AlertTriangle, XCircle, Wifi, WifiOff } from 'lucide-react';
-import { useSystemHealthStatus, getStatusColor, getStatusText } from '@/hooks/useHealthCheck';
+import { getStatusColor, getStatusText, useSystemHealthStatus } from '@/hooks/useHealthCheck';
+import { Activity, AlertTriangle, CheckCircle, Wifi, WifiOff, XCircle } from 'lucide-react';
 
 // =====================================================
 // MAIN COMPONENT
 // =====================================================
 
 export function SystemStatus() {
-  const { 
-    status, 
-    isLoading, 
-    isOnline, 
-    networkLatency,
-    summary,
-    averageLatency 
+  const {
+    status,
+    isLoading,
+    isOnline,
+    networkLatency
   } = useSystemHealthStatus();
 
   if (isLoading) {
@@ -168,14 +166,14 @@ export function HealthSummary({ ok, degraded, error }: HealthSummaryProps) {
         <StatusDot status="ok" size="sm" />
         <span className="text-gray-600">{ok}/{total} OK</span>
       </div>
-      
+
       {degraded > 0 && (
         <div className="flex items-center gap-1.5">
           <StatusDot status="degraded" size="sm" />
           <span className="text-yellow-600">{degraded} degradado</span>
         </div>
       )}
-      
+
       {error > 0 && (
         <div className="flex items-center gap-1.5">
           <StatusDot status="error" size="sm" pulse />
@@ -212,7 +210,7 @@ export function UptimeBar({ percentage, label }: UptimeBarProps) {
         </div>
       )}
       <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div 
+        <div
           className={`h-full ${getColor()} transition-all duration-500`}
           style={{ width: `${Math.min(percentage, 100)}%` }}
         />
@@ -230,9 +228,9 @@ interface LatencyIndicatorProps {
   threshold?: { good: number; warning: number };
 }
 
-export function LatencyIndicator({ 
-  latency, 
-  threshold = { good: 200, warning: 500 } 
+export function LatencyIndicator({
+  latency,
+  threshold = { good: 200, warning: 500 }
 }: LatencyIndicatorProps) {
   const getStatus = () => {
     if (latency <= threshold.good) return 'good';
@@ -241,7 +239,7 @@ export function LatencyIndicator({
   };
 
   const status = getStatus();
-  
+
   const colors = {
     good: 'text-green-600 bg-green-100',
     warning: 'text-yellow-600 bg-yellow-100',

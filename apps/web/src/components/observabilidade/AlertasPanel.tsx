@@ -5,31 +5,29 @@
 
 'use client';
 
-import { useState } from 'react';
-import { 
-  AlertTriangle, 
-  Bell, 
-  CheckCircle, 
-  XCircle, 
-  Info, 
-  Clock,
-  Eye,
-  EyeOff,
-  Check,
-  X,
-  Filter,
-  RefreshCw
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { 
-  useAlertasAtivos, 
-  useAlertasResumo,
-  useResolverAlerta,
-  useReconhecerAlerta,
-  useIgnorarAlerta
+import {
+    useAlertasAtivos,
+    useAlertasResumo,
+    useIgnorarAlerta,
+    useReconhecerAlerta,
+    useResolverAlerta
 } from '@/hooks/useObservabilidade';
 import type { AlertaSistema, SeveridadeAlerta, StatusAlerta } from '@/types/observabilidade';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import {
+    AlertTriangle,
+    Bell,
+    Check,
+    CheckCircle,
+    Clock,
+    Eye,
+    EyeOff,
+    Info,
+    RefreshCw,
+    XCircle
+} from 'lucide-react';
+import { useState } from 'react';
 
 // =====================================================
 // MAIN PANEL
@@ -40,7 +38,7 @@ export function AlertasPanel() {
   const { data: resumo } = useAlertasResumo();
   const [filtroSeveridade, setFiltroSeveridade] = useState<SeveridadeAlerta | 'todos'>('todos');
 
-  const alertasFiltrados = alertas?.filter(a => 
+  const alertasFiltrados = alertas?.filter(a =>
     filtroSeveridade === 'todos' || a.severidade === filtroSeveridade
   ) || [];
 
@@ -61,7 +59,7 @@ export function AlertasPanel() {
               </span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* Filtro */}
             <select
@@ -75,7 +73,7 @@ export function AlertasPanel() {
               <option value="warning">Avisos</option>
               <option value="info">Info</option>
             </select>
-            
+
             {/* Refresh */}
             <button
               onClick={() => refetch()}
@@ -154,7 +152,7 @@ function AlertaItem({ alerta }: AlertaItemProps) {
       <div className="flex items-start gap-3">
         {/* Ícone */}
         <SeveridadeIcon severidade={alerta.severidade} />
-        
+
         {/* Conteúdo */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
@@ -168,30 +166,30 @@ function AlertaItem({ alerta }: AlertaItemProps) {
                 </p>
               )}
             </div>
-            
+
             {/* Status badge */}
             <StatusBadge status={alerta.status} />
           </div>
-          
+
           {/* Metadata */}
           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {formatDistanceToNow(new Date(alerta.created_at), { 
-                addSuffix: true, 
-                locale: ptBR 
+              {formatDistanceToNow(new Date(alerta.created_at), {
+                addSuffix: true,
+                locale: ptBR
               })}
             </span>
-            
+
             {alerta.ocorrencias > 1 && (
               <span className="px-1.5 py-0.5 bg-gray-100 rounded">
                 {alerta.ocorrencias}x
               </span>
             )}
-            
+
             <span className="text-gray-400">{alerta.tipo}</span>
           </div>
-          
+
           {/* Ações */}
           {alerta.status === 'aberto' && (
             <div className="flex items-center gap-2 mt-3">
@@ -203,7 +201,7 @@ function AlertaItem({ alerta }: AlertaItemProps) {
                 <Eye className="w-3 h-3" />
                 Reconhecer
               </button>
-              
+
               <button
                 onClick={handleResolver}
                 disabled={resolverMutation.isPending}
@@ -212,7 +210,7 @@ function AlertaItem({ alerta }: AlertaItemProps) {
                 <Check className="w-3 h-3" />
                 Resolver
               </button>
-              
+
               <button
                 onClick={handleIgnorar}
                 disabled={ignorarMutation.isPending}
@@ -223,7 +221,7 @@ function AlertaItem({ alerta }: AlertaItemProps) {
               </button>
             </div>
           )}
-          
+
           {/* Detalhes expandidos */}
           {expanded && alerta.dados && Object.keys(alerta.dados).length > 0 && (
             <div className="mt-3 p-2 bg-gray-50 rounded text-xs font-mono">
@@ -233,7 +231,7 @@ function AlertaItem({ alerta }: AlertaItemProps) {
             </div>
           )}
         </div>
-        
+
         {/* Expand button */}
         {alerta.dados && Object.keys(alerta.dados).length > 0 && (
           <button
@@ -309,7 +307,7 @@ function StatusBadge({ status }: StatusBadgeProps) {
 
 export function AlertasIndicator() {
   const { data: alertas } = useAlertasAtivos();
-  
+
   const criticos = alertas?.filter(a => a.severidade === 'critical').length || 0;
   const erros = alertas?.filter(a => a.severidade === 'error').length || 0;
   const avisos = alertas?.filter(a => a.severidade === 'warning').length || 0;

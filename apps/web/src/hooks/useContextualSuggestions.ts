@@ -3,14 +3,6 @@
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useMemo } from 'react';
 
-interface UserProfile {
-  role?: string;
-  condominio_atual?: {
-    id: string;
-    nome: string;
-  };
-}
-
 export function useContextualSuggestions() {
   const { profile } = useAuthContext();
 
