@@ -9,8 +9,8 @@ import { Suspense, useEffect } from 'react';
 function AdminUsuariosContent() {
   const { fetchUsers } = useAdmin();
   const searchParams = useSearchParams();
-  const statusFilter = searchParams.get('status') || undefined;
-  const condominioFilter = searchParams.get('condominio') || undefined;
+  const statusFilter = searchParams?.get('status') || undefined;
+  const condominioFilter = searchParams?.get('condominio') || undefined;
   useEffect(() => { fetchUsers({ status: statusFilter, condominio_id: condominioFilter }); }, [fetchUsers, statusFilter, condominioFilter]);
   return (
     <AuthGuard requiredRoles={['superadmin', 'admin_master']}>

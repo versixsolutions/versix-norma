@@ -25,6 +25,9 @@ export function initSentry() {
     environment: ENVIRONMENT,
     release: `versix-norma@${APP_VERSION}`,
 
+    // Tunelamento para evitar bloqueio por AdBlockers
+    tunnel: '/api/sentry-tunnel',
+
     // Performance
     tracesSampleRate: ENVIRONMENT === 'production' ? 0.1 : 1.0,
     profilesSampleRate: 0.1,

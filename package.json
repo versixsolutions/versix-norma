@@ -18,6 +18,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "supabase:gen-types": "supabase gen types typescript --local > packages/shared/database.types.ts",
     "supabase:setup-cron": "psql -f scripts/setup-pg-cron.sql",
+    "sentry:upload-sourcemaps": "cd apps/web && npx @sentry/cli sourcemaps upload .next/server/chunks --release versix-norma@latest",
     "prepare": "husky install || true"
   },
   "devDependencies": {

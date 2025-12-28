@@ -13,7 +13,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function AssembleiaDetalhePage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id as string;
   const { getAssembleia, subscribeToQuorum } = useAssembleias();
   const { registrarPresenca, getMinhaPresenca, votar, jaVotou } = useVotacao();
 

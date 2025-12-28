@@ -175,6 +175,11 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
+    // Configurar sourcemaps para produção
+    if (!dev && !isServer) {
+      config.devtool = 'source-map';
+    }
+
     // Otimizar bundle size em produção
     if (!dev && !isServer) {
       config.optimization.splitChunks.chunks = 'all';
@@ -207,12 +212,5 @@ export default withSentryConfig(withPWA(nextConfig), {
   // Upload sourcemaps automaticamente durante o build
   sourcemaps: {
     deleteSourcemapsAfterUpload: true,
-  },
-  // Configurar webpack para sourcemaps
-  webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
-      config.devtool = 'source-map';
-    }
-    return config;
   },
 });
