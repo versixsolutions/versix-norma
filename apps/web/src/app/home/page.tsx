@@ -14,7 +14,7 @@ import { ProfilePage } from '@/components/pages/ProfilePage';
 import { ServicesPage } from '@/components/pages/ServicesPage';
 import { TransparencyPage } from '@/components/pages/TransparencyPage';
 import { SkeletonGrid, SkeletonPulse } from '@/components/ui/Skeleton';
-import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
+import { useAuthContext } from '@/contexts/AuthContext';
 import { useComunicados } from '@/hooks/useComunicados';
 import { useFinancial } from '@/hooks/useFinancial';
 import Image from 'next/image';
@@ -33,25 +33,28 @@ function HomeContent() {
   const [dataLoadingTimeout, setDataLoadingTimeout] = useState(false);
 
   // Hooks de dados - só carregar se perfil estiver disponível
+  const condominioId = profile?.condominio_atual?.id || null;
+  const userId = profile?.id || null;
+
   const { dashboard, loading: financialLoading } = useFinancial({
-    condominioId: profile?.condominio_atual?.id || null,
+    condominioId,
   });
 
   const { naoLidos } = useComunicados({
-    condominioId: profile?.condominio_atual?.id || null,
-    userId: profile?.id || null,
+    condominioId,
+    userId,
   });
 
   // Timeout para loading de dados (evitar loop infinito)
   useEffect(() => {
-    if (authLoading || !isAuthenticated) return;
+    if (authLoading || !isAuthenticated || !condominioId) return;
 
     const timeout = setTimeout(() => {
       setDataLoadingTimeout(true);
     }, 10000); // 10 segundos timeout
 
     return () => clearTimeout(timeout);
-  }, [authLoading, isAuthenticated]);
+  }, [authLoading, isAuthenticated, condominioId]);
 
   // Redirect se não autenticado
   useEffect(() => {
@@ -77,7 +80,7 @@ function HomeContent() {
     : 'US';
   const condominioNome = profile?.condominio_atual?.nome || 'Condomínio';
 
-  const isLoading = authLoading || (financialLoading && !dataLoadingTimeout);
+  const isLoading = authLoading || (!dataLoadingTimeout && financialLoading && condominioId);
 
   const renderContent = () => {
     switch (activeNav) {
@@ -239,9 +242,5 @@ function HomeContent() {
 }
 
 export default function HomePage() {
-  return (
-    <AuthGuard>
-      <HomeContent />
-    </AuthGuard>
-  );
+  return <HomeContent />;
 }

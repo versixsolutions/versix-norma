@@ -133,22 +133,9 @@ export function useAuth() {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Tentar múltiplas vezes para PWA
-        let session: Session | null = null;
-        let attempts = 0;
-        const maxAttempts = 3;
-
-        while (!session && attempts < maxAttempts) {
-          const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-          if (error) throw error;
-          session = currentSession;
-          attempts++;
-
-          if (!session && attempts < maxAttempts) {
-            // Aguardar um pouco antes de tentar novamente
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
+        // Obter sessão uma vez (removido loop para PWA)
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
 
         if (session?.user) {
           const profile = await fetchProfile(session.user.id);
@@ -185,6 +172,16 @@ export function useAuth() {
       async (event: string, session: Session | null) => {
         console.log('Auth event:', event);
 
+        // Evitar processamento desnecessário para eventos que não alteram o estado
+        if (event === 'TOKEN_REFRESHED' && session && state.user) {
+          // Apenas atualizar a sessão, manter o resto do estado
+          setState((prev) => ({
+            ...prev,
+            session,
+          }));
+          return;
+        }
+
         if (event === 'SIGNED_IN' && session?.user) {
           const profile = await fetchProfile(session.user.id);
           setState({
@@ -203,11 +200,6 @@ export function useAuth() {
             error: null,
           });
           router.push('/login');
-        } else if (event === 'TOKEN_REFRESHED' && session) {
-          setState((prev) => ({
-            ...prev,
-            session,
-          }));
         }
       }
     );
