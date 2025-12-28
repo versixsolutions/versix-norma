@@ -24,8 +24,9 @@ export function useFinanceiro() {
         ...cat,
         children: (data || []).filter(c => c.parent_id === cat.id)
       }));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao buscar categorias';
+      setError(errorMessage);
       return [];
     }
   }, [supabase]);
@@ -38,8 +39,9 @@ export function useFinanceiro() {
       const { data, error: fetchError } = await supabase.from('contas_bancarias').select('*').eq('condominio_id', condominioId).is('deleted_at', null).eq('ativo', true).order('principal', { ascending: false });
       if (fetchError) throw fetchError;
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao buscar contas bancárias';
+      setError(errorMessage);
       return [];
     }
   }, [supabase]);
@@ -75,8 +77,9 @@ export function useFinanceiro() {
       setLancamentos(data || []);
       setPagination({ page, pageSize, total: count || 0 });
       return { data: data || [], total: count || 0 };
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao buscar lançamentos';
+      setError(errorMessage);
       return { data: [], total: 0 };
     } finally {
       setLoading(false);
@@ -90,8 +93,9 @@ export function useFinanceiro() {
       if (insertError) throw insertError;
       setLancamentos(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao criar lançamento';
+      setError(errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -106,8 +110,9 @@ export function useFinanceiro() {
       if (updateError) throw updateError;
       setLancamentos(prev => prev.map(l => l.id === id ? data : l));
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao atualizar lançamento';
+      setError(errorMessage);
       return null;
     } finally {
       setLoading(false);
@@ -121,8 +126,9 @@ export function useFinanceiro() {
       if (deleteError) throw deleteError;
       setLancamentos(prev => prev.filter(l => l.id !== id));
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao excluir lançamento';
+      setError(errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -135,8 +141,9 @@ export function useFinanceiro() {
       if (updateError) throw updateError;
       setLancamentos(prev => prev.map(l => l.id === id ? { ...l, status: 'confirmado' as LancamentoStatus } : l));
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao confirmar lançamento';
+      setError(errorMessage);
       return false;
     }
   }, [supabase]);
@@ -149,8 +156,9 @@ export function useFinanceiro() {
       const { data, error: rpcError } = await supabase.rpc('calcular_saldo_periodo_otimizado', { p_condominio_id: condominioId, p_mes_referencia: mesReferencia });
       if (rpcError) throw rpcError;
       return data?.[0] || null;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao calcular saldo do período';
+      setError(errorMessage);
       return null;
     }
   }, [supabase]);
@@ -207,8 +215,9 @@ export function useFinanceiro() {
           categoria, valor, percentual: totalDespesas ? (valor / totalDespesas) * 100 : 0
         }))
       };
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao buscar dashboard financeiro';
+      setError(errorMessage);
       return null;
     }
   }, [supabase, calcularSaldoPeriodo, fetchContas]);

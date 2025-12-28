@@ -178,8 +178,9 @@ export function useAuth() {
           role: condominioAtual.role,
         } : null,
       };
-    } catch (err) {
-      console.error('Erro ao buscar perfil:', err);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao buscar perfil';
+      console.error('Erro ao buscar perfil:', errorMessage);
       return null;
     }
   }, [supabase]);

@@ -436,85 +436,14 @@ export type Database = {
             referencedColumns: ["assembleia_id"]
           },
           {
+            foreignKeyName: "assembleia_assinaturas_assembleia_id_fkey"
+            columns: ["assembleia_id"]
+            isOneToOne: false
+            referencedRelation: "v_assembleia_resumo"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "assembleia_assinaturas_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      assembleia_comentarios: {
-        Row: {
-          conteudo: string
-          created_at: string
-          id: string
-          moderado_em: string | null
-          moderado_por: string | null
-          motivo_moderacao: string | null
-          parent_id: string | null
-          pauta_id: string
-          tipo: Database["public"]["Enums"]["comentario_tipo"]
-          usuario_id: string
-          visivel: boolean | null
-        }
-        Insert: {
-          conteudo: string
-          created_at?: string
-          id?: string
-          moderado_em?: string | null
-          moderado_por?: string | null
-          motivo_moderacao?: string | null
-          parent_id?: string | null
-          pauta_id: string
-          tipo?: Database["public"]["Enums"]["comentario_tipo"]
-          usuario_id: string
-          visivel?: boolean | null
-        }
-        Update: {
-          conteudo?: string
-          created_at?: string
-          id?: string
-          moderado_em?: string | null
-          moderado_por?: string | null
-          motivo_moderacao?: string | null
-          parent_id?: string | null
-          pauta_id?: string
-          tipo?: Database["public"]["Enums"]["comentario_tipo"]
-          usuario_id?: string
-          visivel?: boolean | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assembleia_comentarios_moderado_por_fkey"
-            columns: ["moderado_por"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assembleia_comentarios_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "assembleia_comentarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assembleia_comentarios_pauta_id_fkey"
-            columns: ["pauta_id"]
-            isOneToOne: false
-            referencedRelation: "assembleia_pautas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "assembleia_comentarios_pauta_id_fkey"
-            columns: ["pauta_id"]
-            isOneToOne: false
-            referencedRelation: "v_pauta_resultado"
-            referencedColumns: ["pauta_id"]
-          },
-          {
-            foreignKeyName: "assembleia_comentarios_usuario_id_fkey"
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
@@ -564,6 +493,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_assembleia_quorum"
             referencedColumns: ["assembleia_id"]
+          },
+          {
+            foreignKeyName: "assembleia_logs_assembleia_id_fkey"
+            columns: ["assembleia_id"]
+            isOneToOne: false
+            referencedRelation: "v_assembleia_resumo"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "assembleia_logs_usuario_id_fkey"
@@ -721,6 +657,13 @@ export type Database = {
             referencedRelation: "v_assembleia_quorum"
             referencedColumns: ["assembleia_id"]
           },
+          {
+            foreignKeyName: "assembleia_pautas_assembleia_id_fkey"
+            columns: ["assembleia_id"]
+            isOneToOne: false
+            referencedRelation: "v_assembleia_resumo"
+            referencedColumns: ["id"]
+          },
         ]
       }
       assembleia_presencas: {
@@ -786,6 +729,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_assembleia_quorum"
             referencedColumns: ["assembleia_id"]
+          },
+          {
+            foreignKeyName: "assembleia_presencas_assembleia_id_fkey"
+            columns: ["assembleia_id"]
+            isOneToOne: false
+            referencedRelation: "v_assembleia_resumo"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "assembleia_presencas_representante_id_fkey"
@@ -885,6 +835,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_assembleia_quorum"
             referencedColumns: ["assembleia_id"]
+          },
+          {
+            foreignKeyName: "assembleia_procuracoes_assembleia_id_fkey"
+            columns: ["assembleia_id"]
+            isOneToOne: false
+            referencedRelation: "v_assembleia_resumo"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "assembleia_procuracoes_condominio_id_fkey"
@@ -1458,9 +1415,8 @@ export type Database = {
           autor_id: string
           chamado_id: string
           created_at: string
-          deleted_at: string | null
-          editado_em: string | null
           id: string
+          interno: boolean
           mensagem: string
         }
         Insert: {
@@ -1468,9 +1424,8 @@ export type Database = {
           autor_id: string
           chamado_id: string
           created_at?: string
-          deleted_at?: string | null
-          editado_em?: string | null
           id?: string
+          interno?: boolean
           mensagem: string
         }
         Update: {
@@ -1478,9 +1433,8 @@ export type Database = {
           autor_id?: string
           chamado_id?: string
           created_at?: string
-          deleted_at?: string | null
-          editado_em?: string | null
           id?: string
+          interno?: boolean
           mensagem?: string
         }
         Relationships: [
@@ -1547,15 +1501,18 @@ export type Database = {
           condominio_id: string
           conteudo: string
           created_at: string
-          deleted_at: string | null
-          destaque: boolean
+          destaque: boolean | null
+          destinatarios_blocos: string[] | null
+          destinatarios_unidades: string[] | null
           expirar_em: string | null
           fixado: boolean
           id: string
+          prioridade: Database["public"]["Enums"]["prioridade"]
+          publicado: boolean
           publicar_em: string | null
           published_at: string | null
           resumo: string | null
-          status: Database["public"]["Enums"]["comunicado_status"]
+          status: Database["public"]["Enums"]["comunicado_status"] | null
           titulo: string
           updated_at: string
           visualizacoes: number
@@ -1567,15 +1524,18 @@ export type Database = {
           condominio_id: string
           conteudo: string
           created_at?: string
-          deleted_at?: string | null
-          destaque?: boolean
+          destaque?: boolean | null
+          destinatarios_blocos?: string[] | null
+          destinatarios_unidades?: string[] | null
           expirar_em?: string | null
           fixado?: boolean
           id?: string
+          prioridade?: Database["public"]["Enums"]["prioridade"]
+          publicado?: boolean
           publicar_em?: string | null
           published_at?: string | null
           resumo?: string | null
-          status?: Database["public"]["Enums"]["comunicado_status"]
+          status?: Database["public"]["Enums"]["comunicado_status"] | null
           titulo: string
           updated_at?: string
           visualizacoes?: number
@@ -1587,15 +1547,18 @@ export type Database = {
           condominio_id?: string
           conteudo?: string
           created_at?: string
-          deleted_at?: string | null
-          destaque?: boolean
+          destaque?: boolean | null
+          destinatarios_blocos?: string[] | null
+          destinatarios_unidades?: string[] | null
           expirar_em?: string | null
           fixado?: boolean
           id?: string
+          prioridade?: Database["public"]["Enums"]["prioridade"]
+          publicado?: boolean
           publicar_em?: string | null
           published_at?: string | null
           resumo?: string | null
-          status?: Database["public"]["Enums"]["comunicado_status"]
+          status?: Database["public"]["Enums"]["comunicado_status"] | null
           titulo?: string
           updated_at?: string
           visualizacoes?: number
@@ -1988,53 +1951,6 @@ export type Database = {
           },
         ]
       }
-      contatos_invalidos: {
-        Row: {
-          corrigido: boolean | null
-          corrigido_em: string | null
-          detectado_em: string
-          id: string
-          motivo: string
-          notificado_em: string | null
-          tipo: string
-          usuario_id: string
-          usuario_notificado: boolean | null
-          valor: string
-        }
-        Insert: {
-          corrigido?: boolean | null
-          corrigido_em?: string | null
-          detectado_em?: string
-          id?: string
-          motivo: string
-          notificado_em?: string | null
-          tipo: string
-          usuario_id: string
-          usuario_notificado?: boolean | null
-          valor: string
-        }
-        Update: {
-          corrigido?: boolean | null
-          corrigido_em?: string | null
-          detectado_em?: string
-          id?: string
-          motivo?: string
-          notificado_em?: string | null
-          tipo?: string
-          usuario_id?: string
-          usuario_notificado?: boolean | null
-          valor?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contatos_invalidos_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       cotas_comunicacao: {
         Row: {
           alerta_100_disparado: boolean
@@ -2182,13 +2098,6 @@ export type Database = {
             foreignKeyName: "emergencias_log_notificacao_id_fkey"
             columns: ["notificacao_id"]
             isOneToOne: false
-            referencedRelation: "v_notificacoes_dashboard"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "emergencias_log_notificacao_id_fkey"
-            columns: ["notificacao_id"]
-            isOneToOne: false
             referencedRelation: "v_usuario_notificacoes"
             referencedColumns: ["notificacao_id"]
           },
@@ -2207,11 +2116,10 @@ export type Database = {
           ordem: number
           pergunta: string
           resposta: string
-          tags: string[] | null
           updated_at: string
-          util_nao: number
-          util_sim: number
           visualizacoes: number
+          votos_inutil: number
+          votos_util: number
         }
         Insert: {
           ativo?: boolean
@@ -2225,11 +2133,10 @@ export type Database = {
           ordem?: number
           pergunta: string
           resposta: string
-          tags?: string[] | null
           updated_at?: string
-          util_nao?: number
-          util_sim?: number
           visualizacoes?: number
+          votos_inutil?: number
+          votos_util?: number
         }
         Update: {
           ativo?: boolean
@@ -2243,11 +2150,10 @@ export type Database = {
           ordem?: number
           pergunta?: string
           resposta?: string
-          tags?: string[] | null
           updated_at?: string
-          util_nao?: number
-          util_sim?: number
           visualizacoes?: number
+          votos_inutil?: number
+          votos_util?: number
         }
         Relationships: [
           {
@@ -2289,6 +2195,13 @@ export type Database = {
           util?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "faq_votos_faq_id_fkey"
+            columns: ["faq_id"]
+            isOneToOne: false
+            referencedRelation: "faq"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "faq_votos_usuario_id_fkey"
             columns: ["usuario_id"]
@@ -2855,97 +2768,6 @@ export type Database = {
           },
         ]
       }
-      murais_gerados: {
-        Row: {
-          comunicados_ids: string[]
-          condominio_id: string
-          created_at: string
-          id: string
-          impresso: boolean | null
-          impresso_em: string | null
-          impresso_por: string | null
-          notificacao_id: string | null
-          pdf_path: string
-          qr_code_url: string | null
-          titulo: string
-          valido_ate: string
-          valido_de: string
-        }
-        Insert: {
-          comunicados_ids: string[]
-          condominio_id: string
-          created_at?: string
-          id?: string
-          impresso?: boolean | null
-          impresso_em?: string | null
-          impresso_por?: string | null
-          notificacao_id?: string | null
-          pdf_path: string
-          qr_code_url?: string | null
-          titulo: string
-          valido_ate: string
-          valido_de: string
-        }
-        Update: {
-          comunicados_ids?: string[]
-          condominio_id?: string
-          created_at?: string
-          id?: string
-          impresso?: boolean | null
-          impresso_em?: string | null
-          impresso_por?: string | null
-          notificacao_id?: string | null
-          pdf_path?: string
-          qr_code_url?: string | null
-          titulo?: string
-          valido_ate?: string
-          valido_de?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "murais_gerados_condominio_id_fkey"
-            columns: ["condominio_id"]
-            isOneToOne: false
-            referencedRelation: "condominios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "murais_gerados_impresso_por_fkey"
-            columns: ["impresso_por"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "murais_gerados_notificacao_id_fkey"
-            columns: ["notificacao_id"]
-            isOneToOne: false
-            referencedRelation: "notificacoes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "murais_gerados_notificacao_id_fkey"
-            columns: ["notificacao_id"]
-            isOneToOne: false
-            referencedRelation: "v_notificacao_stats"
-            referencedColumns: ["notificacao_id"]
-          },
-          {
-            foreignKeyName: "murais_gerados_notificacao_id_fkey"
-            columns: ["notificacao_id"]
-            isOneToOne: false
-            referencedRelation: "v_notificacoes_dashboard"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "murais_gerados_notificacao_id_fkey"
-            columns: ["notificacao_id"]
-            isOneToOne: false
-            referencedRelation: "v_usuario_notificacoes"
-            referencedColumns: ["notificacao_id"]
-          },
-        ]
-      }
       notificacoes: {
         Row: {
           acao_texto: string | null
@@ -3057,51 +2879,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
-          },
-        ]
-      }
-      notificacoes_cascade: {
-        Row: {
-          cancelado: boolean | null
-          created_at: string
-          disparado: boolean | null
-          disparar_em: string
-          entrega_id: string
-          id: string
-          proximo_canal: Database["public"]["Enums"]["canal_notificacao"]
-        }
-        Insert: {
-          cancelado?: boolean | null
-          created_at?: string
-          disparado?: boolean | null
-          disparar_em: string
-          entrega_id: string
-          id?: string
-          proximo_canal: Database["public"]["Enums"]["canal_notificacao"]
-        }
-        Update: {
-          cancelado?: boolean | null
-          created_at?: string
-          disparado?: boolean | null
-          disparar_em?: string
-          entrega_id?: string
-          id?: string
-          proximo_canal?: Database["public"]["Enums"]["canal_notificacao"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notificacoes_cascade_entrega_id_fkey"
-            columns: ["entrega_id"]
-            isOneToOne: false
-            referencedRelation: "notificacoes_entregas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notificacoes_cascade_entrega_id_fkey"
-            columns: ["entrega_id"]
-            isOneToOne: false
-            referencedRelation: "v_usuario_notificacoes"
-            referencedColumns: ["entrega_id"]
           },
         ]
       }
@@ -3301,13 +3078,6 @@ export type Database = {
             foreignKeyName: "notificacoes_entregas_notificacao_id_fkey"
             columns: ["notificacao_id"]
             isOneToOne: false
-            referencedRelation: "v_notificacoes_dashboard"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notificacoes_entregas_notificacao_id_fkey"
-            columns: ["notificacao_id"]
-            isOneToOne: false
             referencedRelation: "v_usuario_notificacoes"
             referencedColumns: ["notificacao_id"]
           },
@@ -3359,13 +3129,6 @@ export type Database = {
             referencedRelation: "notificacoes_entregas"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "notificacoes_fila_entrega_id_fkey"
-            columns: ["entrega_id"]
-            isOneToOne: true
-            referencedRelation: "v_usuario_notificacoes"
-            referencedColumns: ["entrega_id"]
-          },
         ]
       }
       notificacoes_leituras: {
@@ -3410,13 +3173,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_notificacao_stats"
             referencedColumns: ["notificacao_id"]
-          },
-          {
-            foreignKeyName: "notificacoes_leituras_notificacao_id_fkey"
-            columns: ["notificacao_id"]
-            isOneToOne: false
-            referencedRelation: "v_notificacoes_dashboard"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "notificacoes_leituras_notificacao_id_fkey"
@@ -4046,77 +3802,11 @@ export type Database = {
         }
         Relationships: []
       }
-      usuario_condominios: {
-        Row: {
-          condominio_id: string
-          created_at: string
-          data_fim: string | null
-          data_inicio: string
-          id: string
-          is_responsavel_financeiro: boolean
-          role: Database["public"]["Enums"]["user_role"]
-          status: Database["public"]["Enums"]["user_status"]
-          tipo_vinculo: Database["public"]["Enums"]["tipo_residente"]
-          unidade_id: string | null
-          updated_at: string
-          usuario_id: string
-        }
-        Insert: {
-          condominio_id: string
-          created_at?: string
-          data_fim?: string | null
-          data_inicio?: string
-          id?: string
-          is_responsavel_financeiro?: boolean
-          role?: Database["public"]["Enums"]["user_role"]
-          status?: Database["public"]["Enums"]["user_status"]
-          tipo_vinculo?: Database["public"]["Enums"]["tipo_residente"]
-          unidade_id?: string | null
-          updated_at?: string
-          usuario_id: string
-        }
-        Update: {
-          condominio_id?: string
-          created_at?: string
-          data_fim?: string | null
-          data_inicio?: string
-          id?: string
-          is_responsavel_financeiro?: boolean
-          role?: Database["public"]["Enums"]["user_role"]
-          status?: Database["public"]["Enums"]["user_status"]
-          tipo_vinculo?: Database["public"]["Enums"]["tipo_residente"]
-          unidade_id?: string | null
-          updated_at?: string
-          usuario_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "usuario_condominios_condominio_id_fkey"
-            columns: ["condominio_id"]
-            isOneToOne: false
-            referencedRelation: "condominios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "usuario_condominios_unidade_id_fkey"
-            columns: ["unidade_id"]
-            isOneToOne: false
-            referencedRelation: "unidades_habitacionais"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "usuario_condominios_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       usuarios: {
         Row: {
           auth_id: string | null
           avatar_url: string | null
+          condominio_id: string | null
           cpf: string | null
           created_at: string
           data_nascimento: string | null
@@ -4139,6 +3829,7 @@ export type Database = {
         Insert: {
           auth_id?: string | null
           avatar_url?: string | null
+          condominio_id?: string | null
           cpf?: string | null
           created_at?: string
           data_nascimento?: string | null
@@ -4161,6 +3852,7 @@ export type Database = {
         Update: {
           auth_id?: string | null
           avatar_url?: string | null
+          condominio_id?: string | null
           cpf?: string | null
           created_at?: string
           data_nascimento?: string | null
@@ -4181,6 +3873,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "usuarios_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "usuarios_unidade_id_fkey"
             columns: ["unidade_id"]
@@ -4550,16 +4249,15 @@ export type Database = {
         Row: {
           assembleia_id: string | null
           condominio_id: string | null
-          fracoes_presentes: number | null
-          online: number | null
-          presenciais: number | null
-          procuracoes: number | null
+          fracao_presente: number | null
+          quorum_minimo_primeira: number | null
+          quorum_minimo_segunda: number | null
           quorum_percentual: number | null
           status: Database["public"]["Enums"]["assembleia_status"] | null
-          total_fracoes: number | null
+          status_quorum: string | null
+          total_fracao: number | null
           total_unidades: number | null
           unidades_presentes: number | null
-          votos_antecipados: number | null
         }
         Relationships: [
           {
@@ -4567,6 +4265,70 @@ export type Database = {
             columns: ["condominio_id"]
             isOneToOne: false
             referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_assembleia_resumo: {
+        Row: {
+          ano_referencia: number | null
+          arquivada_em: string | null
+          ata_hash: string | null
+          ata_pdf_path: string | null
+          ata_texto: string | null
+          codigo_acesso_video: string | null
+          condominio_id: string | null
+          condominio_nome: string | null
+          convocada_em: string | null
+          created_at: string | null
+          criado_por: string | null
+          criado_por_nome: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          data_limite_voto_antecipado: string | null
+          data_primeira_convocacao: string | null
+          data_segunda_convocacao: string | null
+          descricao: string | null
+          encerrada_em: string | null
+          endereco_presencial: string | null
+          id: string | null
+          iniciada_em: string | null
+          link_video: string | null
+          local_presencial: string | null
+          max_procuracoes_por_pessoa: number | null
+          numero_sequencial: number | null
+          observacoes_internas: string | null
+          permite_procuracao: boolean | null
+          permite_voto_antecipado: boolean | null
+          qr_token: string | null
+          quorum_atingido: number | null
+          quorum_minimo_primeira: number | null
+          quorum_minimo_segunda: number | null
+          quorum_percentual: number | null
+          status: Database["public"]["Enums"]["assembleia_status"] | null
+          status_quorum: string | null
+          tipo: Database["public"]["Enums"]["assembleia_tipo"] | null
+          titulo: string | null
+          total_assinaturas: number | null
+          total_pautas: number | null
+          total_presentes: number | null
+          total_unidades: number | null
+          unidades_presentes: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assembleias_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assembleias_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -4784,49 +4546,22 @@ export type Database = {
           },
         ]
       }
-      v_notificacoes_dashboard: {
-        Row: {
-          condominio_id: string | null
-          created_at: string | null
-          id: string | null
-          lidos_email: number | null
-          lidos_push: number | null
-          lidos_whatsapp: number | null
-          percentual_leitura: number | null
-          prioridade:
-            | Database["public"]["Enums"]["prioridade_comunicado"]
-            | null
-          tipo: Database["public"]["Enums"]["tipo_notificacao"] | null
-          titulo: string | null
-          total_destinatarios: number | null
-          total_entregues: number | null
-          total_falhas: number | null
-          total_lidos: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notificacoes_condominio_id_fkey"
-            columns: ["condominio_id"]
-            isOneToOne: false
-            referencedRelation: "condominios"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       v_pauta_resultado: {
         Row: {
-          abstencoes: number | null
           assembleia_id: string | null
-          fracoes_nao: number | null
-          fracoes_sim: number | null
+          fracao_abstencao: number | null
+          fracao_nao: number | null
+          fracao_sim: number | null
+          fracao_total_votou: number | null
           pauta_id: string | null
           percentual_aprovacao: number | null
           quorum_especial: Database["public"]["Enums"]["quorum_especial"] | null
           status: Database["public"]["Enums"]["pauta_status"] | null
           tipo_votacao: Database["public"]["Enums"]["pauta_tipo_votacao"] | null
           titulo: string | null
-          total_fracoes_votantes: number | null
           total_votos: number | null
+          voto_secreto: boolean | null
+          votos_abstencao: number | null
           votos_nao: number | null
           votos_sim: number | null
         }
@@ -4845,6 +4580,13 @@ export type Database = {
             referencedRelation: "v_assembleia_quorum"
             referencedColumns: ["assembleia_id"]
           },
+          {
+            foreignKeyName: "assembleia_pautas_assembleia_id_fkey"
+            columns: ["assembleia_id"]
+            isOneToOne: false
+            referencedRelation: "v_assembleia_resumo"
+            referencedColumns: ["id"]
+          },
         ]
       }
       v_system_status: {
@@ -4858,11 +4600,12 @@ export type Database = {
       }
       v_usuario_notificacoes: {
         Row: {
+          acao_url: string | null
           canal: Database["public"]["Enums"]["canal_notificacao"] | null
-          corpo: string | null
+          condominio_id: string | null
           corpo_resumo: string | null
           created_at: string | null
-          entrega_id: string | null
+          lida: boolean | null
           lida_em: string | null
           notificacao_id: string | null
           prioridade:
@@ -4876,6 +4619,13 @@ export type Database = {
           usuario_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "notificacoes_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "notificacoes_entregas_usuario_id_fkey"
             columns: ["usuario_id"]
@@ -4921,31 +4671,12 @@ export type Database = {
         Args: { p_condominio_id: string; p_usuario_id: string }
         Returns: boolean
       }
-      agendar_cascade: {
-        Args: {
-          p_entrega_id: string
-          p_minutos_espera: number
-          p_proximo_canal: Database["public"]["Enums"]["canal_notificacao"]
-        }
-        Returns: string
-      }
       agregar_metricas: { Args: never; Returns: undefined }
       approve_user: {
         Args: { p_unidade_id?: string; p_usuario_id: string }
         Returns: boolean
       }
-      archive_expired_comunicados: { Args: never; Returns: number }
-      atualizar_taxas_atrasadas: { Args: never; Returns: number }
       calcular_saldo_periodo: {
-        Args: { p_condominio_id: string; p_mes_referencia: string }
-        Returns: {
-          saldo_anterior: number
-          saldo_atual: number
-          total_despesas: number
-          total_receitas: number
-        }[]
-      }
-      calcular_saldo_periodo_otimizado: {
         Args: { p_condominio_id: string; p_mes_referencia: string }
         Returns: {
           saldo_anterior: number
@@ -4978,8 +4709,8 @@ export type Database = {
       }
       confirmar_leitura: {
         Args: {
-          p_canal?: Database["public"]["Enums"]["canal_notificacao"]
-          p_ip?: unknown
+          p_canal: Database["public"]["Enums"]["canal_notificacao"]
+          p_ip_address?: unknown
           p_notificacao_id: string
           p_user_agent?: string
           p_usuario_id: string
@@ -4987,10 +4718,6 @@ export type Database = {
         Returns: boolean
       }
       contar_nao_lidas: { Args: { p_usuario_id: string }; Returns: number }
-      convocar_assembleia: {
-        Args: { p_assembleia_id: string }
-        Returns: boolean
-      }
       criar_alerta: {
         Args: {
           p_condominio_id?: string
@@ -5057,43 +4784,25 @@ export type Database = {
         Args: { p_assembleia_id: string }
         Returns: boolean
       }
-      encerrar_pauta: { Args: { p_pauta_id: string }; Returns: Json }
       encerrar_votacao_pauta: { Args: { p_pauta_id: string }; Returns: Json }
-      enviar_notificacao:
-        | {
-            Args: {
-              p_condominio_id: string
-              p_corpo: string
-              p_criado_por?: string
-              p_destinatarios_filtro?: Json
-              p_destinatarios_tipo?: string
-              p_gerar_mural?: boolean
-              p_prioridade?: Database["public"]["Enums"]["prioridade_comunicado"]
-              p_referencia_id?: string
-              p_referencia_tipo?: string
-              p_tipo: string
-              p_titulo: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_acao_url?: string
-              p_agendada_para?: string
-              p_condominio_id: string
-              p_corpo: string
-              p_criado_por?: string
-              p_destinatarios_filtro?: Json
-              p_destinatarios_tipo?: string
-              p_gerar_mural?: boolean
-              p_prioridade?: Database["public"]["Enums"]["prioridade_comunicado"]
-              p_referencia_id?: string
-              p_referencia_tipo?: string
-              p_tipo: Database["public"]["Enums"]["tipo_notificacao"]
-              p_titulo: string
-            }
-            Returns: string
-          }
+      enviar_notificacao: {
+        Args: {
+          p_acao_url?: string
+          p_agendada_para?: string
+          p_condominio_id: string
+          p_corpo: string
+          p_criado_por?: string
+          p_destinatarios_filtro?: Json
+          p_destinatarios_tipo?: string
+          p_gerar_mural?: boolean
+          p_prioridade?: Database["public"]["Enums"]["prioridade_comunicado"]
+          p_referencia_id?: string
+          p_referencia_tipo?: string
+          p_tipo: Database["public"]["Enums"]["tipo_notificacao"]
+          p_titulo: string
+        }
+        Returns: string
+      }
       gerar_api_key: {
         Args: {
           p_ambiente?: Database["public"]["Enums"]["integracao_ambiente"]
@@ -5109,16 +4818,12 @@ export type Database = {
         Args: { p_condominio_id: string; p_mes_referencia: string }
         Returns: number
       }
-      get_active_condominio_id: { Args: never; Returns: string }
-      get_contagem_nao_lidas: {
-        Args: { p_usuario_id: string }
-        Returns: number
-      }
       get_current_usuario: {
         Args: never
         Returns: {
           auth_id: string | null
           avatar_url: string | null
+          condominio_id: string | null
           cpf: string | null
           created_at: string
           data_nascimento: string | null
@@ -5145,37 +4850,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      get_my_condominio_id: { Args: never; Returns: string }
-      get_my_condominios: {
-        Args: never
-        Returns: {
-          condominio_id: string
-          role: string
-        }[]
-      }
-      get_my_role: { Args: never; Returns: string }
-      get_my_user_id: { Args: never; Returns: string }
       get_user_condominio_id: { Args: never; Returns: string }
-      get_user_role:
-        | { Args: never; Returns: Database["public"]["Enums"]["user_role"] }
-        | {
-            Args: { p_condominio_id?: string }
-            Returns: Database["public"]["Enums"]["user_role"]
-          }
-      has_condominio_access: {
-        Args: { p_condominio_id: string }
-        Returns: boolean
+      get_user_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
       }
-      increment_comunicado_views: {
-        Args: { p_comunicado_id: string }
-        Returns: undefined
-      }
-      iniciar_assembleia: {
-        Args: { p_assembleia_id: string }
-        Returns: boolean
-      }
-      iniciar_votacao_pauta: { Args: { p_pauta_id: string }; Returns: boolean }
-      is_morador: { Args: { p_condominio_id?: string }; Returns: boolean }
       is_sindico: { Args: { p_condominio_id?: string }; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
       limpar_api_logs_antigos: { Args: never; Returns: number }
@@ -5196,12 +4875,10 @@ export type Database = {
         Returns: string
       }
       marcar_todas_lidas: { Args: { p_usuario_id: string }; Returns: number }
-      mark_comunicado_read:
-        | { Args: { p_comunicado_id: string }; Returns: boolean }
-        | {
-            Args: { p_comunicado_id: string; p_usuario_id: string }
-            Returns: boolean
-          }
+      mark_comunicado_read: {
+        Args: { p_comunicado_id: string }
+        Returns: boolean
+      }
       obter_notificacoes_usuario: {
         Args: {
           p_apenas_nao_lidas?: boolean
@@ -5223,12 +4900,10 @@ export type Database = {
           titulo: string
         }[]
       }
-      processar_cascade: { Args: never; Returns: number }
       publicar_prestacao_contas: {
         Args: { p_prestacao_id: string }
         Returns: boolean
       }
-      publish_scheduled_comunicados: { Args: never; Returns: number }
       regenerar_api_key: {
         Args: { p_integracao_id: string }
         Returns: {
@@ -5245,15 +4920,6 @@ export type Database = {
               expira_em: string
             }[]
           }
-      registrar_emergencia: {
-        Args: {
-          p_condominio_id: string
-          p_descricao: string
-          p_disparado_por: string
-          p_tipo: string
-        }
-        Returns: string
-      }
       registrar_entrega: {
         Args: {
           p_custo_centavos?: number
@@ -5276,33 +4942,19 @@ export type Database = {
         }
         Returns: boolean
       }
-      registrar_fcm_token: {
-        Args: { p_token: string; p_usuario_id: string }
-        Returns: boolean
+      registrar_presenca: {
+        Args: {
+          p_assembleia_id: string
+          p_dispositivo?: string
+          p_ip_address?: unknown
+          p_procuracao_id?: string
+          p_representante_id?: string
+          p_tipo: Database["public"]["Enums"]["presenca_tipo"]
+          p_user_agent?: string
+          p_usuario_id: string
+        }
+        Returns: string
       }
-      registrar_presenca:
-        | {
-            Args: {
-              p_assembleia_id: string
-              p_representante_id?: string
-              p_tipo: Database["public"]["Enums"]["presenca_tipo"]
-              p_usuario_id: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_assembleia_id: string
-              p_dispositivo?: string
-              p_ip_address?: unknown
-              p_procuracao_id?: string
-              p_representante_id?: string
-              p_tipo: Database["public"]["Enums"]["presenca_tipo"]
-              p_user_agent?: string
-              p_usuario_id: string
-            }
-            Returns: string
-          }
       registrar_push_token: {
         Args: {
           p_device_name?: string
@@ -5312,32 +4964,18 @@ export type Database = {
         }
         Returns: boolean
       }
-      registrar_voto:
-        | {
-            Args: {
-              p_opcao_id?: string
-              p_pauta_id: string
-              p_presenca_id: string
-              p_voto: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_ip_address?: unknown
-              p_opcao_id?: string
-              p_pauta_id: string
-              p_presenca_id: string
-              p_voto: Database["public"]["Enums"]["voto_tipo"]
-            }
-            Returns: string
-          }
+      registrar_voto: {
+        Args: {
+          p_ip_address?: unknown
+          p_opcao_id?: string
+          p_pauta_id: string
+          p_presenca_id: string
+          p_voto: Database["public"]["Enums"]["voto_tipo"]
+        }
+        Returns: string
+      }
       reject_user: {
         Args: { p_motivo?: string; p_usuario_id: string }
-        Returns: boolean
-      }
-      remover_fcm_token: {
-        Args: { p_token: string; p_usuario_id: string }
         Returns: boolean
       }
       resolver_alerta: {
@@ -5376,8 +5014,8 @@ export type Database = {
         Returns: boolean
       }
       vote_faq_useful: {
-        Args: { p_faq_id: string; p_useful: boolean }
-        Returns: undefined
+        Args: { p_faq_id: string; p_util: boolean }
+        Returns: boolean
       }
     }
     Enums: {
@@ -5389,7 +5027,6 @@ export type Database = {
         | "encerrada"
         | "arquivada"
       assembleia_tipo: "AGO" | "AGE" | "permanente"
-      assinatura_tipo: "presidente" | "secretario" | "sindico" | "testemunha"
       ata_status:
         | "rascunho"
         | "pendente_validacao"
@@ -5427,7 +5064,6 @@ export type Database = {
         | "atrasado"
         | "cancelado"
         | "negociado"
-      comentario_tipo: "comentario" | "pergunta" | "resposta" | "moderacao"
       comunicado_categoria:
         | "geral"
         | "manutencao"
@@ -6342,7 +5978,6 @@ export const Constants = {
         "arquivada",
       ],
       assembleia_tipo: ["AGO", "AGE", "permanente"],
-      assinatura_tipo: ["presidente", "secretario", "sindico", "testemunha"],
       ata_status: [
         "rascunho",
         "pendente_validacao",
@@ -6385,7 +6020,6 @@ export const Constants = {
         "cancelado",
         "negociado",
       ],
-      comentario_tipo: ["comentario", "pergunta", "resposta", "moderacao"],
       comunicado_categoria: [
         "geral",
         "manutencao",
