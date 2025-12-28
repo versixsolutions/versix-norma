@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthContext } from '@/contexts/AuthContext';
+import { useContextualSuggestions } from '@/hooks/useContextualSuggestions';
 import { useNormaChat, useNormaChatMock } from '@/hooks/useNormaChat';
 import { useEffect, useRef, useState } from 'react';
 

@@ -124,7 +124,7 @@ CREATE POLICY "Users can view their own chat logs" ON public.norma_chat_logs
       SELECT 1 FROM public.usuario_condominios uc
       WHERE uc.usuario_id = auth.uid()
         AND uc.condominio_id = norma_chat_logs.condominio_id
-        AND uc.status = 'ativo'
+        AND uc.status = 'active'
     )
   );
 
@@ -140,7 +140,7 @@ CREATE POLICY "Users can view document chunks from their condominios" ON public.
       SELECT 1 FROM public.usuario_condominios uc
       WHERE uc.usuario_id = auth.uid()
         AND uc.condominio_id = document_chunks.condominio_id
-        AND uc.status = 'ativo'
+        AND uc.status = 'active'
     )
   );
 
@@ -153,7 +153,7 @@ CREATE POLICY "Users can view documents from their condominios" ON public.docume
       SELECT 1 FROM public.usuario_condominios uc
       WHERE uc.usuario_id = auth.uid()
         AND uc.condominio_id = documents.condominio_id
-        AND uc.status = 'ativo'
+        AND uc.status = 'active'
     )
   );
 
@@ -164,7 +164,7 @@ CREATE POLICY "Users can insert documents in their condominios" ON public.docume
       SELECT 1 FROM public.usuario_condominios uc
       WHERE uc.usuario_id = auth.uid()
         AND uc.condominio_id = documents.condominio_id
-        AND uc.status = 'ativo'
+        AND uc.status = 'active'
         AND uc.role IN ('sindico', 'subsindico')
     )
   );
