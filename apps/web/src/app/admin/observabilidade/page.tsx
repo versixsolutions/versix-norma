@@ -5,9 +5,11 @@
 
 'use client';
 
-import { AlertasPanel } from '@/components/observalidade/AlertasPanel';
-import { MetricasCards } from '@/components/observalidade/MetricasCards';
-import { HealthSummary, StatusBadge, UptimeBar } from '@/components/observalidade/SystemStatus';
+export const dynamic = 'force-dynamic';
+
+import { AlertasPanel } from '@/components/observabilidade/AlertasPanel';
+import { MetricasCards } from '@/components/observabilidade/MetricasCards';
+import { HealthSummary, StatusBadge, UptimeBar } from '@/components/observabilidade/SystemStatus';
 import { useSystemHealthStatus } from '@/hooks/useHealthCheck';
 import { useObservabilidadeDashboard } from '@/hooks/useObservabilidade';
 import {

@@ -105,7 +105,7 @@ export function TransparencyPage({ onScroll, dashboard: propDashboard }: Transpa
         <h3 className="text-lg font-bold text-gray-800 dark:text-white font-display mb-4">
           Últimas Movimentações
         </h3>
-        
+
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
@@ -127,15 +127,15 @@ export function TransparencyPage({ onScroll, dashboard: propDashboard }: Transpa
           </div>
         ) : (
           <div className="space-y-3">
-            {lancamentos.slice(0, 10).map((lancamento) => (
+            {lancamentos.slice(0, 10).map((lancamento: any) => (
               <div
                 key={lancamento.id}
                 className="bg-white dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    lancamento.tipo === 'receita' 
-                      ? 'text-green-500 bg-green-50 dark:bg-green-900/20' 
+                    lancamento.tipo === 'receita'
+                      ? 'text-green-500 bg-green-50 dark:bg-green-900/20'
                       : 'text-red-500 bg-red-50 dark:bg-red-900/20'
                   }`}>
                     <span className="material-symbols-outlined">

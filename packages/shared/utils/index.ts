@@ -262,3 +262,56 @@ export function removeUndefined<T extends Record<string, unknown>>(obj: T): Part
     Object.entries(obj).filter(([_, value]) => value !== undefined)
   ) as Partial<T>;
 }
+
+// ===== FINANCIAL UTILS =====
+
+/**
+ * Calcula juros simples
+ */
+export function calculateSimpleInterest(principal: number, rate: number, time: number): number {
+  return principal * rate * time;
+}
+
+/**
+ * Calcula juros compostos
+ */
+export function calculateCompoundInterest(principal: number, rate: number, time: number, compoundingFrequency: number = 1): number {
+  return principal * Math.pow(1 + rate / compoundingFrequency, compoundingFrequency * time) - principal;
+}
+
+/**
+ * Calcula valor presente (PV)
+ */
+export function calculatePresentValue(futureValue: number, rate: number, time: number): number {
+  return futureValue / Math.pow(1 + rate, time);
+}
+
+/**
+ * Calcula parcela de empréstimo (sistema francês)
+ */
+export function calculateLoanPayment(principal: number, rate: number, periods: number): number {
+  const monthlyRate = rate / 12;
+  return principal * (monthlyRate * Math.pow(1 + monthlyRate, periods)) / (Math.pow(1 + monthlyRate, periods) - 1);
+}
+
+/**
+ * Calcula saldo devedor após pagamentos
+ */
+export function calculateOutstandingBalance(principal: number, payments: number[], rate: number): number {
+  let balance = principal;
+  const monthlyRate = rate / 12;
+
+  for (const payment of payments) {
+    balance = balance * (1 + monthlyRate) - payment;
+  }
+
+  return Math.max(0, balance);
+}
+
+/**
+ * Calcula percentual
+ */
+export function calculatePercentage(value: number, total: number): number {
+  if (total === 0) return 0;
+  return (value / total) * 100;
+}

@@ -137,4 +137,15 @@ export default withSentryConfig(withPWA(nextConfig), {
   silent: true,
   org: 'versix-solutions',
   project: 'versix-norma',
+  // Upload sourcemaps automaticamente durante o build
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+  // Configurar webpack para sourcemaps
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      config.devtool = 'source-map';
+    }
+    return config;
+  },
 });

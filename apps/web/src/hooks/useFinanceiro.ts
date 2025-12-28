@@ -1,8 +1,8 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
+import type { CategoriaFinanceira, Comprovante, ContaBancaria, CreateLancamentoInput, DashboardFinanceiro, LancamentoFilters, LancamentoFinanceiro, LancamentoStatus, LancamentoTipo, SaldoPeriodo, UpdateLancamentoInput } from '@versix/shared/types/financial';
 import { useCallback, useState } from 'react';
-import type { CategoriaFinanceira, ContaBancaria, LancamentoFinanceiro, LancamentoFilters, CreateLancamentoInput, UpdateLancamentoInput, DashboardFinanceiro, SaldoPeriodo, Comprovante, LancamentoTipo, LancamentoStatus } from '@versix/shared/types/financial';
 
 export function useFinanceiro() {
   const supabase = getSupabaseClient();
@@ -159,33 +159,38 @@ export function useFinanceiro() {
     try {
       const hoje = new Date();
       const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-01`;
-      
+
       // Buscar saldo do período
       const saldo = await calcularSaldoPeriodo(condominioId, mesAtual);
-      
+
       // Buscar contas
       const contas = await fetchContas(condominioId);
-      
+
       // Buscar últimos lançamentos
       const { data: ultimos } = await supabase.from('lancamentos_financeiros').select(`*, categoria:categoria_id (codigo, nome)`).eq('condominio_id', condominioId).is('deleted_at', null).eq('status', 'confirmado').order('data_competencia', { ascending: false }).limit(5);
-      
+
       // Buscar inadimplência
       const { data: taxas } = await supabase.from('taxas_unidades').select('status, valor_final').eq('condominio_id', condominioId).in('status', ['pendente', 'atrasado']);
-      
+
       const inadimplentes = taxas?.filter(t => t.status === 'atrasado') || [];
       const { count: totalUnidades } = await supabase.from('unidades_habitacionais').select('*', { count: 'exact', head: true }).eq('condominio_id', condominioId).eq('ativo', true);
-      
+
       // Despesas por categoria
       const { data: despesasCat } = await supabase.from('lancamentos_financeiros').select(`valor, categoria:categoria_id (nome)`).eq('condominio_id', condominioId).eq('tipo', 'despesa').eq('status', 'confirmado').gte('data_competencia', mesAtual).lt('data_competencia', `${hoje.getFullYear()}-${String(hoje.getMonth() + 2).padStart(2, '0')}-01`);
-      
+
+      interface DespesaCategoria {
+        valor: number;
+        categoria: { nome: string } | null;
+      }
+
       const despesasPorCategoria: Record<string, number> = {};
-      (despesasCat || []).forEach((d: any) => {
+      (despesasCat || []).forEach((d: DespesaCategoria) => {
         const cat = d.categoria?.nome || 'Outros';
         despesasPorCategoria[cat] = (despesasPorCategoria[cat] || 0) + d.valor;
       });
-      
+
       const totalDespesas = Object.values(despesasPorCategoria).reduce((a, b) => a + b, 0);
-      
+
       return {
         saldo_atual: saldo?.saldo_atual || contas.reduce((sum, c) => sum + c.saldo_atual, 0),
         receitas_mes: saldo?.total_receitas || 0,
@@ -216,4 +221,5 @@ export function useFinanceiro() {
   };
 }
 
-export type { CategoriaFinanceira, ContaBancaria, LancamentoFinanceiro, LancamentoFilters, CreateLancamentoInput, DashboardFinanceiro, Comprovante, LancamentoTipo, LancamentoStatus };
+export type { CategoriaFinanceira, Comprovante, ContaBancaria, CreateLancamentoInput, DashboardFinanceiro, LancamentoFilters, LancamentoFinanceiro, LancamentoStatus, LancamentoTipo };
+

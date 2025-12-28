@@ -16,6 +16,7 @@
     "type-check": "tsc --noEmit -p apps/web",
     "clean": "rm -rf node_modules apps/web/node_modules apps/web/.next",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "supabase:gen-types": "supabase gen types typescript --local > packages/shared/database.types.ts",
     "prepare": "husky install || true"
   },
   "devDependencies": {

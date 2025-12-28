@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface AvatarMenuProps {
   isOpen: boolean;
@@ -23,7 +23,7 @@ export function AvatarMenu({ isOpen, onClose }: AvatarMenuProps) {
   const handleLogout = async () => {
     setLoggingOut(true);
     const result = await logout();
-    
+
     if (result.success) {
       toast.success('Até logo!');
       router.push('/login');
@@ -98,7 +98,7 @@ export function AvatarMenu({ isOpen, onClose }: AvatarMenuProps) {
                 expand_more
               </span>
             </button>
-            
+
             {showCondominios && (
               <div className="bg-gray-50 dark:bg-gray-800/50 py-1">
                 {profile?.condominios?.map((cond) => (
@@ -112,7 +112,7 @@ export function AvatarMenu({ isOpen, onClose }: AvatarMenuProps) {
                     <span className="material-symbols-outlined text-sm text-gray-400">
                       {cond.condominio_id === profile?.condominio_atual?.id ? 'check_circle' : 'circle'}
                     </span>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{cond.nome}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{cond.condominio.nome}</span>
                   </button>
                 ))}
               </div>

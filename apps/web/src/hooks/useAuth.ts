@@ -1,7 +1,7 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
-import type { RoleType, Usuario } from '@/types/database';
+import type { RoleType, StatusType } from '@/types/database';
 import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -58,28 +58,34 @@ const setActiveCondominioId = (condominioId: string | null): void => {
   }
 };
 
-// ============================================
-// TYPES
-// ============================================
-interface UserProfile extends Usuario {
-  condominios: {
-    condominio_id: string;
-    nome: string;
-    role: RoleType;
-    unidade_id: string | null;
-    unidade_identificador: string | null;
-  }[];
-  condominio_atual: {
-    id: string;
-    nome: string;
-    role: RoleType;
-    unidade_id: string | null;
-  } | null;
+interface UsuarioCondominioJoin {
+  condominio_id: string;
+  role: RoleType;
+  unidade_id: string | null;
+  status: string;
+  condominios: { nome: string } | null;
+  unidades: { identificador: string } | null;
+}
+
+interface UsuarioWithCondominios {
+  id: string;
+  auth_id: string;
+  nome: string;
+  email: string;
+  telefone: string | null;
+  avatar_url: string | null;
+  documento?: string | null;
+  status: StatusType;
+  created_at: string;
+  updated_at: string;
+  condominio_atual?: { id: string; nome: string; role: string } | null;
+  condominios?: { condominio_id: string; role: string; unidade_identificador?: string; condominio: { nome: string } }[];
+  usuario_condominios: UsuarioCondominioJoin[];
 }
 
 interface AuthState {
   user: User | null;
-  profile: UserProfile | null;
+  profile: UsuarioWithCondominios | null;
   session: Session | null;
   loading: boolean;
   error: AuthError | Error | null;
@@ -113,7 +119,7 @@ export function useAuth() {
   });
 
   // Fetch user profile with condominios (simplified)
-  const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
+  const fetchProfile = useCallback(async (userId: string): Promise<UsuarioWithCondominios | null> => {
     try {
       // Buscar usuário e condomínios em uma única consulta otimizada
       const { data: profileData, error } = await supabase
@@ -141,10 +147,10 @@ export function useAuth() {
         return null;
       }
 
-      const usuario = profileData[0];
+      const usuario = profileData[0] as UsuarioWithCondominios;
 
       // Transformar dados dos condomínios
-      const userCondominios = usuario.usuario_condominios.map((uc: any) => ({
+      const userCondominios = usuario.usuario_condominios.map((uc: UsuarioCondominioJoin) => ({
         condominio_id: uc.condominio_id,
         nome: uc.condominios?.nome || 'Condomínio',
         role: uc.role as RoleType,
@@ -160,12 +166,16 @@ export function useAuth() {
 
       return {
         ...usuario,
-        condominios: userCondominios,
+        condominios: userCondominios.map(cond => ({
+          condominio_id: cond.condominio_id,
+          role: cond.role,
+          unidade_identificador: cond.unidade_identificador || undefined,
+          condominio: { nome: cond.nome }
+        })),
         condominio_atual: condominioAtual ? {
           id: condominioAtual.condominio_id,
           nome: condominioAtual.nome,
           role: condominioAtual.role,
-          unidade_id: condominioAtual.unidade_id,
         } : null,
       };
     } catch (err) {
@@ -377,7 +387,7 @@ export function useAuth() {
   };
 
   const switchCondominio = (condominioId: string) => {
-    if (!state.profile) return;
+    if (!state.profile || !state.profile.condominios) return;
 
     const novoCondominio = state.profile.condominios.find(
       (c) => c.condominio_id === condominioId
@@ -393,9 +403,8 @@ export function useAuth() {
           ...prev.profile,
           condominio_atual: {
             id: novoCondominio.condominio_id,
-            nome: novoCondominio.nome,
+            nome: novoCondominio.condominio.nome,
             role: novoCondominio.role,
-            unidade_id: novoCondominio.unidade_id,
           },
         } : null,
       }));
@@ -417,7 +426,7 @@ export function useAuth() {
                   state.profile?.condominio_atual?.role === 'superadmin';
   const isSindico = state.profile?.condominio_atual?.role === 'sindico' ||
                    state.profile?.condominio_atual?.role === 'subsindico';
-  const hasMultipleCondominios = (state.profile?.condominios.length || 0) > 1;
+  const hasMultipleCondominios = (state.profile?.condominios?.length || 0) > 1;
 
   return {
     // State

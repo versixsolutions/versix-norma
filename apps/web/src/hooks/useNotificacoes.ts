@@ -33,7 +33,7 @@ export function useNotificacoes() {
     try {
       const userId = (await supabase.auth.getUser()).data.user?.id;
       if (!userId) return 0;
-      const { data, error: rpcError } = await supabase.rpc('get_contagem_nao_lidas', { p_usuario_id: userId });
+      const { data, error: rpcError } = await supabase.rpc('get_contagem_nao_lidas', { p_usuario_id: userId }) as { data: number | null, error: any };
       if (rpcError) throw rpcError;
       setNaoLidas(data || 0);
       return data || 0;
@@ -61,9 +61,9 @@ export function useNotificacoes() {
   const marcarTodasComoLidas = useCallback(async (): Promise<number> => {
     try {
       const userId = (await supabase.auth.getUser()).data.user?.id;
-      const { data, error: rpcError } = await supabase.rpc('marcar_todas_lidas', { p_usuario_id: userId });
+      const { data, error: rpcError } = await supabase.rpc('marcar_todas_lidas', { p_usuario_id: userId }) as { data: number | null, error: any };
       if (rpcError) throw rpcError;
-      setNotificacoes(prev => prev.map(n => ({ ...n, status: 'lido' as any, lido_em: new Date().toISOString() })));
+      setNotificacoes(prev => prev.map(n => ({ ...n, status: 'lido' as const, lido_em: new Date().toISOString() })));
       setNaoLidas(0);
       return data || 0;
     } catch (err: any) {
@@ -89,7 +89,7 @@ export function useNotificacoes() {
         p_referencia_id: input.referencia_id || null,
         p_gerar_mural: input.gerar_mural || false,
         p_criado_por: userId
-      });
+      }) as { data: string | null, error: any };
       if (rpcError) throw rpcError;
       return data;
     } catch (err: any) {

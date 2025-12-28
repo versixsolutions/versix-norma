@@ -4,6 +4,9 @@
  * Exporta constantes, utilitários e validadores compartilhados
  */
 
+// Database Types
+export * from './database.types';
+
 // Types
 export * from './src/types/assembleias';
 export * from './src/types/comunicacao';
