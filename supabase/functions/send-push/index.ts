@@ -1,7 +1,5 @@
-// SPRINT 0: Send Push Notification via Firebase Admin SDK
+// SPRINT 0: Send Push Notification via Firebase Cloud Messaging
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { cert, initializeApp } from 'https://esm.sh/firebase-admin@12.0.0/app';
-import { getMessaging } from 'https://esm.sh/firebase-admin@12.0.0/messaging';
 
 interface PushMessage {
   token: string;
@@ -11,21 +9,15 @@ interface PushMessage {
 }
 
 serve(async (req) => {
-  const serviceAccount = JSON.parse(Deno.env.get('FIREBASE_SERVICE_ACCOUNT') || '{}');
-  if (!serviceAccount.project_id) {
-    return Response.json({ error: 'Firebase service account not configured' }, { status: 500 });
+  const fcmServerKey = Deno.env.get('FIREBASE_SERVER_KEY');
+  if (!fcmServerKey) {
+    return Response.json({ error: 'Firebase server key not configured' }, { status: 500 });
   }
-
-  const app = initializeApp({
-    credential: cert(serviceAccount),
-  });
-
-  const messaging = getMessaging(app);
 
   const push: PushMessage = await req.json();
 
-  const message = {
-    token: push.token,
+  const payload = {
+    to: push.token,
     notification: {
       title: push.title,
       body: push.body,
@@ -33,10 +25,23 @@ serve(async (req) => {
     data: push.data || {},
   };
 
-  try {
-    const response = await messaging.send(message);
-    return Response.json({ success: true, messageId: response });
-  } catch (error) {
-    return Response.json({ error: error.message, status: 500 }, { status: 500 });
+  const response = await fetch('https://fcm.googleapis.com/fcm/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': `key=${fcmServerKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await response.json();
+
+  if (response.ok && result.success === 1) {
+    return Response.json({ success: true, messageId: result.results[0].message_id });
+  } else {
+    return Response.json({
+      error: result.results?.[0]?.error || 'Failed to send push notification',
+      status: response.status
+    }, { status: response.status });
   }
 });

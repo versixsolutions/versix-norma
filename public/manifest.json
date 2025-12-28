@@ -8,7 +8,7 @@
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
   "scope": "/",
-  
+
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
@@ -59,24 +59,7 @@
       "purpose": "maskable any"
     }
   ],
-  
-  "screenshots": [
-    {
-      "src": "/screenshots/home.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Dashboard principal"
-    },
-    {
-      "src": "/screenshots/mobile.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "App móvel"
-    }
-  ],
-  
+
   "shortcuts": [
     {
       "name": "SOS - Emergência",
@@ -100,11 +83,11 @@
       "icons": [{ "src": "/icons/boleto-96x96.png", "sizes": "96x96" }]
     }
   ],
-  
+
   "categories": ["lifestyle", "utilities"],
   "lang": "pt-BR",
   "dir": "ltr",
-  
+
   "share_target": {
     "action": "/share",
     "method": "POST",
@@ -121,7 +104,7 @@
       ]
     }
   },
-  
+
   "protocol_handlers": [
     {
       "protocol": "web+versixnorma",
