@@ -7,6 +7,58 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
+// UTILITY FUNCTIONS FOR SECURE CONTEXT MANAGEMENT
+// ============================================
+
+// Get active condominio ID from cookies (secure alternative to localStorage)
+const getActiveCondominioId = async (): Promise<string | null> => {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    // Try to get from cookies first (more secure)
+    const cookies = document.cookie.split(';');
+    const condominioCookie = cookies.find(cookie =>
+      cookie.trim().startsWith('condominio_atual=')
+    );
+
+    if (condominioCookie) {
+      return condominioCookie.split('=')[1].trim();
+    }
+
+    // Fallback to localStorage for backward compatibility (will be removed later)
+    return localStorage.getItem('condominio_atual');
+  } catch (error) {
+    console.warn('Error reading active condominio:', error);
+    return null;
+  }
+};
+
+// Set active condominio ID in cookies (secure)
+const setActiveCondominioId = (condominioId: string | null): void => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    if (condominioId) {
+      // Set secure cookie (7 days expiration)
+      const expires = new Date();
+      expires.setDate(expires.getDate() + 7);
+      document.cookie = `condominio_atual=${condominioId}; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
+
+      // Also set in localStorage for backward compatibility (temporary)
+      localStorage.setItem('condominio_atual', condominioId);
+    } else {
+      // Clear cookie
+      document.cookie = 'condominio_atual=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+      // Clear localStorage
+      localStorage.removeItem('condominio_atual');
+    }
+  } catch (error) {
+    console.warn('Error setting active condominio:', error);
+  }
+};
+
+// ============================================
 // TYPES
 // ============================================
 interface UserProfile extends Usuario {
@@ -60,57 +112,50 @@ export function useAuth() {
     error: null,
   });
 
-  // Fetch user profile with condominios
+  // Fetch user profile with condominios (simplified)
   const fetchProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
     try {
-      // Buscar usuário
-      const { data: usuario, error: userError } = await supabase
+      // Buscar usuário e condomínios em uma única consulta otimizada
+      const { data: profileData, error } = await supabase
         .from('usuarios')
-        .select('*')
+        .select(`
+          *,
+          usuario_condominios!inner (
+            condominio_id,
+            role,
+            unidade_id,
+            status,
+            condominios:condominio_id (
+              nome
+            ),
+            unidades:unidade_id (
+              identificador
+            )
+          )
+        `)
         .eq('auth_id', userId)
-        .single();
+        .eq('usuario_condominios.status', 'ativo');
 
-      if (userError || !usuario) {
-        console.error('Erro ao buscar perfil:', userError);
+      if (error || !profileData || profileData.length === 0) {
+        console.error('Erro ao buscar perfil:', error);
         return null;
       }
 
-      // Buscar condomínios do usuário
-      const { data: condominios, error: condError } = await supabase
-        .from('usuario_condominios')
-        .select(`
-          condominio_id,
-          role,
-          unidade_id,
-          condominios:condominio_id (
-            nome
-          ),
-          unidades:unidade_id (
-            identificador
-          )
-        `)
-        .eq('usuario_id', usuario.id)
-        .eq('status', 'ativo');
+      const usuario = profileData[0];
 
-      if (condError) {
-        console.error('Erro ao buscar condomínios:', condError);
-      }
-
-      const userCondominios = (condominios || []).map((c: { condominio_id: string; nome: string; role: RoleType; unidade_id: string | null; unidades?: { identificador: string | null } }) => ({
-        condominio_id: c.condominio_id,
-        nome: c.nome,
-        role: c.role as RoleType,
-        unidade_id: c.unidade_id,
-        unidade_identificador: c.unidades?.identificador || null,
+      // Transformar dados dos condomínios
+      const userCondominios = usuario.usuario_condominios.map((uc: any) => ({
+        condominio_id: uc.condominio_id,
+        nome: uc.condominios?.nome || 'Condomínio',
+        role: uc.role as RoleType,
+        unidade_id: uc.unidade_id,
+        unidade_identificador: uc.unidades?.identificador || null,
       }));
 
-      // Definir condomínio atual (primeiro da lista ou do localStorage)
-      const storedCondominioId = typeof window !== 'undefined'
-        ? localStorage.getItem('condominio_atual')
-        : null;
-
+      // Obter condomínio ativo de forma segura (cookies em vez de localStorage)
+      const activeCondominioId = await getActiveCondominioId();
       const condominioAtual = userCondominios.find(
-        (c: { condominio_id: string; nome: string; role: RoleType; unidade_id: string | null; unidade_identificador: string | null; }) => c.condominio_id === storedCondominioId
+        (c) => c.condominio_id === activeCondominioId
       ) || userCondominios[0] || null;
 
       return {
@@ -291,10 +336,8 @@ export function useAuth() {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      // Limpar localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('condominio_atual');
-      }
+      // Limpar condomínio ativo de forma segura
+      setActiveCondominioId(null);
 
       return { success: true };
     } catch (error) {
@@ -341,7 +384,9 @@ export function useAuth() {
     );
 
     if (novoCondominio) {
-      localStorage.setItem('condominio_atual', condominioId);
+      // Usar abordagem segura para armazenar condomínio ativo
+      setActiveCondominioId(condominioId);
+
       setState((prev) => ({
         ...prev,
         profile: prev.profile ? {

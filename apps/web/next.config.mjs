@@ -1,4 +1,61 @@
 // @ts-check
+import { withSentryConfig } from '@sentry/nextjs';
+import withPWAInit from 'next-pwa';
+
+const withPWA = withPWAInit({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development' || process.env.DISABLE_PWA === 'true',
+  register: true,
+  skipWaiting: true,
+  fallbacks: {
+    document: '/offline',
+  },
+  buildExcludes: [
+    /app-build-manifest\.json$/,
+    /_buildManifest\.js$/,
+    /_ssgManifest\.js$/,
+    /_next\/static\/.*\.js\.map$/,
+    /_next\/static\/chunks\/.*\.js\.map$/,
+  ],
+  runtimeCaching: [
+    {
+      urlPattern: /^https:\/\/.*\/_next\/static\/.*/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'next-static',
+        expiration: {
+          maxEntries: 200,
+          maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+        },
+      },
+    },
+    {
+      urlPattern: /^https:\/\/.*\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'images',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+        },
+      },
+    },
+    {
+      urlPattern: /^https:\/\/.*\.supabase\.co\/.*/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'supabase-api',
+        expiration: {
+          maxEntries: 50,
+          maxAgeSeconds: 60 * 60, // 1 hour
+        },
+        networkTimeoutSeconds: 10,
+      },
+    },
+  ],
+});
+
+// @ts-check
 // Temporariamente desabilitando next-pwa para evitar conflitos
 // import withPWAInit from 'next-pwa';
 
@@ -76,4 +133,8 @@ const nextConfig = {
 };
 
 // export default withPWA(nextConfig);
-export default nextConfig;
+export default withSentryConfig(withPWA(nextConfig), {
+  silent: true,
+  org: 'versix-solutions',
+  project: 'versix-norma',
+});

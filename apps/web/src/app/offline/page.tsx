@@ -1,66 +1,94 @@
-import RetryButton from '@/components/ui/RetryButton';
-import type { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Offline - Norma',
-  description: 'Você está offline',
-};
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { getAllCriticalData, type EmergencyContact } from '@/lib/offline-db';
 
 export default function OfflinePage() {
+  const [hasEmergencyData, setHasEmergencyData] = useState(false);
+  const [contacts, setContacts] = useState<EmergencyContact[]>([]);
+
+  useEffect(() => {
+    checkOfflineData();
+  }, []);
+
+  const checkOfflineData = async () => {
+    try {
+      const data = await getAllCriticalData();
+      setContacts(data.contacts);
+      setHasEmergencyData(data.contacts.length > 0);
+    } catch {
+      // IndexedDB não disponível
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary to-splash-primary text-white p-6">
-      <div className="max-w-md text-center">
-        {/* Icon */}
-        <div className="text-7xl mb-6 animate-pulse">📡</div>
-
-        {/* Title */}
-        <h1 className="text-3xl font-display font-bold mb-4">
-          Você está offline
-        </h1>
-
-        {/* Description */}
-        <p className="text-lg text-blue-200 mb-8 leading-relaxed">
-          Parece que sua conexão com a internet foi interrompida.
-          Algumas funcionalidades podem estar temporariamente indisponíveis.
-        </p>
-
-        {/* What's available */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-8 text-left">
-          <h3 className="font-bold text-sm uppercase tracking-wider mb-4 text-blue-200">
-            O que você pode fazer:
-          </h3>
-          <ul className="space-y-3">
-            <li className="flex items-center gap-3 text-sm">
-              <span className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
-                ✓
-              </span>
-              Ver dados em cache
-            </li>
-            <li className="flex items-center gap-3 text-sm">
-              <span className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
-                ✓
-              </span>
-              Consultar documentos salvos
-            </li>
-            <li className="flex items-center gap-3 text-sm">
-              <span className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center">
-                ⏳
-              </span>
-              Criar chamados (sincroniza depois)
-            </li>
-          </ul>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center p-6">
+      <div className="max-w-md w-full text-center">
+        {/* Ícone offline */}
+        <div className="w-24 h-24 bg-gray-200 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+          <span className="material-symbols-outlined text-5xl text-gray-400">cloud_off</span>
         </div>
 
-        {/* Retry Button (client) */}
-        <RetryButton />
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
+          Você está offline
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-8">
+          Não foi possível carregar esta página. Verifique sua conexão com a internet.
+        </p>
 
-        {/* Go home */}
-        <a
-          href="/home"
-          className="block mt-4 text-sm text-blue-200 hover:text-white transition-colors"
-        >
-          Voltar para o início
-        </a>
+        {/* Botões de ação */}
+        <div className="space-y-3">
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full py-4 bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined">refresh</span>
+            Tentar novamente
+          </button>
+
+          {hasEmergencyData && (
+            <Link
+              href="/sos"
+              className="w-full py-4 bg-red-600 text-white rounded-xl font-medium flex items-center justify-center gap-2 block"
+            >
+              <span className="material-symbols-outlined">emergency</span>
+              Modo Emergência (Offline)
+            </Link>
+          )}
+        </div>
+
+        {/* Telefones rápidos se disponível */}
+        {contacts.length > 0 && (
+          <div className="mt-8 text-left">
+            <h2 className="text-sm font-medium text-gray-500 mb-3">Telefones disponíveis offline:</h2>
+            <div className="space-y-2">
+              {contacts.slice(0, 3).map(contact => (
+                <a
+                  key={contact.id}
+                  href={`tel:${contact.telefone.replace(/\D/g, '')}`}
+                  className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm"
+                >
+                  <span className="font-medium text-gray-800 dark:text-white">{contact.nome}</span>
+                  <span className="text-primary font-bold">{contact.telefone}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Dica */}
+        <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-left">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-blue-500">lightbulb</span>
+            <div>
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Dica</p>
+              <p className="text-sm text-blue-600 dark:text-blue-300 mt-1">
+                Instale o app na sua tela inicial para ter acesso a dados importantes mesmo offline.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,9 +1,8 @@
-// Sprint 8 - Módulo Integrações Externas
-export { useIntegracoes } from './useIntegracoes';
-export type { Integracao, IntegracaoDashboard, CreateIntegracaoApiInput, CreateWebhookInput, WebhookEvento } from './useIntegracoes';
+// Sprint 9 - Hooks PWA & Mobile
+export { useOfflineSync } from './useOfflineSync';
+export type { EmergencyContact, VulnerableResident, CachedCondominioInfo, CachedUserProfile, PendingAction } from './useOfflineSync';
 
-export { useWebhooksLog } from './useWebhooksLog';
-export type { WebhookEntrega, ApiLog, ApiLogsFilters } from './useWebhooksLog';
+export { usePushNotifications } from './usePushNotifications';
 
-export { useExportacoes } from './useExportacoes';
-export type { Exportacao, CreateExportacaoInput, ExportacaoFormato, ExportacaoTipo } from './useExportacoes';
+export { useAccessibility } from './useAccessibility';
+export type { AccessibilitySettings } from './useAccessibility';
