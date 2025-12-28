@@ -19,7 +19,6 @@ CREATE TYPE integracao_tipo AS ENUM (
   'conector_nativo', -- Integração bidirecional (portaria, etc)
   'oauth_app'        -- App OAuth terceiro
 );
-
 -- Eventos de webhook
 CREATE TYPE webhook_evento AS ENUM (
   -- Assembleias
@@ -67,7 +66,6 @@ CREATE TYPE webhook_evento AS ENUM (
   'encomenda.recebida',
   'encomenda.retirada'
 );
-
 -- Status da integração
 CREATE TYPE integracao_status AS ENUM (
   'ativa',
@@ -76,7 +74,6 @@ CREATE TYPE integracao_status AS ENUM (
   'desativada',
   'pendente'  -- Aguardando configuração
 );
-
 -- Status de entrega de webhook
 CREATE TYPE webhook_entrega_status AS ENUM (
   'pendente',
@@ -85,13 +82,11 @@ CREATE TYPE webhook_entrega_status AS ENUM (
   'falhou',
   'cancelado'
 );
-
 -- Ambiente (live vs test/sandbox)
 CREATE TYPE integracao_ambiente AS ENUM (
   'live',
   'test'
 );
-
 -- Tipo de conector
 CREATE TYPE conector_tipo AS ENUM (
   'portaria',       -- Controle de acesso
@@ -101,8 +96,6 @@ CREATE TYPE conector_tipo AS ENUM (
   'erp',            -- Sistemas ERP
   'crm'             -- CRM
 );
-
-
 -- ============================================
 -- TABELA: integracoes
 -- Configuração principal de cada integração
@@ -163,19 +156,15 @@ CREATE TABLE public.integracoes (
   -- Nome único por condomínio
   UNIQUE(condominio_id, nome)
 );
-
 -- Índices
 CREATE INDEX idx_integracoes_condominio ON public.integracoes(condominio_id);
 CREATE INDEX idx_integracoes_api_key ON public.integracoes(api_key) WHERE api_key IS NOT NULL;
 CREATE INDEX idx_integracoes_status ON public.integracoes(status);
 CREATE INDEX idx_integracoes_tipo ON public.integracoes(tipo);
 CREATE INDEX idx_integracoes_ambiente ON public.integracoes(ambiente);
-
 -- Comentários
 COMMENT ON TABLE public.integracoes IS 'Configuração de integrações (API, Webhooks, Conectores)';
 COMMENT ON COLUMN public.integracoes.api_key_prefix IS 'Primeiros 8 caracteres para identificação sem expor a chave';
-
-
 -- ============================================
 -- TABELA: webhooks_config
 -- Configuração de webhooks de saída
@@ -213,15 +202,11 @@ CREATE TABLE public.webhooks_config (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_webhooks_config_integracao ON public.webhooks_config(integracao_id);
 CREATE INDEX idx_webhooks_config_eventos ON public.webhooks_config USING GIN (eventos);
-
 -- Comentários
 COMMENT ON TABLE public.webhooks_config IS 'Configuração de eventos e retry para webhooks';
-
-
 -- ============================================
 -- TABELA: webhooks_entregas
 -- Log de entregas de webhooks
@@ -262,7 +247,6 @@ CREATE TABLE public.webhooks_entregas (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_webhooks_entregas_config ON public.webhooks_entregas(webhook_config_id);
 CREATE INDEX idx_webhooks_entregas_status ON public.webhooks_entregas(status);
@@ -270,12 +254,9 @@ CREATE INDEX idx_webhooks_entregas_proxima ON public.webhooks_entregas(proxima_t
   WHERE status = 'pendente';
 CREATE INDEX idx_webhooks_entregas_evento ON public.webhooks_entregas(evento);
 CREATE INDEX idx_webhooks_entregas_created ON public.webhooks_entregas(created_at DESC);
-
 -- Comentários
 COMMENT ON TABLE public.webhooks_entregas IS 'Log de entregas de webhooks com retry';
 COMMENT ON COLUMN public.webhooks_entregas.event_id IS 'ID único do evento para garantir idempotência';
-
-
 -- ============================================
 -- TABELA: conectores
 -- Configuração de conectores nativos
@@ -314,17 +295,13 @@ CREATE TABLE public.conectores (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_conectores_integracao ON public.conectores(integracao_id);
 CREATE INDEX idx_conectores_tipo ON public.conectores(tipo);
 CREATE INDEX idx_conectores_proxima_sync ON public.conectores(proxima_sync_em) 
   WHERE sync_habilitado = true;
-
 -- Comentários
 COMMENT ON TABLE public.conectores IS 'Configuração de conectores nativos (portaria, contabilidade, etc)';
-
-
 -- ============================================
 -- TABELA: api_logs
 -- Log de requisições à API
@@ -356,13 +333,11 @@ CREATE TABLE public.api_logs (
   -- Metadados
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_api_logs_integracao ON public.api_logs(integracao_id);
 CREATE INDEX idx_api_logs_created ON public.api_logs(created_at DESC);
 CREATE INDEX idx_api_logs_path ON public.api_logs(path);
 CREATE INDEX idx_api_logs_status ON public.api_logs(status_code);
-
 -- Particionamento por data (para alta escala)
 -- Em produção, considerar particionar por mês
 
@@ -371,8 +346,6 @@ CREATE INDEX idx_api_logs_status ON public.api_logs(status_code);
 
 -- Comentários
 COMMENT ON TABLE public.api_logs IS 'Log de requisições à API REST (retenção 30 dias)';
-
-
 -- ============================================
 -- TABELA: api_scopes
 -- Definição de scopes disponíveis
@@ -403,7 +376,6 @@ CREATE TABLE public.api_scopes (
   -- Metadados
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Popular scopes padrão
 INSERT INTO public.api_scopes (codigo, nome, descricao, categoria, tipo, recursos, requer_role) VALUES
 -- Moradores
@@ -446,11 +418,8 @@ INSERT INTO public.api_scopes (codigo, nome, descricao, categoria, tipo, recurso
 -- Admin
 ('admin:webhooks', 'Administrar webhooks', 'Configurar e gerenciar webhooks', 'admin', 'admin', ARRAY['webhooks_config'], ARRAY['sindico', 'admin_condo']::public.user_role[]),
 ('admin:integracoes', 'Administrar integrações', 'Configurar integrações e conectores', 'admin', 'admin', ARRAY['integracoes', 'conectores'], ARRAY['sindico', 'admin_condo']::public.user_role[]);
-
 -- Comentários
 COMMENT ON TABLE public.api_scopes IS 'Definição de scopes disponíveis para API Keys';
-
-
 -- ============================================
 -- TABELA: sync_logs
 -- Log de sincronizações de conectores
@@ -483,35 +452,26 @@ CREATE TABLE public.sync_logs (
   -- Metadados
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_sync_logs_conector ON public.sync_logs(conector_id);
 CREATE INDEX idx_sync_logs_created ON public.sync_logs(created_at DESC);
-
 -- Comentários
 COMMENT ON TABLE public.sync_logs IS 'Log de sincronizações de conectores';
-
-
 -- ============================================
 -- TRIGGERS: updated_at automático
 -- ============================================
 CREATE TRIGGER set_updated_at_integracoes
   BEFORE UPDATE ON public.integracoes
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_webhooks_config
   BEFORE UPDATE ON public.webhooks_config
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_webhooks_entregas
   BEFORE UPDATE ON public.webhooks_entregas
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_conectores
   BEFORE UPDATE ON public.conectores
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-
 -- ============================================
 -- COMENTÁRIOS FINAIS
 -- ============================================

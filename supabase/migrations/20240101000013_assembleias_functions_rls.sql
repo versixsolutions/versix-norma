@@ -49,10 +49,7 @@ SELECT
 FROM public.assembleias a
 LEFT JOIN public.assembleia_presencas p ON p.assembleia_id = a.id
 GROUP BY a.id;
-
 COMMENT ON VIEW public.v_assembleia_quorum IS 'Quórum em tempo real de cada assembleia';
-
-
 -- ============================================
 -- VIEW: v_pauta_resultado
 -- Resultado de votação por pauta
@@ -89,10 +86,7 @@ SELECT
 FROM public.assembleia_pautas p
 LEFT JOIN public.assembleia_votos v ON v.pauta_id = p.id
 GROUP BY p.id;
-
 COMMENT ON VIEW public.v_pauta_resultado IS 'Resultado de votação por pauta';
-
-
 -- ============================================
 -- VIEW: v_assembleia_resumo
 -- Resumo completo da assembleia
@@ -120,10 +114,7 @@ FROM public.assembleias a
 JOIN public.condominios c ON c.id = a.condominio_id
 LEFT JOIN public.v_assembleia_quorum q ON q.assembleia_id = a.id
 LEFT JOIN public.usuarios u ON u.id = a.criado_por;
-
 COMMENT ON VIEW public.v_assembleia_resumo IS 'Resumo completo da assembleia com quórum e contagens';
-
-
 -- ============================================
 -- FUNCTION: registrar_presenca
 -- Registra presença com validações
@@ -242,10 +233,7 @@ BEGIN
   RETURN v_presenca_id;
 END;
 $$;
-
 COMMENT ON FUNCTION public.registrar_presenca IS 'Registra presença em assembleia com validações completas';
-
-
 -- ============================================
 -- FUNCTION: registrar_voto
 -- Registra voto com validações e hash
@@ -365,10 +353,7 @@ BEGIN
   RETURN v_voto_id;
 END;
 $$;
-
 COMMENT ON FUNCTION public.registrar_voto IS 'Registra voto com validações, hash e auditoria';
-
-
 -- ============================================
 -- FUNCTION: abrir_votacao_pauta
 -- Abre votação para uma pauta
@@ -428,10 +413,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 COMMENT ON FUNCTION public.abrir_votacao_pauta IS 'Abre votação para uma pauta específica';
-
-
 -- ============================================
 -- FUNCTION: encerrar_votacao_pauta
 -- Encerra votação e calcula resultado
@@ -549,10 +531,7 @@ BEGIN
   RETURN v_resultado_json;
 END;
 $$;
-
 COMMENT ON FUNCTION public.encerrar_votacao_pauta IS 'Encerra votação e calcula resultado final';
-
-
 -- ============================================
 -- FUNCTION: encerrar_assembleia
 -- Encerra assembleia e prepara ata
@@ -603,10 +582,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 COMMENT ON FUNCTION public.encerrar_assembleia IS 'Encerra assembleia após todas as votações';
-
-
 -- ============================================
 -- FUNCTION: gerar_ata_texto
 -- Gera texto da ata automaticamente
@@ -758,10 +734,7 @@ BEGIN
   RETURN v_ata;
 END;
 $$;
-
 COMMENT ON FUNCTION public.gerar_ata_texto IS 'Gera texto da ata automaticamente em formato Markdown';
-
-
 -- ============================================
 -- FUNCTION: aceitar_procuracao
 -- Aceita uma procuração digital
@@ -803,21 +776,16 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 COMMENT ON FUNCTION public.aceitar_procuracao IS 'Aceita uma procuração digital';
-
-
 -- ============================================
 -- RLS: assembleias
 -- ============================================
 ALTER TABLE public.assembleias ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin: tudo
 CREATE POLICY "superadmin_assembleias_all" ON public.assembleias
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico/Subsíndico: CRUD do próprio condomínio
 CREATE POLICY "sindico_assembleias_all" ON public.assembleias
   FOR ALL USING (
@@ -826,26 +794,21 @@ CREATE POLICY "sindico_assembleias_all" ON public.assembleias
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
 -- Moradores: leitura de assembleias convocadas+
 CREATE POLICY "morador_assembleias_read" ON public.assembleias
   FOR SELECT USING (
     condominio_id IN (SELECT condominio_id FROM public.usuarios WHERE id = auth.uid())
     AND status NOT IN ('rascunho')
   );
-
-
 -- ============================================
 -- RLS: assembleia_pautas
 -- ============================================
 ALTER TABLE public.assembleia_pautas ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_pautas_all" ON public.assembleia_pautas
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: CRUD
 CREATE POLICY "sindico_pautas_all" ON public.assembleia_pautas
   FOR ALL USING (
@@ -855,7 +818,6 @@ CREATE POLICY "sindico_pautas_all" ON public.assembleia_pautas
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
 -- Moradores: leitura
 CREATE POLICY "morador_pautas_read" ON public.assembleia_pautas
   FOR SELECT USING (
@@ -865,19 +827,15 @@ CREATE POLICY "morador_pautas_read" ON public.assembleia_pautas
       WHERE u.id = auth.uid() AND a.status NOT IN ('rascunho')
     )
   );
-
-
 -- ============================================
 -- RLS: assembleia_pauta_opcoes
 -- ============================================
 ALTER TABLE public.assembleia_pauta_opcoes ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_opcoes_all" ON public.assembleia_pauta_opcoes
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: CRUD
 CREATE POLICY "sindico_opcoes_all" ON public.assembleia_pauta_opcoes
   FOR ALL USING (
@@ -888,7 +846,6 @@ CREATE POLICY "sindico_opcoes_all" ON public.assembleia_pauta_opcoes
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
 -- Moradores: leitura
 CREATE POLICY "morador_opcoes_read" ON public.assembleia_pauta_opcoes
   FOR SELECT USING (
@@ -899,19 +856,15 @@ CREATE POLICY "morador_opcoes_read" ON public.assembleia_pauta_opcoes
       WHERE u.id = auth.uid() AND a.status NOT IN ('rascunho')
     )
   );
-
-
 -- ============================================
 -- RLS: assembleia_presencas
 -- ============================================
 ALTER TABLE public.assembleia_presencas ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_presencas_all" ON public.assembleia_presencas
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura
 CREATE POLICY "sindico_presencas_read" ON public.assembleia_presencas
   FOR SELECT USING (
@@ -921,7 +874,6 @@ CREATE POLICY "sindico_presencas_read" ON public.assembleia_presencas
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo', 'conselheiro')
     )
   );
-
 -- Moradores: leitura (veem quem está presente)
 CREATE POLICY "morador_presencas_read" ON public.assembleia_presencas
   FOR SELECT USING (
@@ -931,25 +883,20 @@ CREATE POLICY "morador_presencas_read" ON public.assembleia_presencas
       WHERE u.id = auth.uid() AND a.status NOT IN ('rascunho')
     )
   );
-
 -- Moradores: inserir própria presença (via function)
 CREATE POLICY "morador_presencas_insert" ON public.assembleia_presencas
   FOR INSERT WITH CHECK (
     usuario_id = auth.uid()
   );
-
-
 -- ============================================
 -- RLS: assembleia_votos
 -- ============================================
 ALTER TABLE public.assembleia_votos ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_votos_all" ON public.assembleia_votos
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Votos não-secretos: todos do condomínio veem
 -- Votos secretos: só o próprio vê
 CREATE POLICY "votos_read" ON public.assembleia_votos
@@ -963,7 +910,6 @@ CREATE POLICY "votos_read" ON public.assembleia_votos
         AND (NOT p.voto_secreto OR assembleia_votos.usuario_id = auth.uid())
     )
   );
-
 -- Inserir voto: apenas própria presença (via function)
 CREATE POLICY "votos_insert" ON public.assembleia_votos
   FOR INSERT WITH CHECK (
@@ -971,19 +917,15 @@ CREATE POLICY "votos_insert" ON public.assembleia_votos
       SELECT id FROM public.assembleia_presencas WHERE usuario_id = auth.uid()
     )
   );
-
-
 -- ============================================
 -- RLS: assembleia_procuracoes
 -- ============================================
 ALTER TABLE public.assembleia_procuracoes ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_procuracoes_all" ON public.assembleia_procuracoes
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura do condomínio
 CREATE POLICY "sindico_procuracoes_read" ON public.assembleia_procuracoes
   FOR SELECT USING (
@@ -992,30 +934,23 @@ CREATE POLICY "sindico_procuracoes_read" ON public.assembleia_procuracoes
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
 -- Outorgante: CRUD das próprias
 CREATE POLICY "outorgante_procuracoes_all" ON public.assembleia_procuracoes
   FOR ALL USING (outorgante_id = auth.uid());
-
 -- Outorgado: leitura e atualização (aceitar/recusar)
 CREATE POLICY "outorgado_procuracoes_read" ON public.assembleia_procuracoes
   FOR SELECT USING (outorgado_id = auth.uid());
-
 CREATE POLICY "outorgado_procuracoes_update" ON public.assembleia_procuracoes
   FOR UPDATE USING (outorgado_id = auth.uid());
-
-
 -- ============================================
 -- RLS: assembleia_assinaturas
 -- ============================================
 ALTER TABLE public.assembleia_assinaturas ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_assinaturas_all" ON public.assembleia_assinaturas
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Todos do condomínio: leitura
 CREATE POLICY "condominio_assinaturas_read" ON public.assembleia_assinaturas
   FOR SELECT USING (
@@ -1025,23 +960,18 @@ CREATE POLICY "condominio_assinaturas_read" ON public.assembleia_assinaturas
       WHERE u.id = auth.uid()
     )
   );
-
 -- Inserir própria assinatura
 CREATE POLICY "usuario_assinaturas_insert" ON public.assembleia_assinaturas
   FOR INSERT WITH CHECK (usuario_id = auth.uid());
-
-
 -- ============================================
 -- RLS: assembleia_logs
 -- ============================================
 ALTER TABLE public.assembleia_logs ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_logs_all" ON public.assembleia_logs
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico/Conselho: leitura
 CREATE POLICY "sindico_logs_read" ON public.assembleia_logs
   FOR SELECT USING (
@@ -1051,8 +981,6 @@ CREATE POLICY "sindico_logs_read" ON public.assembleia_logs
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo', 'conselheiro')
     )
   );
-
-
 -- ============================================
 -- GRANT PERMISSIONS
 -- ============================================
@@ -1064,12 +992,9 @@ GRANT ALL ON public.assembleia_votos TO authenticated;
 GRANT ALL ON public.assembleia_procuracoes TO authenticated;
 GRANT ALL ON public.assembleia_assinaturas TO authenticated;
 GRANT ALL ON public.assembleia_logs TO authenticated;
-
 GRANT SELECT ON public.v_assembleia_quorum TO authenticated;
 GRANT SELECT ON public.v_pauta_resultado TO authenticated;
 GRANT SELECT ON public.v_assembleia_resumo TO authenticated;
-
-
 -- ============================================
 -- COMENTÁRIOS FINAIS
 -- ============================================

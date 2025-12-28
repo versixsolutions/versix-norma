@@ -21,7 +21,6 @@ CREATE TYPE canal_notificacao AS ENUM (
   'in_app',    -- Notificação no sistema
   'mural'      -- PDF para impressão
 );
-
 -- Prioridade do comunicado
 CREATE TYPE prioridade_comunicado AS ENUM (
   'baixa',     -- Informativo geral
@@ -29,7 +28,6 @@ CREATE TYPE prioridade_comunicado AS ENUM (
   'alta',      -- Urgente (vencimento, manutenção)
   'critica'    -- Emergência (incêndio, gás, segurança)
 );
-
 -- Status de entrega
 CREATE TYPE status_entrega AS ENUM (
   'pendente',    -- Aguardando envio
@@ -41,7 +39,6 @@ CREATE TYPE status_entrega AS ENUM (
   'falhou',      -- Erro no envio
   'cancelado'    -- Cancelado antes do envio
 );
-
 -- Tipo de notificação
 CREATE TYPE tipo_notificacao AS ENUM (
   'comunicado',       -- Comunicado geral
@@ -55,8 +52,6 @@ CREATE TYPE tipo_notificacao AS ENUM (
   'chamado',          -- Atualização de chamado
   'sistema'           -- Notificação do sistema
 );
-
-
 -- ============================================
 -- TABELA: notificacoes_config
 -- Configuração global de notificações por condomínio
@@ -110,12 +105,9 @@ CREATE TABLE public.notificacoes_config (
   
   UNIQUE(condominio_id)
 );
-
 -- Comentários
 COMMENT ON TABLE public.notificacoes_config IS 'Configuração de canais e limites por condomínio';
 COMMENT ON COLUMN public.notificacoes_config.cascata_habilitada IS 'Se true, escala automaticamente para próximo canal se não houver leitura';
-
-
 -- ============================================
 -- TABELA: usuarios_canais_preferencias
 -- Preferências de canal por usuário (opt-in/out)
@@ -162,14 +154,10 @@ CREATE TABLE public.usuarios_canais_preferencias (
   
   UNIQUE(usuario_id)
 );
-
 -- Índices
 CREATE INDEX idx_canais_pref_push_tokens ON public.usuarios_canais_preferencias USING GIN (push_tokens);
-
 -- Comentários
 COMMENT ON TABLE public.usuarios_canais_preferencias IS 'Preferências individuais de canais de notificação';
-
-
 -- ============================================
 -- TABELA: templates_notificacao
 -- Templates de mensagens por tipo e canal
@@ -209,15 +197,11 @@ CREATE TABLE public.templates_notificacao (
   -- Template único por tipo+canal+condomínio
   UNIQUE(condominio_id, codigo, canal)
 );
-
 -- Índices
 CREATE INDEX idx_templates_tipo_canal ON public.templates_notificacao(tipo, canal);
 CREATE INDEX idx_templates_codigo ON public.templates_notificacao(codigo);
-
 -- Comentários
 COMMENT ON TABLE public.templates_notificacao IS 'Templates de mensagens para cada tipo e canal';
-
-
 -- ============================================
 -- TABELA: notificacoes
 -- Registro central de cada notificação
@@ -276,7 +260,6 @@ CREATE TABLE public.notificacoes (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_notificacoes_condominio ON public.notificacoes(condominio_id);
 CREATE INDEX idx_notificacoes_tipo ON public.notificacoes(tipo);
@@ -285,11 +268,8 @@ CREATE INDEX idx_notificacoes_prioridade ON public.notificacoes(prioridade);
 CREATE INDEX idx_notificacoes_agendada ON public.notificacoes(agendada_para) WHERE agendada_para IS NOT NULL;
 CREATE INDEX idx_notificacoes_referencia ON public.notificacoes(referencia_tipo, referencia_id) WHERE referencia_id IS NOT NULL;
 CREATE INDEX idx_notificacoes_created ON public.notificacoes(created_at DESC);
-
 -- Comentários
 COMMENT ON TABLE public.notificacoes IS 'Registro central de todas as notificações enviadas';
-
-
 -- ============================================
 -- TABELA: notificacoes_entregas
 -- Entrega individual por usuário/canal
@@ -337,7 +317,6 @@ CREATE TABLE public.notificacoes_entregas (
   -- Uma entrega por notificação/usuário/canal
   UNIQUE(notificacao_id, usuario_id, canal)
 );
-
 -- Índices
 CREATE INDEX idx_entregas_notificacao ON public.notificacoes_entregas(notificacao_id);
 CREATE INDEX idx_entregas_usuario ON public.notificacoes_entregas(usuario_id);
@@ -346,11 +325,8 @@ CREATE INDEX idx_entregas_canal ON public.notificacoes_entregas(canal);
 CREATE INDEX idx_entregas_pendentes ON public.notificacoes_entregas(status, proxima_tentativa) 
   WHERE status IN ('pendente', 'agendado');
 CREATE INDEX idx_entregas_provider ON public.notificacoes_entregas(provider_id) WHERE provider_id IS NOT NULL;
-
 -- Comentários
 COMMENT ON TABLE public.notificacoes_entregas IS 'Entrega individual de notificação por usuário e canal';
-
-
 -- ============================================
 -- TABELA: notificacoes_leituras
 -- Confirmações de leitura (quando usuário abre)
@@ -373,15 +349,11 @@ CREATE TABLE public.notificacoes_leituras (
   -- Uma leitura por usuário (primeira leitura conta)
   UNIQUE(notificacao_id, usuario_id)
 );
-
 -- Índices
 CREATE INDEX idx_leituras_notificacao ON public.notificacoes_leituras(notificacao_id);
 CREATE INDEX idx_leituras_usuario ON public.notificacoes_leituras(usuario_id);
-
 -- Comentários
 COMMENT ON TABLE public.notificacoes_leituras IS 'Registro de confirmação de leitura';
-
-
 -- ============================================
 -- TABELA: cotas_comunicacao
 -- Controle de uso e custos por mês
@@ -418,14 +390,10 @@ CREATE TABLE public.cotas_comunicacao (
   
   UNIQUE(condominio_id, mes_referencia)
 );
-
 -- Índices
 CREATE INDEX idx_cotas_mes ON public.cotas_comunicacao(mes_referencia);
-
 -- Comentários
 COMMENT ON TABLE public.cotas_comunicacao IS 'Controle de uso e custos mensais por canal';
-
-
 -- ============================================
 -- TABELA: webhooks_notificacao
 -- Configuração de webhooks para eventos
@@ -461,11 +429,8 @@ CREATE TABLE public.webhooks_notificacao (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Comentários
 COMMENT ON TABLE public.webhooks_notificacao IS 'Webhooks para eventos de notificação';
-
-
 -- ============================================
 -- TABELA: notificacoes_fila
 -- Fila de processamento (para workers)
@@ -491,17 +456,13 @@ CREATE TABLE public.notificacoes_fila (
   -- Só uma entrada por entrega
   UNIQUE(entrega_id)
 );
-
 -- Índices
 CREATE INDEX idx_fila_processar ON public.notificacoes_fila(processar_apos, prioridade DESC) 
   WHERE processando = false;
 CREATE INDEX idx_fila_processando ON public.notificacoes_fila(processando_por, processando_desde) 
   WHERE processando = true;
-
 -- Comentários
 COMMENT ON TABLE public.notificacoes_fila IS 'Fila de processamento para workers de notificação';
-
-
 -- ============================================
 -- TABELA: emergencias_log
 -- Log de emergências (auditoria crítica)
@@ -530,47 +491,35 @@ CREATE TABLE public.emergencias_log (
   -- Metadados
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_emergencias_condominio ON public.emergencias_log(condominio_id);
 CREATE INDEX idx_emergencias_created ON public.emergencias_log(created_at DESC);
-
 -- Comentários
 COMMENT ON TABLE public.emergencias_log IS 'Log de auditoria de emergências disparadas';
-
-
 -- ============================================
 -- TRIGGERS: updated_at automático
 -- ============================================
 CREATE TRIGGER set_updated_at_notificacoes_config
   BEFORE UPDATE ON public.notificacoes_config
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_usuarios_canais
   BEFORE UPDATE ON public.usuarios_canais_preferencias
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_templates
   BEFORE UPDATE ON public.templates_notificacao
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_notificacoes
   BEFORE UPDATE ON public.notificacoes
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_entregas
   BEFORE UPDATE ON public.notificacoes_entregas
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_cotas
   BEFORE UPDATE ON public.cotas_comunicacao
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_webhooks
   BEFORE UPDATE ON public.webhooks_notificacao
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-
 -- ============================================
 -- TRIGGER: Criar preferências ao criar usuário
 -- ============================================
@@ -584,12 +533,9 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 CREATE TRIGGER trigger_create_canais_preferencias
   AFTER INSERT ON public.usuarios
   FOR EACH ROW EXECUTE FUNCTION create_usuario_canais_preferencias();
-
-
 -- ============================================
 -- TRIGGER: Atualizar estatísticas da notificação
 -- ============================================
@@ -626,12 +572,9 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
 CREATE TRIGGER trigger_update_notificacao_stats
   AFTER INSERT OR UPDATE OF status OR DELETE ON public.notificacoes_entregas
   FOR EACH ROW EXECUTE FUNCTION update_notificacao_stats();
-
-
 -- ============================================
 -- COMENTÁRIOS FINAIS
 -- ============================================

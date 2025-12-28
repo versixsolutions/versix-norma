@@ -67,6 +67,10 @@ CREATE POLICY "morador_insert_presenca" ON public.assembleia_presencas FOR INSER
 -- ============================================
 -- RLS: assembleia_votos
 -- ============================================
+DROP POLICY IF EXISTS "superadmin_full_votos" ON public.assembleia_votos;
+DROP POLICY IF EXISTS "votos_read" ON public.assembleia_votos;
+DROP POLICY IF EXISTS "votos_insert" ON public.assembleia_votos;
+
 CREATE POLICY "superadmin_full_votos" ON public.assembleia_votos FOR ALL TO authenticated
   USING (public.is_superadmin()) WITH CHECK (public.is_superadmin());
 

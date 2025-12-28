@@ -33,10 +33,7 @@ BEGIN
   RETURN LEFT(v_key, 44);
 END;
 $$;
-
 COMMENT ON FUNCTION public.gerar_api_key IS 'Gera API Key com prefixo indicando ambiente (live/test)';
-
-
 -- ============================================
 -- FUNCTION: criar_integracao_api
 -- Cria uma integração do tipo API com chave gerada
@@ -83,10 +80,7 @@ BEGIN
   RETURN QUERY SELECT v_integracao_id, v_api_key, v_api_key_prefix;
 END;
 $$;
-
 COMMENT ON FUNCTION public.criar_integracao_api IS 'Cria integração API e retorna a chave (única vez visível)';
-
-
 -- ============================================
 -- FUNCTION: regenerar_api_key
 -- Regenera a API Key de uma integração
@@ -136,10 +130,7 @@ BEGIN
   RETURN QUERY SELECT v_api_key, v_api_key_prefix;
 END;
 $$;
-
 COMMENT ON FUNCTION public.regenerar_api_key IS 'Regenera API Key (invalida a anterior)';
-
-
 -- ============================================
 -- FUNCTION: validar_api_key
 -- Valida API Key e retorna informações da integração
@@ -208,10 +199,7 @@ BEGIN
     v_integracao.ambiente;
 END;
 $$;
-
 COMMENT ON FUNCTION public.validar_api_key IS 'Valida API Key e retorna contexto da integração';
-
-
 -- ============================================
 -- FUNCTION: verificar_scope
 -- Verifica se a integração tem o scope necessário
@@ -244,10 +232,7 @@ BEGIN
   RETURN FALSE;
 END;
 $$;
-
 COMMENT ON FUNCTION public.verificar_scope IS 'Verifica se integração tem scope necessário (com suporte a wildcard)';
-
-
 -- ============================================
 -- FUNCTION: criar_webhook
 -- Cria uma integração de webhook
@@ -289,10 +274,7 @@ BEGIN
   RETURN v_integracao_id;
 END;
 $$;
-
 COMMENT ON FUNCTION public.criar_webhook IS 'Cria integração de webhook com configuração inicial';
-
-
 -- ============================================
 -- FUNCTION: disparar_webhook
 -- Dispara evento para todos os webhooks inscritos
@@ -340,10 +322,7 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-
 COMMENT ON FUNCTION public.disparar_webhook IS 'Cria entregas pendentes para todos os webhooks inscritos';
-
-
 -- ============================================
 -- FUNCTION: registrar_entrega_webhook
 -- Registra resultado de tentativa de entrega
@@ -419,10 +398,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 COMMENT ON FUNCTION public.registrar_entrega_webhook IS 'Registra resultado de tentativa de entrega de webhook';
-
-
 -- ============================================
 -- FUNCTION: gerar_assinatura_webhook
 -- Gera assinatura HMAC-SHA256 para payload
@@ -446,10 +422,7 @@ BEGIN
   RETURN 'v1=' || v_signature;
 END;
 $$;
-
 COMMENT ON FUNCTION public.gerar_assinatura_webhook IS 'Gera assinatura HMAC-SHA256 para webhook';
-
-
 -- ============================================
 -- FUNCTION: log_api_request
 -- Registra requisição à API
@@ -487,10 +460,7 @@ BEGIN
   RETURN v_log_id;
 END;
 $$;
-
 COMMENT ON FUNCTION public.log_api_request IS 'Registra requisição à API para auditoria';
-
-
 -- ============================================
 -- VIEW: v_integracoes_resumo
 -- Resumo das integrações por condomínio
@@ -523,10 +493,7 @@ SELECT
   (SELECT array_agg(DISTINCT e) FROM public.webhooks_config wc, unnest(wc.eventos) e WHERE wc.integracao_id = i.id) AS eventos_webhook
 
 FROM public.integracoes i;
-
 COMMENT ON VIEW public.v_integracoes_resumo IS 'Resumo das integrações com estatísticas';
-
-
 -- ============================================
 -- VIEW: v_webhooks_pendentes
 -- Webhooks pendentes para processamento
@@ -555,10 +522,7 @@ WHERE we.status = 'pendente'
   AND wc.ativo = true
 ORDER BY we.proxima_tentativa ASC
 LIMIT 100;
-
 COMMENT ON VIEW public.v_webhooks_pendentes IS 'Webhooks prontos para processamento';
-
-
 -- ============================================
 -- VIEW: v_api_stats_diario
 -- Estatísticas de API por dia
@@ -580,21 +544,16 @@ JOIN public.integracoes i ON i.id = al.integracao_id
 WHERE al.created_at >= NOW() - INTERVAL '30 days'
 GROUP BY i.condominio_id, i.id, i.nome, DATE(al.created_at)
 ORDER BY data DESC, total_requests DESC;
-
 COMMENT ON VIEW public.v_api_stats_diario IS 'Estatísticas de uso da API por dia';
-
-
 -- ============================================
 -- RLS: integracoes
 -- ============================================
 ALTER TABLE public.integracoes ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin: tudo
 CREATE POLICY "superadmin_integracoes_all" ON public.integracoes
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: CRUD do próprio condomínio
 CREATE POLICY "sindico_integracoes_all" ON public.integracoes
   FOR ALL USING (
@@ -603,19 +562,15 @@ CREATE POLICY "sindico_integracoes_all" ON public.integracoes
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: webhooks_config
 -- ============================================
 ALTER TABLE public.webhooks_config ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_webhooks_config_all" ON public.webhooks_config
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico (via integração)
 CREATE POLICY "sindico_webhooks_config_all" ON public.webhooks_config
   FOR ALL USING (
@@ -625,19 +580,15 @@ CREATE POLICY "sindico_webhooks_config_all" ON public.webhooks_config
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: webhooks_entregas
 -- ============================================
 ALTER TABLE public.webhooks_entregas ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_webhooks_entregas_all" ON public.webhooks_entregas
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura
 CREATE POLICY "sindico_webhooks_entregas_read" ON public.webhooks_entregas
   FOR SELECT USING (
@@ -648,19 +599,15 @@ CREATE POLICY "sindico_webhooks_entregas_read" ON public.webhooks_entregas
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: conectores
 -- ============================================
 ALTER TABLE public.conectores ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_conectores_all" ON public.conectores
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico (via integração)
 CREATE POLICY "sindico_conectores_all" ON public.conectores
   FOR ALL USING (
@@ -670,19 +617,15 @@ CREATE POLICY "sindico_conectores_all" ON public.conectores
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: api_logs
 -- ============================================
 ALTER TABLE public.api_logs ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_api_logs_all" ON public.api_logs
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura
 CREATE POLICY "sindico_api_logs_read" ON public.api_logs
   FOR SELECT USING (
@@ -692,35 +635,27 @@ CREATE POLICY "sindico_api_logs_read" ON public.api_logs
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: api_scopes
 -- ============================================
 ALTER TABLE public.api_scopes ENABLE ROW LEVEL SECURITY;
-
 -- Todos podem ler (referência)
 CREATE POLICY "public_api_scopes_read" ON public.api_scopes
   FOR SELECT USING (ativo = true);
-
 -- SuperAdmin pode gerenciar
 CREATE POLICY "superadmin_api_scopes_all" ON public.api_scopes
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
-
 -- ============================================
 -- RLS: sync_logs
 -- ============================================
 ALTER TABLE public.sync_logs ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_sync_logs_all" ON public.sync_logs
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura
 CREATE POLICY "sindico_sync_logs_read" ON public.sync_logs
   FOR SELECT USING (
@@ -731,8 +666,6 @@ CREATE POLICY "sindico_sync_logs_read" ON public.sync_logs
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- GRANT PERMISSIONS
 -- ============================================
@@ -743,12 +676,9 @@ GRANT ALL ON public.conectores TO authenticated;
 GRANT ALL ON public.api_logs TO authenticated;
 GRANT ALL ON public.api_scopes TO authenticated;
 GRANT ALL ON public.sync_logs TO authenticated;
-
 GRANT SELECT ON public.v_integracoes_resumo TO authenticated;
 GRANT SELECT ON public.v_webhooks_pendentes TO authenticated;
 GRANT SELECT ON public.v_api_stats_diario TO authenticated;
-
-
 -- ============================================
 -- TRIGGERS: Auto-disparar webhooks
 -- ============================================
@@ -775,7 +705,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 -- Nota: Criar trigger similar para cada evento relevante
 -- Exemplo: assembleia.criada, ocorrencia.criada, etc.
 
@@ -796,10 +725,7 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-
 COMMENT ON FUNCTION public.limpar_api_logs_antigos IS 'Remove logs de API com mais de 30 dias (executar via cron)';
-
-
 -- ============================================
 -- COMENTÁRIOS FINAIS
 -- ============================================

@@ -17,7 +17,6 @@ CREATE TYPE assembleia_tipo AS ENUM (
   'AGE',        -- Assembleia Geral Extraordinária
   'permanente'  -- Votação assíncrona (sem reunião presencial)
 );
-
 -- Status da assembleia
 CREATE TYPE assembleia_status AS ENUM (
   'rascunho',      -- Síndico preparando
@@ -27,7 +26,6 @@ CREATE TYPE assembleia_status AS ENUM (
   'encerrada',     -- Votação fechada, gerando ata
   'arquivada'      -- Ata assinada, registro imutável
 );
-
 -- Tipo de votação na pauta
 CREATE TYPE pauta_tipo_votacao AS ENUM (
   'aprovacao',       -- Sim/Não/Abstenção
@@ -36,7 +34,6 @@ CREATE TYPE pauta_tipo_votacao AS ENUM (
   'eleicao',         -- Eleição de cargos
   'informativo'      -- Sem votação, apenas informação
 );
-
 -- Status da pauta
 CREATE TYPE pauta_status AS ENUM (
   'pendente',    -- Aguardando votação
@@ -46,7 +43,6 @@ CREATE TYPE pauta_status AS ENUM (
   'rejeitada',   -- Resultado: rejeitado
   'sem_quorum'   -- Não atingiu quórum
 );
-
 -- Tipo de presença
 CREATE TYPE presenca_tipo AS ENUM (
   'presencial',      -- Check-in via QR Code no local
@@ -54,7 +50,6 @@ CREATE TYPE presenca_tipo AS ENUM (
   'procuracao',      -- Representado por procuração
   'voto_antecipado'  -- Votou antes da assembleia (assíncrono)
 );
-
 -- Tipo de voto
 CREATE TYPE voto_tipo AS ENUM (
   'sim',
@@ -62,7 +57,6 @@ CREATE TYPE voto_tipo AS ENUM (
   'abstencao',
   'opcao'  -- Votou em uma opção específica (eleição/escolha)
 );
-
 -- Quórum especial (baseado no Código Civil)
 CREATE TYPE quorum_especial AS ENUM (
   'maioria_simples',      -- > 50% dos presentes
@@ -70,7 +64,6 @@ CREATE TYPE quorum_especial AS ENUM (
   'dois_tercos',          -- ≥ 2/3 das frações (obras, convenção)
   'unanimidade'           -- 100% das frações (mudança destinação)
 );
-
 -- Status da procuração
 CREATE TYPE procuracao_status AS ENUM (
   'pendente',    -- Aguardando aceite do representante
@@ -79,8 +72,6 @@ CREATE TYPE procuracao_status AS ENUM (
   'revogada',    -- Outorgante cancelou
   'utilizada'    -- Já foi usada em assembleia
 );
-
-
 -- ============================================
 -- TABELA: assembleias
 -- Registro principal de cada assembleia
@@ -144,20 +135,16 @@ CREATE TABLE public.assembleias (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_assembleias_condominio ON public.assembleias(condominio_id);
 CREATE INDEX idx_assembleias_status ON public.assembleias(status);
 CREATE INDEX idx_assembleias_data ON public.assembleias(data_primeira_convocacao DESC);
 CREATE INDEX idx_assembleias_tipo_ano ON public.assembleias(condominio_id, tipo, ano_referencia);
 CREATE INDEX idx_assembleias_qr ON public.assembleias(qr_token) WHERE qr_token IS NOT NULL;
-
 -- Comentários
 COMMENT ON TABLE public.assembleias IS 'Assembleias do condomínio (AGO, AGE, permanente)';
 COMMENT ON COLUMN public.assembleias.quorum_atingido IS 'Percentual de fração ideal presente, calculado em tempo real';
 COMMENT ON COLUMN public.assembleias.qr_token IS 'Token único para validar check-in presencial via QR Code';
-
-
 -- ============================================
 -- TABELA: assembleia_pautas
 -- Itens da pauta com configuração de votação
@@ -201,16 +188,12 @@ CREATE TABLE public.assembleia_pautas (
   -- Ordenação única
   UNIQUE(assembleia_id, ordem)
 );
-
 -- Índices
 CREATE INDEX idx_pautas_assembleia ON public.assembleia_pautas(assembleia_id, ordem);
 CREATE INDEX idx_pautas_status ON public.assembleia_pautas(status);
-
 -- Comentários
 COMMENT ON TABLE public.assembleia_pautas IS 'Itens da pauta de cada assembleia';
 COMMENT ON COLUMN public.assembleia_pautas.quorum_especial IS 'Quórum exigido: maioria_simples (padrão), dois_tercos (obras), unanimidade (mudança destinação)';
-
-
 -- ============================================
 -- TABELA: assembleia_pauta_opcoes
 -- Opções de voto para pautas de escolha/eleição
@@ -242,14 +225,10 @@ CREATE TABLE public.assembleia_pauta_opcoes (
   -- Ordenação única
   UNIQUE(pauta_id, ordem)
 );
-
 -- Índices
 CREATE INDEX idx_opcoes_pauta ON public.assembleia_pauta_opcoes(pauta_id, ordem);
-
 -- Comentários
 COMMENT ON TABLE public.assembleia_pauta_opcoes IS 'Opções de voto para pautas de escolha múltipla ou eleição';
-
-
 -- ============================================
 -- TABELA: assembleia_presencas
 -- Registro de presença (presencial ou online)
@@ -285,17 +264,13 @@ CREATE TABLE public.assembleia_presencas (
   -- Uma presença por unidade por assembleia
   UNIQUE(assembleia_id, unidade_id)
 );
-
 -- Índices
 CREATE INDEX idx_presencas_assembleia ON public.assembleia_presencas(assembleia_id);
 CREATE INDEX idx_presencas_usuario ON public.assembleia_presencas(usuario_id);
 CREATE INDEX idx_presencas_unidade ON public.assembleia_presencas(unidade_id);
-
 -- Comentários
 COMMENT ON TABLE public.assembleia_presencas IS 'Registro de presença em assembleias';
 COMMENT ON COLUMN public.assembleia_presencas.fracao_ideal IS 'Snapshot da fração ideal no momento do check-in';
-
-
 -- ============================================
 -- TABELA: assembleia_votos
 -- Registro de cada voto (auditável)
@@ -330,18 +305,14 @@ CREATE TABLE public.assembleia_votos (
   -- Um voto por presença por pauta
   UNIQUE(pauta_id, presenca_id)
 );
-
 -- Índices
 CREATE INDEX idx_votos_pauta ON public.assembleia_votos(pauta_id);
 CREATE INDEX idx_votos_presenca ON public.assembleia_votos(presenca_id);
 CREATE INDEX idx_votos_opcao ON public.assembleia_votos(opcao_id) WHERE opcao_id IS NOT NULL;
-
 -- Comentários
 COMMENT ON TABLE public.assembleia_votos IS 'Registro de votos com auditoria e integridade';
 COMMENT ON COLUMN public.assembleia_votos.voto_hash IS 'SHA256 do voto para verificação de integridade';
 COMMENT ON COLUMN public.assembleia_votos.voto_anterior_hash IS 'Hash do voto anterior (cadeia de integridade)';
-
-
 -- ============================================
 -- TABELA: assembleia_procuracoes
 -- Procurações digitais
@@ -382,18 +353,14 @@ CREATE TABLE public.assembleia_procuracoes (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_procuracoes_outorgante ON public.assembleia_procuracoes(outorgante_id);
 CREATE INDEX idx_procuracoes_outorgado ON public.assembleia_procuracoes(outorgado_id);
 CREATE INDEX idx_procuracoes_assembleia ON public.assembleia_procuracoes(assembleia_id) WHERE assembleia_id IS NOT NULL;
 CREATE INDEX idx_procuracoes_status ON public.assembleia_procuracoes(status);
 CREATE INDEX idx_procuracoes_validade ON public.assembleia_procuracoes(validade_inicio, validade_fim);
-
 -- Comentários
 COMMENT ON TABLE public.assembleia_procuracoes IS 'Procurações digitais para representação em assembleias';
-
-
 -- ============================================
 -- TABELA: assembleia_assinaturas
 -- Assinaturas da ata
@@ -420,14 +387,10 @@ CREATE TABLE public.assembleia_assinaturas (
   -- Uma assinatura por papel por pessoa por assembleia
   UNIQUE(assembleia_id, usuario_id, papel)
 );
-
 -- Índices
 CREATE INDEX idx_assinaturas_assembleia ON public.assembleia_assinaturas(assembleia_id);
-
 -- Comentários
 COMMENT ON TABLE public.assembleia_assinaturas IS 'Assinaturas digitais da ata de assembleia';
-
-
 -- ============================================
 -- TABELA: assembleia_logs
 -- Log de ações (auditoria completa)
@@ -447,35 +410,27 @@ CREATE TABLE public.assembleia_logs (
   -- Timestamp
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 -- Índices
 CREATE INDEX idx_logs_assembleia ON public.assembleia_logs(assembleia_id);
 CREATE INDEX idx_logs_acao ON public.assembleia_logs(acao);
 CREATE INDEX idx_logs_created ON public.assembleia_logs(created_at DESC);
-
 -- Particionamento por data (performance)
 -- Para produção, considerar particionar por mês/ano
 
 -- Comentários
 COMMENT ON TABLE public.assembleia_logs IS 'Log de auditoria de todas as ações em assembleias';
-
-
 -- ============================================
 -- TRIGGERS: updated_at automático
 -- ============================================
 CREATE TRIGGER set_updated_at_assembleias
   BEFORE UPDATE ON public.assembleias
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_pautas
   BEFORE UPDATE ON public.assembleia_pautas
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 CREATE TRIGGER set_updated_at_procuracoes
   BEFORE UPDATE ON public.assembleia_procuracoes
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-
 -- ============================================
 -- TRIGGER: Gerar número sequencial da assembleia
 -- ============================================
@@ -494,12 +449,9 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 CREATE TRIGGER trigger_assembleia_numero
   BEFORE INSERT ON public.assembleias
   FOR EACH ROW EXECUTE FUNCTION generate_assembleia_numero();
-
-
 -- ============================================
 -- TRIGGER: Gerar QR Token único
 -- ============================================
@@ -513,12 +465,9 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 CREATE TRIGGER trigger_assembleia_qr_token
   BEFORE INSERT OR UPDATE ON public.assembleias
   FOR EACH ROW EXECUTE FUNCTION generate_assembleia_qr_token();
-
-
 -- ============================================
 -- TRIGGER: Log automático de mudanças de status
 -- ============================================
@@ -551,12 +500,9 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 CREATE TRIGGER trigger_log_assembleia_status
   BEFORE UPDATE ON public.assembleias
   FOR EACH ROW EXECUTE FUNCTION log_assembleia_status_change();
-
-
 -- ============================================
 -- TRIGGER: Atualizar contagem de votos em opções
 -- ============================================
@@ -581,12 +527,9 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
 CREATE TRIGGER trigger_update_opcao_votos
   AFTER INSERT OR DELETE ON public.assembleia_votos
   FOR EACH ROW EXECUTE FUNCTION update_opcao_votos_count();
-
-
 -- ============================================
 -- TRIGGER: Atualizar quórum da assembleia
 -- ============================================
@@ -614,12 +557,9 @@ BEGIN
   RETURN COALESCE(NEW, OLD);
 END;
 $$;
-
 CREATE TRIGGER trigger_update_quorum
   AFTER INSERT OR UPDATE OR DELETE ON public.assembleia_presencas
   FOR EACH ROW EXECUTE FUNCTION update_assembleia_quorum();
-
-
 -- ============================================
 -- COMENTÁRIOS FINAIS
 -- ============================================

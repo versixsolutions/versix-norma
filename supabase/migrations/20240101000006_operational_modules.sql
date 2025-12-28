@@ -13,7 +13,6 @@ CREATE TYPE public.comunicado_status AS ENUM (
   'publicado',
   'arquivado'
 );
-
 -- Status de ocorrências
 CREATE TYPE public.ocorrencia_status AS ENUM (
   'aberta',
@@ -22,7 +21,6 @@ CREATE TYPE public.ocorrencia_status AS ENUM (
   'resolvida',
   'arquivada'
 );
-
 -- Categorias de ocorrências
 CREATE TYPE public.ocorrencia_categoria AS ENUM (
   'barulho',
@@ -37,7 +35,6 @@ CREATE TYPE public.ocorrencia_categoria AS ENUM (
   'estacionamento',
   'outros'
 );
-
 -- Status de chamados
 CREATE TYPE public.chamado_status AS ENUM (
   'novo',
@@ -46,7 +43,6 @@ CREATE TYPE public.chamado_status AS ENUM (
   'resolvido',
   'fechado'
 );
-
 -- Categorias de chamados
 CREATE TYPE public.chamado_categoria AS ENUM (
   'segunda_via_boleto',
@@ -59,7 +55,6 @@ CREATE TYPE public.chamado_categoria AS ENUM (
   'duvida',
   'outros'
 );
-
 -- ============================================
 -- TABELA: comunicados (melhorada)
 -- ============================================
@@ -71,7 +66,6 @@ ADD COLUMN IF NOT EXISTS status public.comunicado_status DEFAULT 'rascunho',
 ADD COLUMN IF NOT EXISTS resumo VARCHAR(500),
 ADD COLUMN IF NOT EXISTS destaque BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;
-
 -- Renomear data_publicacao para publicar_em se existir
 DO $$
 BEGIN
@@ -85,12 +79,10 @@ BEGIN
     ALTER TABLE public.comunicados RENAME COLUMN data_expiracao TO expirar_em;
   END IF;
 END $$;
-
 -- Adicionar colunas de agendamento se não existirem
 ALTER TABLE public.comunicados 
 ADD COLUMN IF NOT EXISTS publicar_em TIMESTAMPTZ,
 ADD COLUMN IF NOT EXISTS expirar_em TIMESTAMPTZ;
-
 -- ============================================
 -- TABELA: comunicados_leitura
 -- ============================================
@@ -102,12 +94,9 @@ CREATE TABLE IF NOT EXISTS public.comunicados_leitura (
   
   UNIQUE(comunicado_id, usuario_id)
 );
-
 CREATE INDEX IF NOT EXISTS idx_leitura_comunicado ON public.comunicados_leitura(comunicado_id);
 CREATE INDEX IF NOT EXISTS idx_leitura_usuario ON public.comunicados_leitura(usuario_id);
-
 COMMENT ON TABLE public.comunicados_leitura IS 'Registro de leitura de comunicados por usuário';
-
 -- ============================================
 -- TABELA: ocorrencias
 -- ============================================
@@ -151,7 +140,6 @@ CREATE TABLE public.ocorrencias (
   CONSTRAINT check_ocorrencia_titulo CHECK (char_length(titulo) >= 5),
   CONSTRAINT check_ocorrencia_descricao CHECK (char_length(descricao) >= 20)
 );
-
 -- Índices
 CREATE INDEX idx_ocorrencias_condominio ON public.ocorrencias(condominio_id);
 CREATE INDEX idx_ocorrencias_reportador ON public.ocorrencias(reportado_por);
@@ -161,10 +149,8 @@ CREATE INDEX idx_ocorrencias_prioridade ON public.ocorrencias(prioridade);
 CREATE INDEX idx_ocorrencias_responsavel ON public.ocorrencias(responsavel_id);
 CREATE INDEX idx_ocorrencias_created ON public.ocorrencias(created_at DESC);
 CREATE INDEX idx_ocorrencias_deleted ON public.ocorrencias(deleted_at) WHERE deleted_at IS NULL;
-
 COMMENT ON TABLE public.ocorrencias IS 'Ocorrências reportadas por moradores';
 COMMENT ON COLUMN public.ocorrencias.anonimo IS 'Se true, nome do reportador é ocultado do síndico';
-
 -- ============================================
 -- TABELA: ocorrencias_historico
 -- ============================================
@@ -180,12 +166,9 @@ CREATE TABLE public.ocorrencias_historico (
   
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 CREATE INDEX idx_historico_ocorrencia ON public.ocorrencias_historico(ocorrencia_id);
 CREATE INDEX idx_historico_created ON public.ocorrencias_historico(created_at DESC);
-
 COMMENT ON TABLE public.ocorrencias_historico IS 'Histórico de mudanças de status das ocorrências';
-
 -- ============================================
 -- TABELA: chamados
 -- ============================================
@@ -228,7 +211,6 @@ CREATE TABLE public.chamados (
   CONSTRAINT check_chamado_titulo CHECK (char_length(titulo) >= 5),
   CONSTRAINT check_chamado_descricao CHECK (char_length(descricao) >= 10)
 );
-
 -- Índices
 CREATE INDEX idx_chamados_condominio ON public.chamados(condominio_id);
 CREATE INDEX idx_chamados_solicitante ON public.chamados(solicitante_id);
@@ -237,9 +219,7 @@ CREATE INDEX idx_chamados_categoria ON public.chamados(categoria);
 CREATE INDEX idx_chamados_atendente ON public.chamados(atendente_id);
 CREATE INDEX idx_chamados_created ON public.chamados(created_at DESC);
 CREATE INDEX idx_chamados_deleted ON public.chamados(deleted_at) WHERE deleted_at IS NULL;
-
 COMMENT ON TABLE public.chamados IS 'Chamados/tickets abertos por moradores';
-
 -- ============================================
 -- TABELA: chamados_mensagens
 -- ============================================
@@ -256,13 +236,10 @@ CREATE TABLE public.chamados_mensagens (
   
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 CREATE INDEX idx_mensagens_chamado ON public.chamados_mensagens(chamado_id);
 CREATE INDEX idx_mensagens_autor ON public.chamados_mensagens(autor_id);
 CREATE INDEX idx_mensagens_created ON public.chamados_mensagens(created_at);
-
 COMMENT ON TABLE public.chamados_mensagens IS 'Mensagens/conversação em chamados';
-
 -- ============================================
 -- TABELA: faq
 -- ============================================
@@ -293,15 +270,12 @@ CREATE TABLE public.faq (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at TIMESTAMPTZ
 );
-
 CREATE INDEX idx_faq_condominio ON public.faq(condominio_id);
 CREATE INDEX idx_faq_categoria ON public.faq(categoria);
 CREATE INDEX idx_faq_ordem ON public.faq(ordem);
 CREATE INDEX idx_faq_ativo ON public.faq(ativo) WHERE ativo = true;
 CREATE INDEX idx_faq_destaque ON public.faq(destaque) WHERE destaque = true;
-
 COMMENT ON TABLE public.faq IS 'Perguntas frequentes do condomínio';
-
 -- ============================================
 -- TABELA: faq_votos
 -- ============================================
@@ -314,24 +288,19 @@ CREATE TABLE public.faq_votos (
   
   UNIQUE(faq_id, usuario_id)
 );
-
 CREATE INDEX idx_faq_votos_faq ON public.faq_votos(faq_id);
-
 -- ============================================
 -- TRIGGERS: updated_at
 -- ============================================
 CREATE TRIGGER tr_ocorrencias_updated
   BEFORE UPDATE ON public.ocorrencias
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER tr_chamados_updated
   BEFORE UPDATE ON public.chamados
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER tr_faq_updated
   BEFORE UPDATE ON public.faq
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 -- ============================================
 -- TRIGGER: Histórico de ocorrências
 -- ============================================
@@ -354,13 +323,11 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 CREATE TRIGGER tr_ocorrencia_status_change
   AFTER UPDATE ON public.ocorrencias
   FOR EACH ROW
   WHEN (OLD.status IS DISTINCT FROM NEW.status)
   EXECUTE FUNCTION public.log_ocorrencia_status();
-
 -- ============================================
 -- TRIGGER: Atualizar contador de mensagens no chamado
 -- ============================================
@@ -379,11 +346,9 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 CREATE TRIGGER tr_chamado_new_message
   AFTER INSERT ON public.chamados_mensagens
   FOR EACH ROW EXECUTE FUNCTION public.update_chamado_on_message();
-
 -- ============================================
 -- FUNCTION: Marcar comunicado como lido
 -- ============================================
@@ -412,7 +377,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Votar utilidade do FAQ
 -- ============================================
@@ -471,18 +435,15 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- TRIGGERS: Auditoria
 -- ============================================
 CREATE TRIGGER tr_audit_ocorrencias
   AFTER INSERT OR UPDATE OR DELETE ON public.ocorrencias
   FOR EACH ROW EXECUTE FUNCTION public.log_audit();
-
 CREATE TRIGGER tr_audit_chamados
   AFTER INSERT OR UPDATE OR DELETE ON public.chamados
   FOR EACH ROW EXECUTE FUNCTION public.log_audit();
-
 CREATE TRIGGER tr_audit_faq
   AFTER INSERT OR UPDATE OR DELETE ON public.faq
   FOR EACH ROW EXECUTE FUNCTION public.log_audit();

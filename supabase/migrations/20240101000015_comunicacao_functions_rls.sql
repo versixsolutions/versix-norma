@@ -51,10 +51,7 @@ SELECT
    WHERE e.notificacao_id = n.id AND e.canal = 'email' AND e.status = 'lido') AS email_lidos
 
 FROM public.notificacoes n;
-
 COMMENT ON VIEW public.v_notificacao_stats IS 'Estatísticas detalhadas de cada notificação';
-
-
 -- ============================================
 -- VIEW: v_usuario_notificacoes
 -- Notificações do usuário com status de leitura
@@ -84,10 +81,7 @@ FROM public.notificacoes n
 JOIN public.notificacoes_entregas e ON e.notificacao_id = n.id
 LEFT JOIN public.notificacoes_leituras l ON l.notificacao_id = n.id AND l.usuario_id = e.usuario_id
 WHERE n.status != 'cancelado';
-
 COMMENT ON VIEW public.v_usuario_notificacoes IS 'Notificações de um usuário com status de leitura';
-
-
 -- ============================================
 -- VIEW: v_cotas_uso_mensal
 -- Uso de cotas no mês atual
@@ -136,10 +130,7 @@ FROM public.cotas_comunicacao c
 JOIN public.condominios co ON co.id = c.condominio_id
 LEFT JOIN public.notificacoes_config cfg ON cfg.condominio_id = c.condominio_id
 WHERE c.mes_referencia = DATE_TRUNC('month', CURRENT_DATE)::DATE;
-
 COMMENT ON VIEW public.v_cotas_uso_mensal IS 'Uso de cotas no mês atual por condomínio';
-
-
 -- ============================================
 -- FUNCTION: enviar_notificacao
 -- Cria notificação e entregas para destinatários
@@ -299,10 +290,7 @@ BEGIN
   RETURN v_notificacao_id;
 END;
 $$;
-
 COMMENT ON FUNCTION public.enviar_notificacao IS 'Cria notificação e entregas para os destinatários filtrados';
-
-
 -- ============================================
 -- FUNCTION: confirmar_leitura
 -- Confirma leitura de uma notificação
@@ -338,10 +326,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 COMMENT ON FUNCTION public.confirmar_leitura IS 'Confirma leitura de uma notificação pelo usuário';
-
-
 -- ============================================
 -- FUNCTION: registrar_entrega
 -- Registra resultado de envio (callback do provider)
@@ -419,10 +404,7 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 COMMENT ON FUNCTION public.registrar_entrega IS 'Registra resultado de envio e atualiza cotas';
-
-
 -- ============================================
 -- FUNCTION: disparar_emergencia
 -- Dispara notificação de emergência para todos
@@ -482,10 +464,7 @@ BEGIN
   RETURN v_notificacao_id;
 END;
 $$;
-
 COMMENT ON FUNCTION public.disparar_emergencia IS 'Dispara notificação de emergência em todos os canais';
-
-
 -- ============================================
 -- FUNCTION: obter_notificacoes_usuario
 -- Busca notificações de um usuário
@@ -534,10 +513,7 @@ BEGIN
   OFFSET p_offset;
 END;
 $$;
-
 COMMENT ON FUNCTION public.obter_notificacoes_usuario IS 'Busca notificações de um usuário com paginação';
-
-
 -- ============================================
 -- FUNCTION: contar_nao_lidas
 -- Conta notificações não lidas de um usuário
@@ -559,10 +535,7 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-
 COMMENT ON FUNCTION public.contar_nao_lidas IS 'Conta notificações não lidas de um usuário';
-
-
 -- ============================================
 -- FUNCTION: marcar_todas_lidas
 -- Marca todas as notificações como lidas
@@ -593,10 +566,7 @@ BEGIN
   RETURN v_count;
 END;
 $$;
-
 COMMENT ON FUNCTION public.marcar_todas_lidas IS 'Marca todas as notificações do usuário como lidas';
-
-
 -- ============================================
 -- FUNCTION: registrar_push_token
 -- Registra token de push notification
@@ -664,21 +634,16 @@ BEGIN
   RETURN TRUE;
 END;
 $$;
-
 COMMENT ON FUNCTION public.registrar_push_token IS 'Registra token de push notification para um dispositivo';
-
-
 -- ============================================
 -- RLS: notificacoes_config
 -- ============================================
 ALTER TABLE public.notificacoes_config ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin: tudo
 CREATE POLICY "superadmin_config_all" ON public.notificacoes_config
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: CRUD do próprio condomínio
 CREATE POLICY "sindico_config_all" ON public.notificacoes_config
   FOR ALL USING (
@@ -687,35 +652,27 @@ CREATE POLICY "sindico_config_all" ON public.notificacoes_config
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: usuarios_canais_preferencias
 -- ============================================
 ALTER TABLE public.usuarios_canais_preferencias ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_preferencias_all" ON public.usuarios_canais_preferencias
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Próprio usuário
 CREATE POLICY "usuario_preferencias_own" ON public.usuarios_canais_preferencias
   FOR ALL USING (usuario_id = auth.uid());
-
-
 -- ============================================
 -- RLS: templates_notificacao
 -- ============================================
 ALTER TABLE public.templates_notificacao ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_templates_all" ON public.templates_notificacao
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura de templates globais e próprios
 CREATE POLICY "sindico_templates_read" ON public.templates_notificacao
   FOR SELECT USING (
@@ -725,19 +682,15 @@ CREATE POLICY "sindico_templates_read" ON public.templates_notificacao
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: notificacoes
 -- ============================================
 ALTER TABLE public.notificacoes ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_notificacoes_all" ON public.notificacoes
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: CRUD do próprio condomínio
 CREATE POLICY "sindico_notificacoes_all" ON public.notificacoes
   FOR ALL USING (
@@ -746,7 +699,6 @@ CREATE POLICY "sindico_notificacoes_all" ON public.notificacoes
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
 -- Moradores: leitura das próprias notificações
 CREATE POLICY "morador_notificacoes_read" ON public.notificacoes
   FOR SELECT USING (
@@ -755,19 +707,15 @@ CREATE POLICY "morador_notificacoes_read" ON public.notificacoes
       WHERE usuario_id = auth.uid()
     )
   );
-
-
 -- ============================================
 -- RLS: notificacoes_entregas
 -- ============================================
 ALTER TABLE public.notificacoes_entregas ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_entregas_all" ON public.notificacoes_entregas
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura do próprio condomínio
 CREATE POLICY "sindico_entregas_read" ON public.notificacoes_entregas
   FOR SELECT USING (
@@ -777,23 +725,18 @@ CREATE POLICY "sindico_entregas_read" ON public.notificacoes_entregas
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
 -- Usuário: próprias entregas
 CREATE POLICY "usuario_entregas_own" ON public.notificacoes_entregas
   FOR SELECT USING (usuario_id = auth.uid());
-
-
 -- ============================================
 -- RLS: notificacoes_leituras
 -- ============================================
 ALTER TABLE public.notificacoes_leituras ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_leituras_all" ON public.notificacoes_leituras
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura do próprio condomínio
 CREATE POLICY "sindico_leituras_read" ON public.notificacoes_leituras
   FOR SELECT USING (
@@ -803,23 +746,18 @@ CREATE POLICY "sindico_leituras_read" ON public.notificacoes_leituras
       WHERE u.id = auth.uid() AND u.role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
 -- Usuário: inserir própria leitura
 CREATE POLICY "usuario_leituras_insert" ON public.notificacoes_leituras
   FOR INSERT WITH CHECK (usuario_id = auth.uid());
-
-
 -- ============================================
 -- RLS: cotas_comunicacao
 -- ============================================
 ALTER TABLE public.cotas_comunicacao ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_cotas_all" ON public.cotas_comunicacao
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura do próprio condomínio
 CREATE POLICY "sindico_cotas_read" ON public.cotas_comunicacao
   FOR SELECT USING (
@@ -828,19 +766,15 @@ CREATE POLICY "sindico_cotas_read" ON public.cotas_comunicacao
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: webhooks_notificacao
 -- ============================================
 ALTER TABLE public.webhooks_notificacao ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_webhooks_all" ON public.webhooks_notificacao
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: CRUD do próprio condomínio
 CREATE POLICY "sindico_webhooks_all" ON public.webhooks_notificacao
   FOR ALL USING (
@@ -849,31 +783,24 @@ CREATE POLICY "sindico_webhooks_all" ON public.webhooks_notificacao
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- RLS: notificacoes_fila
 -- ============================================
 ALTER TABLE public.notificacoes_fila ENABLE ROW LEVEL SECURITY;
-
 -- Apenas SuperAdmin (sistema interno)
 CREATE POLICY "superadmin_fila_all" ON public.notificacoes_fila
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
-
 -- ============================================
 -- RLS: emergencias_log
 -- ============================================
 ALTER TABLE public.emergencias_log ENABLE ROW LEVEL SECURITY;
-
 -- SuperAdmin
 CREATE POLICY "superadmin_emergencias_all" ON public.emergencias_log
   FOR ALL USING (
     EXISTS (SELECT 1 FROM public.usuarios WHERE id = auth.uid() AND role = 'superadmin')
   );
-
 -- Síndico: leitura do próprio condomínio
 CREATE POLICY "sindico_emergencias_read" ON public.emergencias_log
   FOR SELECT USING (
@@ -882,8 +809,6 @@ CREATE POLICY "sindico_emergencias_read" ON public.emergencias_log
       WHERE id = auth.uid() AND role IN ('sindico', 'subsindico', 'admin_condo')
     )
   );
-
-
 -- ============================================
 -- GRANT PERMISSIONS
 -- ============================================
@@ -897,12 +822,9 @@ GRANT ALL ON public.cotas_comunicacao TO authenticated;
 GRANT ALL ON public.webhooks_notificacao TO authenticated;
 GRANT ALL ON public.notificacoes_fila TO authenticated;
 GRANT ALL ON public.emergencias_log TO authenticated;
-
 GRANT SELECT ON public.v_notificacao_stats TO authenticated;
 GRANT SELECT ON public.v_usuario_notificacoes TO authenticated;
 GRANT SELECT ON public.v_cotas_uso_mensal TO authenticated;
-
-
 -- ============================================
 -- INSERIR TEMPLATES PADRÃO
 -- ============================================
@@ -945,8 +867,6 @@ INSERT INTO public.templates_notificacao (codigo, nome, tipo, canal, assunto, co
 ('emergencia_geral', 'EMERGÊNCIA', 'emergencia', 'sms', NULL, 'EMERGÊNCIA {{condominio}}: {{titulo}} - {{corpo}}'),
 ('emergencia_geral', 'EMERGÊNCIA', 'emergencia', 'voz', NULL, 'Atenção! Emergência no {{condominio}}. {{titulo}}. {{corpo}}. Repito: {{titulo}}.')
 ON CONFLICT (condominio_id, codigo, canal) DO NOTHING;
-
-
 -- ============================================
 -- COMENTÁRIOS FINAIS
 -- ============================================

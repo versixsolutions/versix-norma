@@ -103,9 +103,8 @@ CREATE POLICY "superadmin_full_contatos_inv" ON public.contatos_invalidos FOR AL
 CREATE POLICY "sindico_read_contatos_inv" ON public.contatos_invalidos FOR SELECT TO authenticated
   USING (usuario_id IN (
     SELECT u.id FROM public.usuarios u
-    JOIN public.usuarios_unidades uu ON uu.usuario_id = u.id
-    JOIN public.unidades_habitacionais uh ON uh.id = uu.unidade_id
-    WHERE uh.condominio_id = public.get_my_condominio_id()
+    JOIN public.usuario_condominios uc ON uc.usuario_id = u.id
+    WHERE uc.condominio_id = public.get_my_condominio_id()
   ) AND public.get_my_role() IN ('sindico', 'subsindico'));
 
 CREATE POLICY "usuario_own_contatos_inv" ON public.contatos_invalidos FOR SELECT TO authenticated

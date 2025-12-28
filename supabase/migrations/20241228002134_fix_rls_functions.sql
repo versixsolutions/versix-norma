@@ -14,7 +14,6 @@ BEGIN
   RETURN (SELECT id FROM public.usuarios WHERE auth_id = auth.uid());
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
-
 CREATE OR REPLACE FUNCTION public.get_my_role()
 RETURNS TEXT AS $$
 BEGIN
@@ -25,7 +24,6 @@ BEGIN
           LIMIT 1);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
-
 CREATE OR REPLACE FUNCTION public.get_my_condominio_id()
 RETURNS UUID AS $$
 BEGIN
@@ -36,7 +34,6 @@ BEGIN
           LIMIT 1);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
-
 CREATE OR REPLACE FUNCTION public.get_my_condominios()
 RETURNS TABLE(condominio_id UUID, role TEXT) AS $$
 BEGIN

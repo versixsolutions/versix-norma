@@ -1,9 +1,9 @@
-// Sprint 7 - Módulo Comunicação Multicanal
-export { useNotificacoes } from './useNotificacoes';
-export type { NotificacaoUsuario, NotificacaoDashboard, CreateNotificacaoInput, NotificacoesFilters, PrioridadeComunicado } from './useNotificacoes';
+// Sprint 8 - Módulo Integrações Externas
+export { useIntegracoes } from './useIntegracoes';
+export type { Integracao, IntegracaoDashboard, CreateIntegracaoApiInput, CreateWebhookInput, WebhookEvento } from './useIntegracoes';
 
-export { usePreferenciasCanais } from './usePreferenciasCanais';
-export type { UsuarioCanaisPreferencias, UpdatePreferenciasInput, NotificacoesConfig, UpdateNotificacoesConfigInput } from './usePreferenciasCanais';
+export { useWebhooksLog } from './useWebhooksLog';
+export type { WebhookEntrega, ApiLog, ApiLogsFilters } from './useWebhooksLog';
 
-export { useEmergencias } from './useEmergencias';
-export type { EmergenciaLog, DispararEmergenciaInput, TipoEmergencia } from './useEmergencias';
+export { useExportacoes } from './useExportacoes';
+export type { Exportacao, CreateExportacaoInput, ExportacaoFormato, ExportacaoTipo } from './useExportacoes';

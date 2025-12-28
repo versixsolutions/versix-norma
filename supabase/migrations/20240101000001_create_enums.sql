@@ -11,7 +11,6 @@ CREATE TYPE public.tier_type AS ENUM (
   'enterprise'    -- Ilimitado, API, white-label
 );
 COMMENT ON TYPE public.tier_type IS 'Plano de assinatura do condomínio';
-
 -- Roles de usuário
 CREATE TYPE public.user_role AS ENUM (
   'superadmin',   -- Acesso total ao sistema (Versix)
@@ -26,7 +25,6 @@ CREATE TYPE public.user_role AS ENUM (
   'zelador'       -- Funcionário - zelador
 );
 COMMENT ON TYPE public.user_role IS 'Função do usuário no sistema';
-
 -- Status do usuário
 CREATE TYPE public.user_status AS ENUM (
   'pending',    -- Aguardando aprovação
@@ -36,7 +34,6 @@ CREATE TYPE public.user_status AS ENUM (
   'removed'     -- Removido do condomínio
 );
 COMMENT ON TYPE public.user_status IS 'Estado atual do usuário';
-
 -- Tipo de residente
 CREATE TYPE public.tipo_residente AS ENUM (
   'proprietario_residente',  -- Mora no imóvel próprio
@@ -46,7 +43,6 @@ CREATE TYPE public.tipo_residente AS ENUM (
   'funcionario'              -- Funcionário do condomínio
 );
 COMMENT ON TYPE public.tipo_residente IS 'Relação do usuário com a unidade';
-
 -- Tipo de unidade habitacional
 CREATE TYPE public.unidade_tipo AS ENUM (
   'apartamento',
@@ -58,7 +54,6 @@ CREATE TYPE public.unidade_tipo AS ENUM (
   'deposito'
 );
 COMMENT ON TYPE public.unidade_tipo IS 'Classificação da unidade habitacional';
-
 -- Status de ata
 CREATE TYPE public.ata_status AS ENUM (
   'rascunho',
@@ -68,7 +63,6 @@ CREATE TYPE public.ata_status AS ENUM (
   'arquivada'
 );
 COMMENT ON TYPE public.ata_status IS 'Estado de validação da ata';
-
 -- Categoria de comunicado
 CREATE TYPE public.comunicado_categoria AS ENUM (
   'geral',
@@ -81,7 +75,6 @@ CREATE TYPE public.comunicado_categoria AS ENUM (
   'assembleia'
 );
 COMMENT ON TYPE public.comunicado_categoria IS 'Categoria do comunicado';
-
 -- Prioridade
 CREATE TYPE public.prioridade AS ENUM (
   'baixa',

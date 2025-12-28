@@ -57,11 +57,9 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 CREATE TRIGGER tr_lancamento_atualiza_saldo
   AFTER INSERT OR UPDATE ON public.lancamentos_financeiros
   FOR EACH ROW EXECUTE FUNCTION public.atualizar_saldo_conta();
-
 -- ============================================
 -- FUNCTION: Verificar período bloqueado
 -- ============================================
@@ -85,11 +83,9 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 CREATE TRIGGER tr_check_periodo_bloqueado
   BEFORE INSERT OR UPDATE ON public.lancamentos_financeiros
   FOR EACH ROW EXECUTE FUNCTION public.check_periodo_bloqueado();
-
 -- ============================================
 -- FUNCTION: Calcular saldo do período
 -- ============================================
@@ -159,7 +155,6 @@ BEGIN
     v_saldo_anterior + v_receitas - v_despesas;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Gerar taxas do mês
 -- ============================================
@@ -256,7 +251,6 @@ BEGIN
   RETURN v_count;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Criar snapshot mensal
 -- ============================================
@@ -339,7 +333,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Publicar prestação de contas
 -- ============================================
@@ -397,22 +390,18 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- RLS: categorias_financeiras
 -- ============================================
 ALTER TABLE public.categorias_financeiras ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "superadmin_all_categorias" ON public.categorias_financeiras
   FOR ALL TO authenticated
   USING (public.is_superadmin())
   WITH CHECK (public.is_superadmin());
-
 CREATE POLICY "sindico_manage_categorias" ON public.categorias_financeiras
   FOR ALL TO authenticated
   USING (public.is_sindico(condominio_id))
   WITH CHECK (public.is_sindico(condominio_id));
-
 CREATE POLICY "users_view_categorias" ON public.categorias_financeiras
   FOR SELECT TO authenticated
   USING (
@@ -420,52 +409,42 @@ CREATE POLICY "users_view_categorias" ON public.categorias_financeiras
     AND ativo = true
     AND deleted_at IS NULL
   );
-
 -- ============================================
 -- RLS: contas_bancarias
 -- ============================================
 ALTER TABLE public.contas_bancarias ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "superadmin_all_contas" ON public.contas_bancarias
   FOR ALL TO authenticated
   USING (public.is_superadmin())
   WITH CHECK (public.is_superadmin());
-
 CREATE POLICY "sindico_manage_contas" ON public.contas_bancarias
   FOR ALL TO authenticated
   USING (public.is_sindico(condominio_id))
   WITH CHECK (public.is_sindico(condominio_id));
-
 -- Moradores NÃO veem contas bancárias (dados sensíveis)
 
 -- ============================================
 -- RLS: contas_bancarias_historico
 -- ============================================
 ALTER TABLE public.contas_bancarias_historico ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "superadmin_all_hist_contas" ON public.contas_bancarias_historico
   FOR ALL TO authenticated
   USING (public.is_superadmin());
-
 CREATE POLICY "sindico_view_hist_contas" ON public.contas_bancarias_historico
   FOR SELECT TO authenticated
   USING (public.is_sindico(condominio_id));
-
 -- ============================================
 -- RLS: lancamentos_financeiros
 -- ============================================
 ALTER TABLE public.lancamentos_financeiros ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "superadmin_all_lancamentos" ON public.lancamentos_financeiros
   FOR ALL TO authenticated
   USING (public.is_superadmin())
   WITH CHECK (public.is_superadmin());
-
 CREATE POLICY "sindico_manage_lancamentos" ON public.lancamentos_financeiros
   FOR ALL TO authenticated
   USING (public.is_sindico(condominio_id))
   WITH CHECK (public.is_sindico(condominio_id));
-
 -- Moradores veem lançamentos publicados (resumo)
 CREATE POLICY "users_view_lancamentos_publicados" ON public.lancamentos_financeiros
   FOR SELECT TO authenticated
@@ -480,22 +459,18 @@ CREATE POLICY "users_view_lancamentos_publicados" ON public.lancamentos_financei
         AND pc.status = 'publicado'
     )
   );
-
 -- ============================================
 -- RLS: prestacao_contas
 -- ============================================
 ALTER TABLE public.prestacao_contas ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "superadmin_all_prestacao" ON public.prestacao_contas
   FOR ALL TO authenticated
   USING (public.is_superadmin())
   WITH CHECK (public.is_superadmin());
-
 CREATE POLICY "sindico_manage_prestacao" ON public.prestacao_contas
   FOR ALL TO authenticated
   USING (public.is_sindico(condominio_id))
   WITH CHECK (public.is_sindico(condominio_id));
-
 -- Conselho pode aprovar
 CREATE POLICY "conselho_aprovar_prestacao" ON public.prestacao_contas
   FOR UPDATE TO authenticated
@@ -508,7 +483,6 @@ CREATE POLICY "conselho_aprovar_prestacao" ON public.prestacao_contas
     condominio_id = public.get_user_condominio_id()
     AND public.get_user_role() = 'conselheiro'
   );
-
 -- Moradores veem prestações publicadas
 CREATE POLICY "users_view_prestacao_publicada" ON public.prestacao_contas
   FOR SELECT TO authenticated
@@ -516,44 +490,36 @@ CREATE POLICY "users_view_prestacao_publicada" ON public.prestacao_contas
     condominio_id = public.get_user_condominio_id()
     AND status = 'publicado'
   );
-
 -- ============================================
 -- RLS: taxas_unidades
 -- ============================================
 ALTER TABLE public.taxas_unidades ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "superadmin_all_taxas" ON public.taxas_unidades
   FOR ALL TO authenticated
   USING (public.is_superadmin())
   WITH CHECK (public.is_superadmin());
-
 CREATE POLICY "sindico_manage_taxas" ON public.taxas_unidades
   FOR ALL TO authenticated
   USING (public.is_sindico(condominio_id))
   WITH CHECK (public.is_sindico(condominio_id));
-
 -- Morador vê apenas suas próprias taxas
 CREATE POLICY "morador_own_taxas" ON public.taxas_unidades
   FOR SELECT TO authenticated
   USING (
     unidade_id = (SELECT unidade_id FROM public.usuarios WHERE auth_id = auth.uid())
   );
-
 -- ============================================
 -- RLS: configuracoes_financeiras
 -- ============================================
 ALTER TABLE public.configuracoes_financeiras ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "superadmin_all_config_fin" ON public.configuracoes_financeiras
   FOR ALL TO authenticated
   USING (public.is_superadmin())
   WITH CHECK (public.is_superadmin());
-
 CREATE POLICY "sindico_manage_config_fin" ON public.configuracoes_financeiras
   FOR ALL TO authenticated
   USING (public.is_sindico(condominio_id))
   WITH CHECK (public.is_sindico(condominio_id));
-
 CREATE POLICY "users_view_config_fin" ON public.configuracoes_financeiras
   FOR SELECT TO authenticated
   USING (condominio_id = public.get_user_condominio_id());

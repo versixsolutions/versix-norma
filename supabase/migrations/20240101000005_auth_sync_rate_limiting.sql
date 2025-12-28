@@ -63,13 +63,11 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Trigger no auth.users (executado após INSERT)
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
 -- ============================================
 -- FUNCTION: Atualizar ultimo_acesso no login
 -- ============================================
@@ -83,7 +81,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Rate Limiting para login
 -- ============================================
@@ -132,7 +129,6 @@ BEGIN
     v_reset_at;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Limpar rate limit (para testes/admin)
 -- ============================================
@@ -153,7 +149,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- TABELA: codigos_convite_uso (tracking de uso)
 -- ============================================
@@ -164,30 +159,23 @@ CREATE TABLE IF NOT EXISTS public.codigos_convite_uso (
   usuario_id UUID REFERENCES public.usuarios(id) ON DELETE SET NULL,
   usado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 CREATE INDEX idx_convite_uso_condominio ON public.codigos_convite_uso(condominio_id);
 CREATE INDEX idx_convite_uso_codigo ON public.codigos_convite_uso(codigo_usado);
-
 -- RLS
 ALTER TABLE public.codigos_convite_uso ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY "superadmin_all_convite_uso" ON public.codigos_convite_uso
   FOR ALL TO authenticated
   USING (public.is_superadmin());
-
 CREATE POLICY "sindico_view_convite_uso" ON public.codigos_convite_uso
   FOR SELECT TO authenticated
   USING (public.is_sindico(condominio_id));
-
 -- ============================================
 -- Adicionar coluna de expiração do código de convite
 -- ============================================
 ALTER TABLE public.condominios 
 ADD COLUMN IF NOT EXISTS codigo_convite_expira_em TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '7 days');
-
 ALTER TABLE public.condominios
 ADD COLUMN IF NOT EXISTS codigo_convite_validade_dias INTEGER DEFAULT 7;
-
 -- ============================================
 -- FUNCTION: Regenerar código de convite (atualizada)
 -- ============================================
@@ -231,7 +219,6 @@ BEGIN
   RETURN QUERY SELECT v_new_code, v_expira_em;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Validar código de convite
 -- ============================================
@@ -273,7 +260,6 @@ BEGIN
   RETURN QUERY SELECT true, v_condo.id, v_condo.nome::VARCHAR, NULL::TEXT;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Aprovar usuário (síndico aprova morador)
 -- ============================================
@@ -315,7 +301,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Rejeitar usuário
 -- ============================================
@@ -353,7 +338,6 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ============================================
 -- FUNCTION: Ativar síndico após validação de ata
 -- ============================================

@@ -9,17 +9,14 @@
 
 -- Tipo de categoria (receita/despesa)
 CREATE TYPE public.categoria_tipo AS ENUM ('receita', 'despesa');
-
 -- Status do lançamento
 CREATE TYPE public.lancamento_status AS ENUM (
   'pendente',
   'confirmado',
   'cancelado'
 );
-
 -- Tipo de lançamento
 CREATE TYPE public.lancamento_tipo AS ENUM ('receita', 'despesa', 'transferencia');
-
 -- Status da prestação de contas
 CREATE TYPE public.prestacao_status AS ENUM (
   'rascunho',
@@ -28,7 +25,6 @@ CREATE TYPE public.prestacao_status AS ENUM (
   'publicado',
   'rejeitado'
 );
-
 -- Tipo de taxa
 CREATE TYPE public.taxa_tipo AS ENUM (
   'ordinaria',
@@ -38,7 +34,6 @@ CREATE TYPE public.taxa_tipo AS ENUM (
   'juros',
   'outros'
 );
-
 -- Status de cobrança
 CREATE TYPE public.cobranca_status AS ENUM (
   'pendente',
@@ -47,7 +42,6 @@ CREATE TYPE public.cobranca_status AS ENUM (
   'cancelado',
   'negociado'
 );
-
 -- ============================================
 -- TABELA: categorias_financeiras
 -- Plano de contas do condomínio
@@ -79,17 +73,14 @@ CREATE TABLE public.categorias_financeiras (
   -- Código único por condomínio
   UNIQUE(condominio_id, codigo)
 );
-
 -- Índices
 CREATE INDEX idx_cat_fin_condominio ON public.categorias_financeiras(condominio_id);
 CREATE INDEX idx_cat_fin_parent ON public.categorias_financeiras(parent_id);
 CREATE INDEX idx_cat_fin_tipo ON public.categorias_financeiras(tipo);
 CREATE INDEX idx_cat_fin_active ON public.categorias_financeiras(condominio_id) 
   WHERE ativo = true AND deleted_at IS NULL;
-
 COMMENT ON TABLE public.categorias_financeiras IS 'Plano de contas (categorias) do condomínio';
 COMMENT ON COLUMN public.categorias_financeiras.codigo IS 'Código hierárquico (ex: 1.1.01)';
-
 -- ============================================
 -- TABELA: contas_bancarias
 -- Contas bancárias do condomínio
@@ -122,14 +113,11 @@ CREATE TABLE public.contas_bancarias (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at TIMESTAMPTZ
 );
-
 -- Índices
 CREATE INDEX idx_contas_bancarias_condo ON public.contas_bancarias(condominio_id);
 CREATE INDEX idx_contas_bancarias_principal ON public.contas_bancarias(condominio_id) 
   WHERE principal = true AND deleted_at IS NULL;
-
 COMMENT ON TABLE public.contas_bancarias IS 'Contas bancárias do condomínio';
-
 -- ============================================
 -- TABELA: contas_bancarias_historico
 -- Snapshot mensal para performance
@@ -153,12 +141,9 @@ CREATE TABLE public.contas_bancarias_historico (
   -- Único por conta/mês
   UNIQUE(conta_bancaria_id, mes_referencia)
 );
-
 CREATE INDEX idx_conta_hist_conta ON public.contas_bancarias_historico(conta_bancaria_id);
 CREATE INDEX idx_conta_hist_mes ON public.contas_bancarias_historico(mes_referencia DESC);
-
 COMMENT ON TABLE public.contas_bancarias_historico IS 'Snapshot mensal de saldos para performance';
-
 -- ============================================
 -- TABELA: lancamentos_financeiros
 -- Receitas e despesas
@@ -209,7 +194,6 @@ CREATE TABLE public.lancamentos_financeiros (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at TIMESTAMPTZ
 );
-
 -- Índices
 CREATE INDEX idx_lanc_condominio ON public.lancamentos_financeiros(condominio_id);
 CREATE INDEX idx_lanc_tipo ON public.lancamentos_financeiros(tipo);
@@ -219,11 +203,9 @@ CREATE INDEX idx_lanc_data ON public.lancamentos_financeiros(data_lancamento DES
 CREATE INDEX idx_lanc_competencia ON public.lancamentos_financeiros(data_competencia);
 CREATE INDEX idx_lanc_status ON public.lancamentos_financeiros(status);
 CREATE INDEX idx_lanc_deleted ON public.lancamentos_financeiros(deleted_at) WHERE deleted_at IS NULL;
-
 COMMENT ON TABLE public.lancamentos_financeiros IS 'Lançamentos financeiros (receitas e despesas)';
 COMMENT ON COLUMN public.lancamentos_financeiros.data_competencia IS 'Mês/ano de referência do lançamento';
 COMMENT ON COLUMN public.lancamentos_financeiros.comprovantes IS 'Array de URLs [{url, nome, tipo}]';
-
 -- ============================================
 -- TABELA: prestacao_contas
 -- Fechamento mensal
@@ -264,14 +246,11 @@ CREATE TABLE public.prestacao_contas (
   -- Único por mês/condomínio
   UNIQUE(condominio_id, mes_referencia)
 );
-
 -- Índices
 CREATE INDEX idx_prestacao_condominio ON public.prestacao_contas(condominio_id);
 CREATE INDEX idx_prestacao_mes ON public.prestacao_contas(mes_referencia DESC);
 CREATE INDEX idx_prestacao_status ON public.prestacao_contas(status);
-
 COMMENT ON TABLE public.prestacao_contas IS 'Prestação de contas mensal do condomínio';
-
 -- ============================================
 -- TABELA: taxas_unidades
 -- Taxas por unidade habitacional
@@ -314,16 +293,13 @@ CREATE TABLE public.taxas_unidades (
   -- Única taxa por tipo/mês/unidade
   UNIQUE(unidade_id, mes_referencia, tipo)
 );
-
 -- Índices
 CREATE INDEX idx_taxas_condominio ON public.taxas_unidades(condominio_id);
 CREATE INDEX idx_taxas_unidade ON public.taxas_unidades(unidade_id);
 CREATE INDEX idx_taxas_mes ON public.taxas_unidades(mes_referencia);
 CREATE INDEX idx_taxas_status ON public.taxas_unidades(status);
 CREATE INDEX idx_taxas_vencimento ON public.taxas_unidades(data_vencimento);
-
 COMMENT ON TABLE public.taxas_unidades IS 'Taxas condominiais por unidade';
-
 -- ============================================
 -- TABELA: configuracoes_financeiras
 -- Configurações do módulo financeiro
@@ -352,55 +328,43 @@ CREATE TABLE public.configuracoes_financeiras (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 COMMENT ON TABLE public.configuracoes_financeiras IS 'Configurações financeiras do condomínio';
-
 -- ============================================
 -- TRIGGERS: updated_at
 -- ============================================
 CREATE TRIGGER tr_categorias_fin_updated
   BEFORE UPDATE ON public.categorias_financeiras
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER tr_contas_bancarias_updated
   BEFORE UPDATE ON public.contas_bancarias
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER tr_lancamentos_updated
   BEFORE UPDATE ON public.lancamentos_financeiros
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER tr_prestacao_updated
   BEFORE UPDATE ON public.prestacao_contas
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER tr_taxas_updated
   BEFORE UPDATE ON public.taxas_unidades
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 CREATE TRIGGER tr_config_fin_updated
   BEFORE UPDATE ON public.configuracoes_financeiras
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
-
 -- ============================================
 -- TRIGGERS: Auditoria
 -- ============================================
 CREATE TRIGGER tr_audit_categorias_fin
   AFTER INSERT OR UPDATE OR DELETE ON public.categorias_financeiras
   FOR EACH ROW EXECUTE FUNCTION public.log_audit();
-
 CREATE TRIGGER tr_audit_contas_bancarias
   AFTER INSERT OR UPDATE OR DELETE ON public.contas_bancarias
   FOR EACH ROW EXECUTE FUNCTION public.log_audit();
-
 CREATE TRIGGER tr_audit_lancamentos
   AFTER INSERT OR UPDATE OR DELETE ON public.lancamentos_financeiros
   FOR EACH ROW EXECUTE FUNCTION public.log_audit();
-
 CREATE TRIGGER tr_audit_prestacao
   AFTER INSERT OR UPDATE OR DELETE ON public.prestacao_contas
   FOR EACH ROW EXECUTE FUNCTION public.log_audit();
-
 CREATE TRIGGER tr_audit_taxas
   AFTER INSERT OR UPDATE OR DELETE ON public.taxas_unidades
   FOR EACH ROW EXECUTE FUNCTION public.log_audit();

@@ -8,6 +8,7 @@
 export * from './src/types/assembleias';
 export * from './src/types/comunicacao';
 export * from './src/types/financial';
+export * from './src/types/integracoes';
 export * from './src/types/operational';
 
 // Constants

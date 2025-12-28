@@ -5,8 +5,9 @@
 -- ============================================
 -- VIEW: v_assembleia_quorum
 -- ============================================
+DROP VIEW IF EXISTS public.v_assembleia_quorum CASCADE;
 CREATE OR REPLACE VIEW public.v_assembleia_quorum AS
-SELECT 
+SELECT
   a.id AS assembleia_id,
   a.condominio_id,
   a.status,
@@ -26,8 +27,9 @@ GROUP BY a.id;
 -- ============================================
 -- VIEW: v_pauta_resultado
 -- ============================================
+DROP VIEW IF EXISTS public.v_pauta_resultado;
 CREATE OR REPLACE VIEW public.v_pauta_resultado AS
-SELECT 
+SELECT
   p.id AS pauta_id,
   p.assembleia_id,
   p.titulo,
@@ -67,19 +69,19 @@ BEGIN
   SELECT * INTO v_assembleia FROM public.assembleias WHERE id = p_assembleia_id;
   IF v_assembleia.id IS NULL THEN RAISE EXCEPTION 'Assembleia não encontrada'; END IF;
   IF v_assembleia.status NOT IN ('em_andamento', 'votacao') THEN RAISE EXCEPTION 'Assembleia não está em andamento'; END IF;
-  
+
   SELECT uu.unidade_id, uh.fracao_ideal INTO v_unidade_id, v_fracao_ideal
   FROM public.usuarios_unidades uu
   JOIN public.unidades_habitacionais uh ON uh.id = uu.unidade_id
   WHERE uu.usuario_id = p_usuario_id AND uu.ativo = true AND uh.condominio_id = v_assembleia.condominio_id
   LIMIT 1;
-  
+
   IF v_unidade_id IS NULL THEN RAISE EXCEPTION 'Usuário não está vinculado a uma unidade neste condomínio'; END IF;
-  
+
   IF EXISTS (SELECT 1 FROM public.assembleia_presencas WHERE assembleia_id = p_assembleia_id AND unidade_id = v_unidade_id) THEN
     RAISE EXCEPTION 'Unidade já registrou presença nesta assembleia';
   END IF;
-  
+
   IF p_tipo = 'procuracao' AND p_representante_id IS NOT NULL THEN
     SELECT COUNT(*) INTO v_procuracoes_count FROM public.assembleia_presencas
     WHERE assembleia_id = p_assembleia_id AND representante_id = p_representante_id AND tipo = 'procuracao';
@@ -87,16 +89,16 @@ BEGIN
       RAISE EXCEPTION 'Limite de procurações atingido para este representante';
     END IF;
   END IF;
-  
+
   INSERT INTO public.assembleia_presencas (assembleia_id, usuario_id, unidade_id, tipo, representante_id, fracao_ideal)
   VALUES (p_assembleia_id, p_usuario_id, v_unidade_id, p_tipo, p_representante_id, v_fracao_ideal)
   RETURNING id INTO v_presenca_id;
-  
+
   UPDATE public.assembleias SET quorum_atingido = (SELECT quorum_percentual FROM public.v_assembleia_quorum WHERE assembleia_id = p_assembleia_id) WHERE id = p_assembleia_id;
-  
+
   INSERT INTO public.assembleia_logs (assembleia_id, usuario_id, acao, detalhes)
   VALUES (p_assembleia_id, p_usuario_id, 'presenca_registrada', jsonb_build_object('tipo', p_tipo::TEXT, 'fracao_ideal', v_fracao_ideal));
-  
+
   RETURN v_presenca_id;
 END;
 $$;
@@ -123,35 +125,35 @@ BEGIN
   SELECT * INTO v_pauta FROM public.assembleia_pautas WHERE id = p_pauta_id;
   IF v_pauta.id IS NULL THEN RAISE EXCEPTION 'Pauta não encontrada'; END IF;
   IF v_pauta.status != 'em_votacao' THEN RAISE EXCEPTION 'Votação não está aberta para esta pauta'; END IF;
-  
+
   SELECT * INTO v_presenca FROM public.assembleia_presencas WHERE id = p_presenca_id;
   IF v_presenca.id IS NULL THEN RAISE EXCEPTION 'Presença não encontrada'; END IF;
-  
+
   IF EXISTS (SELECT 1 FROM public.assembleia_votos WHERE pauta_id = p_pauta_id AND presenca_id = p_presenca_id) THEN
     RAISE EXCEPTION 'Esta unidade já votou nesta pauta';
   END IF;
-  
+
   IF v_pauta.bloqueia_inadimplentes THEN
     IF EXISTS (SELECT 1 FROM public.taxas_unidades WHERE unidade_id = v_presenca.unidade_id AND status = 'atrasado') THEN
       RAISE EXCEPTION 'Unidade inadimplente não pode votar';
     END IF;
   END IF;
-  
+
   v_voto_hash := encode(sha256((p_pauta_id || p_presenca_id || p_voto || COALESCE(p_opcao_id::TEXT, '') || NOW()::TEXT)::BYTEA), 'hex');
-  
+
   IF NOT v_pauta.voto_secreto THEN
     v_usuario_id := v_presenca.usuario_id;
     v_unidade_id := v_presenca.unidade_id;
   END IF;
-  
+
   INSERT INTO public.assembleia_votos (pauta_id, presenca_id, opcao_id, voto, fracao_ideal, usuario_id, unidade_id, voto_hash)
   VALUES (p_pauta_id, p_presenca_id, p_opcao_id, p_voto, v_presenca.fracao_ideal, v_usuario_id, v_unidade_id, v_voto_hash)
   RETURNING id INTO v_voto_id;
-  
+
   IF p_opcao_id IS NOT NULL THEN
     UPDATE public.assembleia_pauta_opcoes SET votos_count = votos_count + 1, votos_fracao = votos_fracao + v_presenca.fracao_ideal WHERE id = p_opcao_id;
   END IF;
-  
+
   RETURN v_voto_id;
 END;
 $$;
@@ -171,7 +173,7 @@ DECLARE
 BEGIN
   SELECT * INTO v_pauta FROM public.assembleia_pautas WHERE id = p_pauta_id;
   SELECT * INTO v_resultado FROM public.v_pauta_resultado WHERE pauta_id = p_pauta_id;
-  
+
   IF v_pauta.tipo_votacao = 'aprovacao' THEN
     CASE v_pauta.quorum_especial
       WHEN 'unanimidade' THEN v_status := CASE WHEN v_resultado.votos_nao = 0 AND v_resultado.votos_sim > 0 THEN 'aprovada' ELSE 'rejeitada' END;
@@ -179,7 +181,7 @@ BEGIN
       WHEN 'maioria_absoluta' THEN v_status := CASE WHEN v_resultado.fracoes_sim > (v_resultado.total_fracoes_votantes * 0.5) THEN 'aprovada' ELSE 'rejeitada' END;
       ELSE v_status := CASE WHEN v_resultado.votos_sim > v_resultado.votos_nao THEN 'aprovada' ELSE 'rejeitada' END;
     END CASE;
-    
+
     v_resultado_json := jsonb_build_object(
       'votos_sim', v_resultado.votos_sim, 'votos_nao', v_resultado.votos_nao, 'abstencoes', v_resultado.abstencoes,
       'fracoes_sim', v_resultado.fracoes_sim, 'fracoes_nao', v_resultado.fracoes_nao, 'percentual_aprovacao', v_resultado.percentual_aprovacao
@@ -192,7 +194,7 @@ BEGIN
     v_status := 'encerrada';
     v_resultado_json := jsonb_build_object('total_votos', v_resultado.total_votos);
   END IF;
-  
+
   UPDATE public.assembleia_pautas SET status = v_status, resultado = v_resultado_json WHERE id = p_pauta_id;
   RETURN v_resultado_json;
 END;
@@ -207,11 +209,11 @@ LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   UPDATE public.assembleia_pautas SET status = 'em_votacao' WHERE id = p_pauta_id AND status = 'pendente';
   IF NOT FOUND THEN RETURN false; END IF;
-  
+
   INSERT INTO public.assembleia_logs (assembleia_id, usuario_id, acao, detalhes)
   SELECT assembleia_id, auth.uid(), 'votacao_iniciada', jsonb_build_object('pauta_id', p_pauta_id)
   FROM public.assembleia_pautas WHERE id = p_pauta_id;
-  
+
   RETURN true;
 END;
 $$;
@@ -225,10 +227,10 @@ LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   UPDATE public.assembleias SET status = 'convocada', updated_at = NOW() WHERE id = p_assembleia_id AND status = 'rascunho';
   IF NOT FOUND THEN RETURN false; END IF;
-  
+
   INSERT INTO public.assembleia_logs (assembleia_id, usuario_id, acao, detalhes)
   VALUES (p_assembleia_id, auth.uid(), 'assembleia_convocada', jsonb_build_object('data', NOW()));
-  
+
   RETURN true;
 END;
 $$;
@@ -242,10 +244,10 @@ LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   UPDATE public.assembleias SET status = 'em_andamento', data_inicio = NOW(), updated_at = NOW() WHERE id = p_assembleia_id AND status = 'convocada';
   IF NOT FOUND THEN RETURN false; END IF;
-  
+
   INSERT INTO public.assembleia_logs (assembleia_id, usuario_id, acao, detalhes)
   VALUES (p_assembleia_id, auth.uid(), 'assembleia_iniciada', jsonb_build_object('data', NOW()));
-  
+
   RETURN true;
 END;
 $$;
@@ -260,10 +262,10 @@ BEGIN
   UPDATE public.assembleia_pautas SET status = 'encerrada' WHERE assembleia_id = p_assembleia_id AND status = 'em_votacao';
   UPDATE public.assembleias SET status = 'encerrada', data_fim = NOW(), encerrada_em = NOW(), updated_at = NOW() WHERE id = p_assembleia_id AND status IN ('em_andamento', 'votacao');
   IF NOT FOUND THEN RETURN false; END IF;
-  
+
   INSERT INTO public.assembleia_logs (assembleia_id, usuario_id, acao, detalhes)
   VALUES (p_assembleia_id, auth.uid(), 'assembleia_encerrada', jsonb_build_object('data', NOW()));
-  
+
   RETURN true;
 END;
 $$;
