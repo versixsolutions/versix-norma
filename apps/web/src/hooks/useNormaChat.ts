@@ -10,15 +10,14 @@ export interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
-  citation?: string;
-  sources?: {
-    documento_id: string;
-    titulo: string;
-    trecho: string;
-    relevancia: number;
-  }[];
+  sources?: Array<{
+    type: string;
+    name: string;
+    content: string;
+  }>;
+  suggestions?: string[];
   timestamp: Date;
-  status: 'sending' | 'sent' | 'error';
+  status: 'sending' | 'sent' | 'error' | 'streaming';
 }
 
 interface UseNormaChatOptions {
@@ -33,6 +32,7 @@ interface UseNormaChatReturn {
   sendMessage: (text: string) => Promise<void>;
   clearMessages: () => void;
   loadHistory: () => Promise<void>;
+  stopStreaming?: () => void;
 }
 
 // ============================================
@@ -44,8 +44,7 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-
-  const conversaIdRef = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // ============================================
   // LOAD HISTORY
@@ -55,31 +54,40 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
 
     try {
       const { data, error } = await supabase
-        .from('conversas_norma')
-        .select('id, mensagens')
-        .eq('usuario_id', userId)
+        .from('norma_chat_logs')
+        .select('*')
         .eq('condominio_id', condominioId)
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .single();
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 = no rows returned (ok)
-        throw error;
-      }
+      if (error) throw error;
 
-      if (data) {
-        conversaIdRef.current = data.id;
-        const mensagensHistorico = (data.mensagens as any[]) || [];
-        setMessages(mensagensHistorico.map((m, i) => ({
-          id: `hist-${i}`,
-          text: m.text,
-          sender: m.sender,
-          citation: m.citation,
-          sources: m.sources,
-          timestamp: new Date(m.timestamp),
-          status: 'sent' as const,
-        })));
+      if (data && data.length > 0) {
+        const historyMessages: Message[] = [];
+
+        data.reverse().forEach((log, index) => {
+          // Add user message
+          historyMessages.push({
+            id: `hist-user-${index}`,
+            text: log.message,
+            sender: 'user',
+            timestamp: new Date(log.created_at),
+            status: 'sent',
+          });
+
+          // Add bot response
+          historyMessages.push({
+            id: `hist-bot-${index}`,
+            text: log.response,
+            sender: 'bot',
+            sources: log.sources || [],
+            timestamp: new Date(log.created_at),
+            status: 'sent',
+          });
+        });
+
+        setMessages(historyMessages);
       }
     } catch (err) {
       console.error('Erro ao carregar histórico:', err);
@@ -87,55 +95,29 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
   }, [condominioId, userId, supabase]);
 
   // ============================================
-  // SAVE CONVERSATION
+  // STOP STREAMING
   // ============================================
-  const saveConversation = useCallback(async (msgs: Message[]) => {
-    if (!condominioId || !userId) return;
-
-    const mensagensParaSalvar = msgs.map((m) => ({
-      text: m.text,
-      sender: m.sender,
-      citation: m.citation,
-      sources: m.sources,
-      timestamp: m.timestamp.toISOString(),
-    }));
-
-    try {
-      if (conversaIdRef.current) {
-        // Atualizar conversa existente
-        await supabase
-          .from('conversas_norma')
-          .update({
-            mensagens: mensagensParaSalvar,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', conversaIdRef.current);
-      } else {
-        // Criar nova conversa
-        const { data } = await supabase
-          .from('conversas_norma')
-          .insert({
-            usuario_id: userId,
-            condominio_id: condominioId,
-            mensagens: mensagensParaSalvar,
-          })
-          .select('id')
-          .single();
-
-        if (data) {
-          conversaIdRef.current = data.id;
-        }
-      }
-    } catch (err) {
-      console.error('Erro ao salvar conversa:', err);
+  const stopStreaming = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsTyping(false);
     }
-  }, [condominioId, userId, supabase]);
+  }, []);
 
   // ============================================
   // SEND MESSAGE
   // ============================================
   const sendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || !condominioId) return;
+    if (!text.trim() || !condominioId || !userId) return;
+
+    // Cancel any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -145,74 +127,96 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
       status: 'sent',
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    // Add streaming bot message placeholder
+    const botMessageId = `bot-${Date.now()}`;
+    const botMessage: Message = {
+      id: botMessageId,
+      text: '',
+      sender: 'bot',
+      timestamp: new Date(),
+      status: 'streaming',
+    };
+
+    setMessages((prev) => [...prev, userMessage, botMessage]);
     setIsTyping(true);
     setError(null);
 
     try {
-      // Chamar Edge Function ask-norma
+      // Prepare conversation history for context
+      const conversationHistory = messages.slice(-10).map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text,
+        timestamp: m.timestamp.toISOString(),
+      }));
+
+      // Call Edge Function ask-norma
       const { data, error: fnError } = await supabase.functions.invoke('ask-norma', {
         body: {
-          mensagem: text.trim(),
-          condominio_id: condominioId,
-          usuario_id: userId,
-          conversa_id: conversaIdRef.current,
-          historico: messages.slice(-10).map((m) => ({
-            role: m.sender === 'user' ? 'user' : 'assistant',
-            content: m.text,
-          })),
+          message: text.trim(),
+          condominioId,
+          userId,
+          conversationHistory,
         },
       });
 
       if (fnError) throw fnError;
 
-      const botMessage: Message = {
-        id: `bot-${Date.now()}`,
-        text: data.resposta || 'Desculpe, não consegui processar sua pergunta.',
-        sender: 'bot',
-        citation: data.citacao,
-        sources: data.fontes,
-        timestamp: new Date(),
-        status: 'sent',
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-
-      // Atualizar conversa_id se nova conversa foi criada
-      if (data.conversa_id) {
-        conversaIdRef.current = data.conversa_id;
+      // Check if request was aborted
+      if (abortController.signal.aborted) {
+        return;
       }
 
-      // Salvar no histórico
-      await saveConversation([...messages, userMessage, botMessage]);
+      // Update bot message with complete response
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === botMessageId
+            ? {
+                ...msg,
+                text: data.response || 'Desculpe, não consegui processar sua pergunta.',
+                sources: data.sources || [],
+                suggestions: data.suggestions || [],
+                status: 'sent' as const,
+              }
+            : msg
+        )
+      );
 
     } catch (err) {
+      if (err.name === 'AbortError') {
+        // Request was cancelled, remove the streaming message
+        setMessages((prev) => prev.filter((msg) => msg.id !== botMessageId));
+        return;
+      }
+
       console.error('Erro ao enviar mensagem:', err);
       setError(err as Error);
 
-      // Mensagem de erro
-      const errorMessage: Message = {
-        id: `error-${Date.now()}`,
-        text: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.',
-        sender: 'bot',
-        timestamp: new Date(),
-        status: 'error',
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
+      // Update message with error status
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === botMessageId
+            ? {
+                ...msg,
+                text: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.',
+                status: 'error' as const,
+              }
+            : msg
+        )
+      );
     } finally {
       setIsTyping(false);
+      abortControllerRef.current = null;
     }
-  }, [condominioId, userId, messages, supabase, saveConversation]);
+  }, [condominioId, userId, messages, supabase]);
 
   // ============================================
   // CLEAR MESSAGES
   // ============================================
   const clearMessages = useCallback(() => {
+    stopStreaming();
     setMessages([]);
-    conversaIdRef.current = null;
     setError(null);
-  }, []);
+  }, [stopStreaming]);
 
   return {
     messages,
@@ -221,9 +225,9 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
     sendMessage,
     clearMessages,
     loadHistory,
+    stopStreaming,
   };
 }
-
 // ============================================
 // FALLBACK: Mock para desenvolvimento
 // ============================================
@@ -248,16 +252,19 @@ export function useNormaChatMock(): UseNormaChatReturn {
 
     const responses = [
       {
-        text: 'De acordo com o Artigo 42 do Regimento Interno, obras são permitidas de segunda a sexta, das 08h às 17h, e aos sábados das 08h às 12h. Domingos e feriados são proibidos.',
-        citation: 'Cap. V - Das Obras e Reformas',
+        text: 'Olá! Sou Norma, sua assistente de governança condominial. Como posso ajudar você hoje?',
+        sources: [],
+        suggestions: ['Verificar regimento interno', 'Agendar assembleia', 'Consultar síndico'],
       },
       {
-        text: 'O horário de silêncio, conforme o Artigo 15, é das 22h às 08h em dias úteis e das 22h às 09h em finais de semana e feriados.',
-        citation: 'Cap. III - Da Convivência',
+        text: 'De acordo com o Regimento Interno do seu condomínio, o horário de silêncio é das 22h às 8h. Esta norma visa garantir o bem-estar de todos os moradores.',
+        sources: [{ type: 'regimento', name: 'Regimento Interno', content: 'Art. 15 - Horário de silêncio' }],
+        suggestions: ['Registrar ocorrência', 'Falar com vizinho', 'Verificar regras'],
       },
       {
-        text: 'Para reservar o salão de festas, você deve fazer a solicitação com 15 dias de antecedência através do aplicativo. A taxa de reserva é de R$ 250,00.',
-        citation: 'Cap. VII - Das Áreas Comuns',
+        text: 'Para reservar áreas comuns como salão de festas, é necessário fazer a solicitação com antecedência mínima de 15 dias através do aplicativo.',
+        sources: [{ type: 'regimento', name: 'Regimento Interno', content: 'Cap. VII - Áreas Comuns' }],
+        suggestions: ['Fazer reserva', 'Verificar disponibilidade', 'Consultar taxas'],
       },
     ];
 
@@ -267,7 +274,8 @@ export function useNormaChatMock(): UseNormaChatReturn {
       id: `bot-${Date.now()}`,
       text: randomResponse.text,
       sender: 'bot',
-      citation: randomResponse.citation,
+      sources: randomResponse.sources,
+      suggestions: randomResponse.suggestions,
       timestamp: new Date(),
       status: 'sent',
     };

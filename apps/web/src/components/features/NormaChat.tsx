@@ -14,6 +14,7 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const contextualSuggestions = useContextualSuggestions();
   // Usar hook real ou mock dependendo do ambiente
   const realChat = useNormaChat({
     condominioId: profile?.condominio_atual?.id || null,
@@ -23,7 +24,7 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
 
   // Usar mock em dev se não houver condomínio configurado
   const chat = profile?.condominio_atual?.id ? realChat : mockChat;
-  const { messages, isTyping, sendMessage, loadHistory, clearMessages } = chat;
+  const { messages, isTyping, sendMessage, loadHistory, clearMessages, stopStreaming } = chat;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -79,6 +80,15 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {isTyping && stopStreaming && (
+            <button
+              onClick={stopStreaming}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title="Parar resposta"
+            >
+              <span className="material-symbols-outlined text-red-500 text-xl">stop</span>
+            </button>
+          )}
           {messages.length > 0 && (
             <button
               onClick={clearMessages}
@@ -111,7 +121,7 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
                 Posso ajudar com dúvidas sobre o regimento, reservas, financeiro e muito mais!
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {['Horário de silêncio', 'Reservar salão', 'Segunda via boleto'].map((suggestion) => (
+                {contextualSuggestions.slice(0, 3).map((suggestion) => (
                   <button
                     key={suggestion}
                     onClick={() => sendMessage(suggestion)}
@@ -140,35 +150,68 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
                     }`
               }`}
             >
-              {msg.text}
-
-              {/* Citation */}
-              {msg.citation && (
-                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                  <span className="text-[10px] font-bold text-secondary flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[12px]">menu_book</span>
-                    {msg.citation}
-                  </span>
-                </div>
-              )}
+              {/* Message text with streaming effect */}
+              <div className="whitespace-pre-wrap">
+                {msg.text}
+                {msg.status === 'streaming' && (
+                  <span className="inline-block w-1 h-4 bg-secondary animate-pulse ml-1" />
+                )}
+              </div>
 
               {/* Sources */}
               {msg.sources && msg.sources.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 space-y-1">
-                  <p className="text-[10px] font-bold text-gray-500 uppercase">Fontes:</p>
-                  {msg.sources.slice(0, 2).map((source, i) => (
-                    <div key={i} className="text-[10px] text-gray-500 flex items-start gap-1">
-                      <span className="material-symbols-outlined text-[10px] mt-0.5">description</span>
-                      <span className="line-clamp-1">{source.titulo}</span>
-                    </div>
+                <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase">Fontes consultadas:</p>
+                  {msg.sources.map((source, i) => (
+                    <button
+                      key={i}
+                      className="w-full text-left p-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+                      onClick={() => {
+                        // TODO: Abrir modal ou navegar para o documento
+                        console.log('Fonte clicada:', source);
+                      }}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-[14px] text-secondary mt-0.5 group-hover:scale-110 transition-transform">
+                          {source.type === 'regimento' ? 'menu_book' : source.type === 'ata' ? 'article' : 'description'}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-medium text-gray-700 dark:text-gray-300 truncate">
+                            {source.name}
+                          </p>
+                          <p className="text-[10px] text-gray-500 line-clamp-2">
+                            {source.content}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
                   ))}
                 </div>
               )}
 
+              {/* Dynamic suggestions */}
+              {msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0 && (
+                <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Sugestões:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {msg.suggestions.map((suggestion, i) => (
+                      <button
+                        key={i}
+                        onClick={() => sendMessage(suggestion)}
+                        className="px-2.5 py-1 bg-secondary/10 text-secondary text-[10px] font-medium rounded-full hover:bg-secondary/20 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Timestamp */}
-              <div className="mt-1 text-right">
+              <div className="mt-2 text-right">
                 <span className={`text-[9px] ${msg.sender === 'user' ? 'text-white/60' : 'text-gray-400'}`}>
                   {new Date(msg.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  {msg.status === 'streaming' && ' • Digitando...'}
                 </span>
               </div>
             </div>
