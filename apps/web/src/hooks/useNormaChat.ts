@@ -182,14 +182,14 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
       );
 
     } catch (err) {
-      if (err.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         // Request was cancelled, remove the streaming message
         setMessages((prev) => prev.filter((msg) => msg.id !== botMessageId));
         return;
       }
 
       console.error('Erro ao enviar mensagem:', err);
-      setError(err as Error);
+      setError(err instanceof Error ? err : new Error('Erro desconhecido'));
 
       // Update message with error status
       setMessages((prev) =>
