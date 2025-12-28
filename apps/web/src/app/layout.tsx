@@ -1,10 +1,6 @@
-import { PWAProvider } from '@/components/pwa/PWAProvider';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ClientProviders } from '@/components/ClientProviders';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Montserrat } from 'next/font/google';
-import { Toaster } from 'sonner';
 import './globals.css';
 
 const inter = Inter({
@@ -103,8 +99,6 @@ export const viewport: Viewport = {
   ],
 };
 
-const queryClient = new QueryClient();
-
 export default function RootLayout({
   children,
 }: {
@@ -119,25 +113,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.variable} ${montserrat.variable} antialiased`}>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme="light">
-            <AuthProvider>
-              <PWAProvider>
-                {children}
-              </PWAProvider>
-              <Toaster
-                position="top-center"
-                toastOptions={{
-                  style: {
-                    background: 'var(--card)',
-                    color: 'var(--foreground)',
-                    border: '1px solid var(--border)',
-                  },
-                }}
-              />
-            </AuthProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );
