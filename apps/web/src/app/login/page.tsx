@@ -45,13 +45,23 @@ export default function LoginPage() {
       router.push('/home');
     } else {
       const errorMessage = (result.error as any)?.message || 'Erro ao fazer login';
+      const errorCode = (result.error as any)?.status || (result.error as any)?.code;
 
+      console.error('Login error:', { errorMessage, errorCode, error: result.error });
+
+      // Tratamento específico de erros comuns
       if (errorMessage.includes('Invalid login credentials')) {
-        toast.error('Email ou senha incorretos');
+        toast.error('Credenciais inválidas. Verifique email/senha ou entre em contato com o administrador para criar uma conta de teste.');
       } else if (errorMessage.includes('Email not confirmed')) {
-        toast.error('Confirme seu email antes de fazer login');
+        toast.error('Email não confirmado. Verifique sua caixa de entrada.');
+      } else if (errorMessage.includes('Too many requests')) {
+        toast.error('Muitas tentativas. Tente novamente em alguns minutos.');
+      } else if (errorMessage.includes('User not found')) {
+        toast.error('Usuário não encontrado');
+      } else if (errorCode === 400) {
+        toast.error('Dados de login inválidos. Verifique email e senha.');
       } else {
-        toast.error(errorMessage);
+        toast.error(`Erro ao fazer login: ${errorMessage}`);
       }
       setLoading(false);
     }
