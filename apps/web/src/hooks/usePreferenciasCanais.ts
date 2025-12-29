@@ -1,8 +1,9 @@
 'use client';
 
+import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
+import type { NotificacoesConfig, UpdateNotificacoesConfigInput, UpdatePreferenciasInput, UsuarioCanaisPreferencias } from '@versix/shared/types/comunicacao';
 import { useCallback, useState } from 'react';
-import type { UsuarioCanaisPreferencias, UpdatePreferenciasInput, NotificacoesConfig, UpdateNotificacoesConfigInput } from '@versix/shared/types/comunicacao';
 
 export function usePreferenciasCanais() {
   const supabase = getSupabaseClient();
@@ -19,7 +20,7 @@ export function usePreferenciasCanais() {
       if (!userId) return null;
 
       const { data, error: fetchError } = await supabase.from('usuarios_canais_preferencias').select('*').eq('usuario_id', userId).single();
-      
+
       if (fetchError && fetchError.code === 'PGRST116') {
         // Não existe, criar padrão
         const { data: newData, error: insertError } = await supabase.from('usuarios_canais_preferencias').insert({ usuario_id: userId }).select().single();
@@ -30,8 +31,8 @@ export function usePreferenciasCanais() {
       if (fetchError) throw fetchError;
       setPreferencias(data);
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return null;
     } finally {
       setLoading(false);
@@ -47,8 +48,8 @@ export function usePreferenciasCanais() {
       if (updateError) throw updateError;
       setPreferencias(data);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return false;
     } finally {
       setLoading(false);
@@ -62,8 +63,8 @@ export function usePreferenciasCanais() {
       const { data, error: rpcError } = await supabase.rpc('registrar_fcm_token', { p_usuario_id: userId, p_token: token });
       if (rpcError) throw rpcError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return false;
     }
   }, [supabase]);
@@ -75,8 +76,8 @@ export function usePreferenciasCanais() {
       const { data, error: rpcError } = await supabase.rpc('remover_fcm_token', { p_usuario_id: userId, p_token: token });
       if (rpcError) throw rpcError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return false;
     }
   }, [supabase]);
@@ -88,8 +89,8 @@ export function usePreferenciasCanais() {
       if (fetchError) throw fetchError;
       setConfig(data);
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return null;
     }
   }, [supabase]);
@@ -102,8 +103,8 @@ export function usePreferenciasCanais() {
       if (updateError) throw updateError;
       setConfig(data);
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return false;
     } finally {
       setLoading(false);
@@ -118,4 +119,5 @@ export function usePreferenciasCanais() {
   };
 }
 
-export type { UsuarioCanaisPreferencias, UpdatePreferenciasInput, NotificacoesConfig, UpdateNotificacoesConfigInput };
+export type { NotificacoesConfig, UpdateNotificacoesConfigInput, UpdatePreferenciasInput, UsuarioCanaisPreferencias };
+

@@ -1,5 +1,6 @@
 'use client';
 
+import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { CreateIntegracaoApiInput, CreateWebhookInput, Integracao, IntegracaoDashboard, IntegracoesFilters, WebhookEvento } from '@versix/shared';
 import { useCallback, useState } from 'react';
@@ -22,8 +23,8 @@ export function useIntegracoes() {
       if (fetchError) throw fetchError;
       setIntegracoes(data || []);
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return [];
     } finally {
       setLoading(false);
@@ -36,8 +37,8 @@ export function useIntegracoes() {
       const { data, error: fetchError } = await supabase.from('integracoes').select('*, webhook_config:webhooks_config(*), conector_config:conectores_config(*)').eq('id', id).single();
       if (fetchError) throw fetchError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return null;
     }
   }, [supabase]);
@@ -54,8 +55,8 @@ export function useIntegracoes() {
       });
       if (rpcError) throw rpcError;
       return data?.[0] || null;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return null;
     } finally {
       setLoading(false);
@@ -75,8 +76,8 @@ export function useIntegracoes() {
       });
       if (rpcError) throw rpcError;
       return data?.[0] || null;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return null;
     } finally {
       setLoading(false);
@@ -90,8 +91,8 @@ export function useIntegracoes() {
       if (updateError) throw updateError;
       setIntegracoes(prev => prev.map(i => i.id === id ? { ...i, status } : i));
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return false;
     }
   }, [supabase]);
@@ -103,8 +104,8 @@ export function useIntegracoes() {
       const { error: updateError } = await supabase.from('integracoes').update({ api_key: newKey }).eq('id', id);
       if (updateError) throw updateError;
       return newKey;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return null;
     }
   }, [supabase]);
@@ -116,8 +117,8 @@ export function useIntegracoes() {
       if (deleteError) throw deleteError;
       setIntegracoes(prev => prev.filter(i => i.id !== id));
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return false;
     }
   }, [supabase]);

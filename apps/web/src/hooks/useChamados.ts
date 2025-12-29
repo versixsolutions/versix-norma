@@ -1,7 +1,9 @@
 'use client';
 
+import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { AvaliarChamadoInput, Chamado, ChamadoCategoria, ChamadoFilters, ChamadoMensagem, ChamadoStats, ChamadoStatus, CreateChamadoInput, CreateMensagemInput, PaginatedResponse, UpdateChamadoInput } from '@versix/shared';
+import { Database } from '@versix/shared/database.types';
 import { useCallback, useEffect, useState } from 'react';
 
 export function useChamados(options?: { condominioId?: string | null; userId?: string | null; apenasMinhaUnidade?: boolean }) {
@@ -42,8 +44,8 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       setChamados(result.data);
       setPagination(result.pagination);
       return result;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar chamados');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao carregar chamados');
       return { data: [], pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false } };
     } finally {
       setLoading(false);
@@ -82,8 +84,8 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       if (insertError) throw insertError;
       setChamados(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao criar chamado');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao criar chamado');
       return null;
     } finally {
       setLoading(false);
@@ -94,14 +96,15 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
     setLoading(true);
     try {
       const { id, ...updates } = input;
-      const updateData: any = { ...updates };
+      type ChamadoUpdate = Database['public']['Tables']['chamados']['Update'];
+      const updateData: Partial<ChamadoUpdate> = { ...updates };
       if (updates.status === 'resolvido') updateData.resolvido_em = new Date().toISOString();
       const { data, error: updateError } = await supabase.from('chamados').update(updateData).eq('id', id).select().single();
       if (updateError) throw updateError;
       setChamados(prev => prev.map(c => c.id === id ? data : c));
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao atualizar chamado');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao atualizar chamado');
       return null;
     } finally {
       setLoading(false);
@@ -115,8 +118,8 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       if (deleteError) throw deleteError;
       setChamados(prev => prev.filter(c => c.id !== id));
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao excluir chamado');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao excluir chamado');
       return false;
     } finally {
       setLoading(false);
@@ -128,8 +131,8 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       const { data, error: insertError } = await supabase.from('chamados_mensagens').insert({ autor_id: autorId, ...input }).select(`*, autor:autor_id (nome, avatar_url)`).single();
       if (insertError) throw insertError;
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao enviar mensagem');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao enviar mensagem');
       return null;
     }
   }, [supabase]);
@@ -141,8 +144,8 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       if (updateError) throw updateError;
       setChamados(prev => prev.map(c => c.id === id ? { ...c, ...avaliacaoData, avaliado_em: new Date().toISOString() } : c));
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao avaliar chamado');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao avaliar chamado');
       return false;
     }
   }, [supabase]);
@@ -151,11 +154,20 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
     try {
       const { data } = await supabase.from('chamados').select('status, categoria, avaliacao_nota, created_at, resolvido_em').eq('condominio_id', condominioId).is('deleted_at', null);
       if (!data) return null;
-      const stats: ChamadoStats = {
+      type EstatisticasChamados = {
+        por_categoria: Record<string, number>;
+        avaliacao_media: number | null;
+        tempo_medio_resolucao_horas: number | null;
+        total: number;
+        novos: number;
+        em_atendimento: number;
+        resolvidos: number;
+      };
+      const stats: EstatisticasChamados = {
         total: data.length, novos: data.filter(c => c.status === 'novo').length,
         em_atendimento: data.filter(c => c.status === 'em_atendimento').length,
         resolvidos: data.filter(c => ['resolvido', 'fechado'].includes(c.status)).length,
-        por_categoria: {} as any, avaliacao_media: null, tempo_medio_resolucao_horas: null
+        por_categoria: {}, avaliacao_media: null, tempo_medio_resolucao_horas: null
       };
       data.forEach(c => { stats.por_categoria[c.categoria] = (stats.por_categoria[c.categoria] || 0) + 1; });
       const comNota = data.filter(c => c.avaliacao_nota);

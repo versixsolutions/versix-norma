@@ -1,7 +1,9 @@
 'use client';
 
+import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { Comunicado, ComunicadoCategoria, ComunicadoFilters, ComunicadoStatus, CreateComunicadoInput, PaginatedResponse, UpdateComunicadoInput } from '@versix/shared';
+import { Database } from '@versix/shared/database.types';
 import { useCallback, useState } from 'react';
 
 export function useComunicados(_options?: { condominioId?: string | null; userId?: string | null }) {
@@ -40,8 +42,8 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
       setComunicados(result.data);
       setPagination(result.pagination);
       return result;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar comunicados');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao carregar comunicados');
       return { data: [], pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false } };
     } finally {
       setLoading(false);
@@ -56,7 +58,7 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
       await supabase.rpc('increment_comunicado_views', { p_comunicado_id: id });
       return data;
     } catch (err) {
-      console.error('Erro ao buscar comunicado:', err);
+      setError(getErrorMessage(err));
       return null;
     }
   }, [supabase]);
@@ -71,8 +73,8 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
       if (insertError) throw insertError;
       setComunicados(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao criar comunicado');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao criar comunicado');
       return null;
     } finally {
       setLoading(false);
@@ -86,14 +88,26 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
       // Se publicando agora, definir published_at
       if (updates.status === 'publicado') {
         const current = comunicados.find(c => c.id === id);
-        if (current?.status !== 'publicado') (updates as any).published_at = new Date().toISOString();
+        type ComunicadoUpdate = Database['public']['Tables']['comunicados']['Update'] & { published_at?: string };
+        const updatePayload: ComunicadoUpdate = {
+          ...updates,
+          ...(current?.status !== 'publicado' && { published_at: new Date().toISOString() })
+        };
+        const { data, error: updateError } = await supabase.from('comunicados').update(updatePayload).eq('id', id).select().single();
+        if (updateError) throw updateError;
+        setComunicados(prev => prev.map(c => c.id === id ? data : c));
+        return data;
+      } else {
+        const { data, error: updateError } = await supabase.from('comunicados').update(updates).eq('id', id).select().single();
+        if (updateError) throw updateError;
+        setComunicados(prev => prev.map(c => c.id === id ? data : c));
+        return data;
       }
-      const { data, error: updateError } = await supabase.from('comunicados').update(updates).eq('id', id).select().single();
       if (updateError) throw updateError;
       setComunicados(prev => prev.map(c => c.id === id ? data : c));
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao atualizar comunicado');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao atualizar comunicado');
       return null;
     } finally {
       setLoading(false);
@@ -107,8 +121,8 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
       if (deleteError) throw deleteError;
       setComunicados(prev => prev.filter(c => c.id !== id));
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao excluir comunicado');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao excluir comunicado');
       return false;
     } finally {
       setLoading(false);

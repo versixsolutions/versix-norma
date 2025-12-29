@@ -1,8 +1,10 @@
 'use client';
 
+import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
+import { Database } from '@versix/shared/database.types';
+import type { CobrancaStatus, CreateTaxaInput, TaxaFilters, TaxaTipo, TaxaUnidade, UpdateTaxaInput } from '@versix/shared/types/financial';
 import { useCallback, useState } from 'react';
-import type { TaxaUnidade, TaxaFilters, CreateTaxaInput, UpdateTaxaInput, CobrancaStatus, TaxaTipo } from '@versix/shared/types/financial';
 
 export function useTaxas() {
   const supabase = getSupabaseClient();
@@ -33,8 +35,8 @@ export function useTaxas() {
       setTaxas(data || []);
       setPagination({ page, pageSize, total: count || 0 });
       return { data: data || [], total: count || 0 };
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return { data: [], total: 0 };
     } finally {
       setLoading(false);
@@ -45,16 +47,16 @@ export function useTaxas() {
     try {
       const { data: unidadesUser } = await supabase.from('usuarios_unidades').select('unidade_id').eq('usuario_id', userId).eq('ativo', true);
       if (!unidadesUser || unidadesUser.length === 0) return [];
-      
+
       const unidadeIds = unidadesUser.map(u => u.unidade_id);
-      
+
       const { data, error: fetchError } = await supabase.from('taxas_unidades').select(`*, unidade:unidade_id (identificador, bloco:bloco_id (nome))`)
         .eq('condominio_id', condominioId).in('unidade_id', unidadeIds).order('mes_referencia', { ascending: false }).order('data_vencimento');
-      
+
       if (fetchError) throw fetchError;
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return [];
     }
   }, [supabase]);
@@ -67,8 +69,8 @@ export function useTaxas() {
       if (insertError) throw insertError;
       setTaxas(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return null;
     } finally {
       setLoading(false);
@@ -80,19 +82,19 @@ export function useTaxas() {
     try {
       const { id, ...updates } = input;
       const taxa = taxas.find(t => t.id === id);
-      const updateData: any = { ...updates };
+      type TaxaUpdate = Database['public']['Tables']['taxas_unidades']['Update'];
+      const updateData: Partial<TaxaUpdate> = { ...updates };
       if (taxa && (updates.desconto !== undefined || updates.acrescimo !== undefined)) {
         const desconto = updates.desconto ?? taxa.desconto;
         const acrescimo = updates.acrescimo ?? taxa.acrescimo;
         updateData.valor_final = taxa.valor_base - desconto + acrescimo;
       }
-      
       const { data, error: updateError } = await supabase.from('taxas_unidades').update(updateData).eq('id', id).select().single();
       if (updateError) throw updateError;
       setTaxas(prev => prev.map(t => t.id === id ? data : t));
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return null;
     } finally {
       setLoading(false);
@@ -107,8 +109,8 @@ export function useTaxas() {
       if (updateError) throw updateError;
       setTaxas(prev => prev.map(t => t.id === id ? { ...t, status: 'pago' as CobrancaStatus, valor_pago: valorPago } : t));
       return true;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return false;
     }
   }, [supabase]);
@@ -119,8 +121,8 @@ export function useTaxas() {
       const { data, error: rpcError } = await supabase.rpc('gerar_taxas_mes', { p_condominio_id: condominioId, p_mes_referencia: mesReferencia });
       if (rpcError) throw rpcError;
       return data || 0;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(getErrorMessage(err));
       return 0;
     } finally {
       setLoading(false);
@@ -139,10 +141,10 @@ export function useTaxas() {
     try {
       const { data } = await supabase.from('taxas_unidades').select(`id, valor_final, status, data_vencimento, unidade:unidade_id (identificador, bloco:bloco_id (nome))`)
         .eq('condominio_id', condominioId).in('status', ['pendente', 'atrasado']).order('data_vencimento');
-      
+
       const atrasadas = (data || []).filter(t => t.status === 'atrasado');
       const pendentes = (data || []).filter(t => t.status === 'pendente');
-      
+
       return {
         total_em_aberto: (data || []).reduce((sum, t) => sum + t.valor_final, 0),
         total_atrasado: atrasadas.reduce((sum, t) => sum + t.valor_final, 0),
@@ -156,4 +158,5 @@ export function useTaxas() {
   return { taxas, loading, error, pagination, fetchTaxas, getMinhasTaxas, createTaxa, updateTaxa, registrarPagamento, gerarTaxasMes, atualizarTaxasAtrasadas, getResumoInadimplencia };
 }
 
-export type { TaxaUnidade, TaxaFilters, CreateTaxaInput, UpdateTaxaInput, CobrancaStatus, TaxaTipo };
+export type { CobrancaStatus, CreateTaxaInput, TaxaFilters, TaxaTipo, TaxaUnidade, UpdateTaxaInput };
+

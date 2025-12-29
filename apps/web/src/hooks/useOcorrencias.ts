@@ -1,7 +1,9 @@
 'use client';
 
+import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { CreateOcorrenciaInput, Ocorrencia, OcorrenciaCategoria, OcorrenciaFilters, OcorrenciaHistorico, OcorrenciaStats, OcorrenciaStatus, PaginatedResponse, Prioridade, UpdateOcorrenciaInput } from '@versix/shared';
+import { Database } from '@versix/shared/database.types';
 import { useCallback, useState } from 'react';
 
 export function useOcorrencias() {
@@ -40,8 +42,8 @@ export function useOcorrencias() {
       setOcorrencias(result.data);
       setPagination(result.pagination);
       return result;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar ocorrências');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao carregar ocorrências');
       return { data: [], pagination: { page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false } };
     } finally {
       setLoading(false);
@@ -56,7 +58,7 @@ export function useOcorrencias() {
       const { data: historico } = await supabase.from('ocorrencias_historico').select(`*, usuario:usuario_id (nome)`).eq('ocorrencia_id', id).order('created_at', { ascending: true });
       return { ...data, historico: historico || [] };
     } catch (err) {
-      console.error('Erro ao buscar ocorrência:', err);
+      setError(getErrorMessage(err));
       return null;
     }
   }, [supabase]);
@@ -68,8 +70,8 @@ export function useOcorrencias() {
       if (insertError) throw insertError;
       setOcorrencias(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao criar ocorrência');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao criar ocorrência');
       return null;
     } finally {
       setLoading(false);
@@ -85,7 +87,8 @@ export function useOcorrencias() {
       const { id, ...updates } = input;
       // Se resolvendo, definir campos de resolução
       if (updates.status === 'resolvida' && !updates.resolucao) updates.resolucao = 'Resolvida';
-      const updateData: any = { ...updates };
+      type OcorrenciaUpdate = Database['public']['Tables']['ocorrencias']['Update'];
+      const updateData: Partial<OcorrenciaUpdate> = { ...updates };
       if (updates.status === 'resolvida') {
         updateData.resolvido_em = new Date().toISOString();
         updateData.resolvido_por = userId;
@@ -94,8 +97,8 @@ export function useOcorrencias() {
       if (updateError) throw updateError;
       setOcorrencias(prev => prev.map(o => o.id === id ? data : o));
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao atualizar ocorrência');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao atualizar ocorrência');
       return null;
     } finally {
       setLoading(false);
@@ -109,8 +112,8 @@ export function useOcorrencias() {
       if (deleteError) throw deleteError;
       setOcorrencias(prev => prev.filter(o => o.id !== id));
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao excluir ocorrência');
+    } catch (err) {
+      setError(getErrorMessage(err) || 'Erro ao excluir ocorrência');
       return false;
     } finally {
       setLoading(false);
@@ -121,11 +124,20 @@ export function useOcorrencias() {
     try {
       const { data } = await supabase.from('ocorrencias').select('status, categoria, prioridade, created_at, resolvido_em').eq('condominio_id', condominioId).is('deleted_at', null);
       if (!data) return null;
-      const stats: OcorrenciaStats = {
+      type EstatisticasOcorrencias = {
+        total: number;
+        abertas: number;
+        em_andamento: number;
+        resolvidas: number;
+        por_categoria: Record<string, number>;
+        por_prioridade: Record<string, number>;
+        tempo_medio_resolucao_horas: number | null;
+      };
+      const stats: EstatisticasOcorrencias = {
         total: data.length, abertas: data.filter(o => o.status === 'aberta').length,
         em_andamento: data.filter(o => ['em_analise', 'em_andamento'].includes(o.status)).length,
         resolvidas: data.filter(o => o.status === 'resolvida').length,
-        por_categoria: {} as any, por_prioridade: {} as any, tempo_medio_resolucao_horas: null
+        por_categoria: {}, por_prioridade: {}, tempo_medio_resolucao_horas: null
       };
       data.forEach(o => {
         stats.por_categoria[o.categoria] = (stats.por_categoria[o.categoria] || 0) + 1;

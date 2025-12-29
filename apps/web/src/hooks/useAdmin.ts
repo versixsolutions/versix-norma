@@ -2,6 +2,7 @@
 
 import { getSupabaseClient } from '@/lib/supabase';
 import type { RoleType, StatusType } from '@/types/database';
+import { Database } from '@versix/shared/database.types';
 import { useCallback, useState } from 'react';
 
 export interface AdminUser {
@@ -21,7 +22,7 @@ export interface AdminCondominio {
   id: string;
   nome: string;
   slug: string;
-  endereco: any;
+  endereco: Database['public']['Tables']['condominios']['Row']['endereco'];
   status: StatusType;
   created_at: string;
   total_usuarios: number;
@@ -54,10 +55,23 @@ export function useAdmin() {
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
 
-      let formattedUsers: AdminUser[] = (data || []).map((user: any) => ({
+      type UsuarioRow = Database['public']['Tables']['usuarios']['Row'];
+      type CondominioRow = Database['public']['Tables']['condominios']['Row'];
+      type BlocoRow = Database['public']['Tables']['blocos']['Row'];
+      type UnidadeRow = Database['public']['Tables']['unidades_habitacionais']['Row'];
+      type UsuarioCondominioRow = Database['public']['Tables']['usuario_condominios']['Row'];
+
+      type UsuarioWithCondominios = UsuarioRow & {
+        usuario_condominios: (UsuarioCondominioRow & {
+          condominios: CondominioRow;
+          unidades?: UnidadeRow;
+        })[];
+      };
+
+      let formattedUsers: AdminUser[] = (data || []).map((user: UsuarioWithCondominios) => ({
         id: user.id, auth_id: user.auth_id, nome: user.nome, email: user.email, telefone: user.telefone,
         avatar_url: user.avatar_url, status: user.status, created_at: user.created_at, updated_at: user.updated_at,
-        condominios: (user.usuario_condominios || []).map((uc: any) => ({
+        condominios: (user.usuario_condominios || []).map((uc) => ({
           condominio_id: uc.condominio_id, condominio_nome: uc.condominios?.nome || '', role: uc.role,
           unidade_id: uc.unidade_id, unidade_identificador: uc.unidades?.identificador || null,
         })),
@@ -66,8 +80,7 @@ export function useAdmin() {
       if (filters?.condominio_id) formattedUsers = formattedUsers.filter(u => u.condominios.some(c => c.condominio_id === filters.condominio_id));
       setUsers(formattedUsers);
     } catch (err) {
-      console.error('Erro ao buscar usuários:', err);
-      setError('Erro ao carregar usuários');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -79,15 +92,31 @@ export function useAdmin() {
     try {
       const { data, error: fetchError } = await supabase.from('condominios').select(`id, nome, slug, endereco, status, created_at, blocos (unidades (id)), usuario_condominios (role, usuarios:usuario_id (nome))`).order('nome');
       if (fetchError) throw fetchError;
-      const formattedCondominios: AdminCondominio[] = (data || []).map((condo: any) => {
-        const totalUnidades = condo.blocos?.reduce((acc: number, bloco: any) => acc + (bloco.unidades?.length || 0), 0) || 0;
-        const sindico = condo.usuario_condominios?.find((uc: any) => uc.role === 'sindico');
-        return { id: condo.id, nome: condo.nome, slug: condo.slug, endereco: condo.endereco, status: condo.status, created_at: condo.created_at, total_usuarios: condo.usuario_condominios?.length || 0, total_unidades: totalUnidades, sindico_nome: sindico?.usuarios?.nome || null };
+      type CondominioWithRelations = CondominioRow & {
+        blocos: (BlocoRow & { unidades: UnidadeRow[] })[];
+        usuario_condominios: (UsuarioCondominioRow & { usuarios: UsuarioRow })[];
+      };
+      const formattedCondominios: AdminCondominio[] = (data || []).map((condo: CondominioWithRelations) => {
+        const totalUnidades = condo.blocos?.reduce(
+          (acc: number, bloco) => acc + (bloco.unidades?.length || 0),
+          0
+        ) || 0;
+        const sindico = condo.usuario_condominios?.find((uc) => uc.role === 'sindico');
+        return {
+          id: condo.id,
+          nome: condo.nome,
+          slug: condo.slug,
+          endereco: condo.endereco,
+          status: condo.status,
+          created_at: condo.created_at,
+          total_usuarios: condo.usuario_condominios?.length || 0,
+          total_unidades: totalUnidades,
+          sindico_nome: sindico?.usuarios?.nome || null,
+        };
       });
       setCondominios(formattedCondominios);
     } catch (err) {
-      console.error('Erro ao buscar condomínios:', err);
-      setError('Erro ao carregar condomínios');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -106,8 +135,7 @@ export function useAdmin() {
       ]);
       setStats({ total_condominios: totalCondominios || 0, total_usuarios: totalUsuarios || 0, usuarios_ativos: usuariosAtivos || 0, usuarios_pendentes: usuariosPendentes || 0, total_unidades: totalUnidades || 0 });
     } catch (err) {
-      console.error('Erro ao buscar estatísticas:', err);
-      setError('Erro ao carregar estatísticas');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -121,8 +149,7 @@ export function useAdmin() {
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, status } : u));
       return true;
     } catch (err) {
-      console.error('Erro ao atualizar status:', err);
-      setError('Erro ao atualizar status');
+      setError(getErrorMessage(err));
       return false;
     } finally {
       setLoading(false);
@@ -137,8 +164,7 @@ export function useAdmin() {
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, condominios: u.condominios.map(c => c.condominio_id === condominioId ? { ...c, role } : c) } : u));
       return true;
     } catch (err) {
-      console.error('Erro ao atualizar role:', err);
-      setError('Erro ao atualizar permissão');
+      setError(getErrorMessage(err));
       return false;
     } finally {
       setLoading(false);
@@ -151,7 +177,7 @@ export function useAdmin() {
       const { data } = await supabase.from('usuarios').select(`id, auth_id, nome, email, telefone, avatar_url, status, created_at, updated_at`).or(`nome.ilike.%${query}%,email.ilike.%${query}%`).limit(20);
       return (data || []).map((user: any) => ({ ...user, condominios: [] }));
     } catch (err) {
-      console.error('Erro na busca:', err);
+      setError(getErrorMessage(err));
       return [];
     }
   }, [supabase]);

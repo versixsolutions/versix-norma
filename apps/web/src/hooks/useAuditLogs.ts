@@ -1,6 +1,8 @@
 'use client';
 
+import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
+import { Database, Json } from '@versix/shared/database.types';
 import { useCallback, useState } from 'react';
 
 export interface AuditLog {
@@ -13,8 +15,8 @@ export interface AuditLog {
   acao: string;
   tabela: string;
   registro_id: string | null;
-  dados_antes: any;
-  dados_depois: any;
+  dados_antes: Json | null;
+  dados_depois: Json | null;
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;
@@ -54,7 +56,11 @@ export function useAuditLogs() {
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;
 
-      const formattedLogs: AuditLog[] = (data || []).map((log: any) => ({
+      type AuditLogRow = Database['public']['Tables']['audit_logs']['Row'] & {
+        usuarios: { nome: string; email: string } | null;
+        condominios?: { nome: string } | null;
+      };
+      const formattedLogs: AuditLog[] = (data || []).map((log: AuditLogRow) => ({
         id: log.id, usuario_id: log.usuario_id, usuario_nome: log.usuarios?.nome, usuario_email: log.usuarios?.email,
         condominio_id: log.condominio_id, condominio_nome: log.condominios?.nome, acao: log.acao, tabela: log.tabela,
         registro_id: log.registro_id, dados_antes: log.dados_antes, dados_depois: log.dados_depois,
@@ -63,8 +69,7 @@ export function useAuditLogs() {
       setLogs(formattedLogs);
       setTotalCount(count || 0);
     } catch (err) {
-      console.error('Erro ao buscar audit logs:', err);
-      setError('Erro ao carregar logs');
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -76,7 +81,7 @@ export function useAuditLogs() {
       if (fetchError) throw fetchError;
       return { ...data, usuario_nome: data.usuarios?.nome, usuario_email: data.usuarios?.email, condominio_nome: data.condominios?.nome };
     } catch (err) {
-      console.error('Erro ao buscar detalhes:', err);
+      setError(getErrorMessage(err));
       return null;
     }
   }, [supabase]);
@@ -97,7 +102,7 @@ export function useAuditLogs() {
       const rows = (data || []).map((log: any) => [log.id, new Date(log.created_at).toLocaleString('pt-BR'), log.usuarios?.nome || log.usuario_id, log.usuarios?.email || '', log.acao, log.tabela, log.registro_id || '']);
       return [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
     } catch (err) {
-      console.error('Erro ao exportar logs:', err);
+      setError(getErrorMessage(err));
       throw new Error('Erro ao exportar logs');
     }
   }, [supabase]);
