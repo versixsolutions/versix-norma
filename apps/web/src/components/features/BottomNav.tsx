@@ -24,6 +24,8 @@ export function BottomNav({ activeNav, setActiveNav }: BottomNavProps) {
               key={item.id}
               onClick={() => setActiveNav(item.id)}
               className="flex flex-col items-center justify-end w-16 h-14 group relative"
+              aria-label={`Ir para ${item.label}`}
+              data-testid={`nav-${item.id}`}
             >
               <span
                 className={`material-symbols-outlined text-[26px] transition-all duration-300 ease-out mb-0.5 ${

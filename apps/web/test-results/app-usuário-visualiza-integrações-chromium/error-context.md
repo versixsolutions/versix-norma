@@ -1,0 +1,182 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic:
+        - img "Background"
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - button "e911_emergency" [ref=e8] [cursor=pointer]:
+            - img [ref=e9]
+            - generic [ref=e11]: e911_emergency
+          - heading "NORMA" [level=1]
+          - generic [ref=e15]:
+            - generic [ref=e17] [cursor=pointer]: notifications
+            - generic [ref=e19] [cursor=pointer]: US
+        - generic [ref=e20]:
+          - heading "Olá, Usuário!" [level=2] [ref=e21]
+          - generic [ref=e22]:
+            - generic [ref=e23]: location_on
+            - paragraph [ref=e24]: Condomínio
+          - generic [ref=e25]: Bem-vindo
+        - generic [ref=e26]:
+          - textbox "Pergunte à Norma sobre o regimento..." [ref=e27] [cursor=pointer]
+          - generic:
+            - generic: smart_toy
+    - generic [ref=e28]:
+      - generic [ref=e30] [cursor=pointer]:
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - generic [ref=e36]: Saúde Financeira
+            - heading "Contas em Dia" [level=3] [ref=e37]
+            - paragraph [ref=e38]: "Última atualização: 29/12/2025"
+          - generic [ref=e41]: verified_user
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - generic [ref=e44]: account_balance_wallet
+            - text: "Fundo Reserva: OK"
+          - generic [ref=e45]:
+            - text: Ver Balancete
+            - generic [ref=e46]: arrow_forward
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - heading "Acesso Rápido" [level=3] [ref=e49]
+          - button "Editar" [ref=e50] [cursor=pointer]
+        - generic [ref=e51]:
+          - 'generic "Acesso rápido: Assembleias" [ref=e52] [cursor=pointer]':
+            - generic [ref=e54]:
+              - generic [ref=e56]: groups
+              - heading "Assembleias" [level=4] [ref=e57]
+            - paragraph [ref=e58]: Participe e Vote
+            - generic [ref=e59]: 1 aberta
+          - 'generic "Acesso rápido: Comunicados" [ref=e60] [cursor=pointer]':
+            - generic [ref=e62]:
+              - generic [ref=e64]: campaign
+              - heading "Comunicados" [level=4] [ref=e65]
+            - paragraph [ref=e66]: Avisos Oficiais
+            - generic [ref=e67]: 100% lido
+          - 'generic "Acesso rápido: FAQs" [ref=e68] [cursor=pointer]':
+            - generic [ref=e70]:
+              - generic [ref=e72]: quiz
+              - heading "FAQs" [level=4] [ref=e73]
+            - paragraph [ref=e74]: Tire suas Dúvidas
+            - generic [ref=e75]: 01 novo
+          - 'generic "Acesso rápido: Chamados" [ref=e76] [cursor=pointer]':
+            - generic [ref=e78]:
+              - generic [ref=e80]: support_agent
+              - heading "Chamados" [level=4] [ref=e81]
+            - paragraph [ref=e82]: Solicitações
+            - generic [ref=e83]: 2 pendentes
+        - generic [ref=e84]:
+          - 'generic "Acesso rápido: Ocorrências" [ref=e85] [cursor=pointer]':
+            - generic [ref=e87]:
+              - generic [ref=e89]: report_problem
+              - heading "Ocorrências" [level=4] [ref=e90]
+            - paragraph [ref=e91]: Reportar Problemas
+            - generic [ref=e92]: novo
+          - 'generic "Acesso rápido: Bibliotecas" [ref=e93] [cursor=pointer]':
+            - generic [ref=e95]:
+              - generic [ref=e97]: library_books
+              - heading "Bibliotecas" [level=4] [ref=e98]
+            - paragraph [ref=e99]: Documentos e Atas
+            - generic [ref=e100]: novo doc
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - heading "Mural Digital" [level=3] [ref=e103]
+          - generic [ref=e104] [cursor=pointer]: Ver tudo
+        - generic [ref=e105]:
+          - generic [ref=e106]:
+            - generic [ref=e107]:
+              - generic [ref=e109]: Manutenção
+              - generic [ref=e110]: Hoje, 09:30
+            - heading "Manutenção Elevador Social" [level=4] [ref=e111]
+            - paragraph [ref=e112]: O elevador social do Bloco B estará em manutenção preventiva nesta quinta-feira das 14h às 16h.
+            - generic [ref=e113]:
+              - generic [ref=e115]: engineering
+              - generic [ref=e116]: Síndico Geral
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - generic [ref=e121]: Social
+              - generic [ref=e122]: Ontem
+            - heading "Assembleia Extraordinária" [level=4] [ref=e123]
+            - paragraph [ref=e124]: Convocação para aprovação do rateio da pintura. Dia 20/12 às 19h (Híbrida).
+            - generic [ref=e125]:
+              - button "Confirmar" [ref=e126] [cursor=pointer]
+              - button "Ler Pauta" [ref=e127] [cursor=pointer]
+      - generic [ref=e128]:
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - heading "Clube de Vantagens" [level=3] [ref=e131]
+            - generic [ref=e132]: NOVO
+          - button "Ver todos" [ref=e133] [cursor=pointer]
+        - generic [ref=e134]:
+          - generic [ref=e135] [cursor=pointer]:
+            - img "Limpeza Pós-Obra" [ref=e137]
+            - generic [ref=e140]:
+              - generic [ref=e141]:
+                - generic [ref=e142]: CleanFast
+                - generic [ref=e143]: 15% OFF
+              - generic [ref=e144]:
+                - heading "Limpeza Pós-Obra" [level=4] [ref=e145]
+                - generic [ref=e146]:
+                  - generic [ref=e147]: Resgatar agora
+                  - generic [ref=e148]: arrow_forward
+          - generic [ref=e149] [cursor=pointer]:
+            - img "Pet Walker" [ref=e151]
+            - generic [ref=e154]:
+              - generic [ref=e155]:
+                - generic [ref=e156]: DogHero
+                - generic [ref=e157]: 1º Passeio Grátis
+              - generic [ref=e158]:
+                - heading "Pet Walker" [level=4] [ref=e159]
+                - generic [ref=e160]:
+                  - generic [ref=e161]: Resgatar agora
+                  - generic [ref=e162]: arrow_forward
+          - generic [ref=e163] [cursor=pointer]:
+            - img "Manutenção Ar" [ref=e165]
+            - generic [ref=e168]:
+              - generic [ref=e169]:
+                - generic [ref=e170]: FrioMax
+                - generic [ref=e171]: R$ 50 OFF
+              - generic [ref=e172]:
+                - heading "Manutenção Ar" [level=4] [ref=e173]
+                - generic [ref=e174]:
+                  - generic [ref=e175]: Resgatar agora
+                  - generic [ref=e176]: arrow_forward
+          - generic [ref=e177] [cursor=pointer]:
+            - img "Marmitas Fit" [ref=e179]
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e184]: GreenFood
+                - generic [ref=e185]: Combo Semanal
+              - generic [ref=e186]:
+                - heading "Marmitas Fit" [level=4] [ref=e187]
+                - generic [ref=e188]:
+                  - generic [ref=e189]: Resgatar agora
+                  - generic [ref=e190]: arrow_forward
+          - generic [ref=e191] [cursor=pointer]:
+            - generic [ref=e192]: add_business
+            - generic [ref=e193]:
+              - text: Anuncie
+              - text: Aqui
+    - generic [ref=e196]:
+      - button "Ir para Home" [ref=e197] [cursor=pointer]:
+        - generic [ref=e198]: home
+        - generic [ref=e199]: Home
+      - button "Ir para Transparência" [ref=e200] [cursor=pointer]:
+        - generic [ref=e201]: pie_chart
+        - generic [ref=e202]: Transparência
+      - button "Ir para Convivência" [ref=e203] [cursor=pointer]:
+        - generic [ref=e204]: groups
+        - generic [ref=e205]: Convivência
+      - button "Ir para Serviços" [ref=e206] [cursor=pointer]:
+        - generic [ref=e207]: storefront
+        - generic [ref=e208]: Serviços
+      - button "Ir para Meu Perfil" [ref=e209] [cursor=pointer]:
+        - generic [ref=e210]: person
+        - generic [ref=e211]: Meu Perfil
+  - region "Notifications alt+T"
+  - alert [ref=e212]
+```

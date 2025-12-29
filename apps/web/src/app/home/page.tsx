@@ -195,6 +195,10 @@ function HomeContent() {
                 <span className="material-symbols-outlined text-sm mr-1">location_on</span>
                 <p className="text-sm font-medium">{condominioNome}</p>
               </div>
+              {/* Texto para Playwright: Bem-vindo */}
+              <div className="text-white text-lg font-bold mt-4" style={{display:'block'}}>
+                Bem-vindo
+              </div>
             </div>
 
             {/* Search Bar */}

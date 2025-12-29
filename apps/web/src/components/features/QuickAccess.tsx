@@ -128,6 +128,8 @@ export function QuickAccess() {
             key={item.id}
             onClick={() => handleItemClick(item.id)}
             className={`${item.bgColor} p-4 rounded-home-xl shadow-sm border ${item.borderColor} relative overflow-hidden group cursor-pointer active:scale-95 transition-all duration-200 h-32 flex flex-col justify-center gap-2`}
+            aria-label={`Acesso rápido: ${item.title}`}
+            data-testid={`quickaccess-${item.id}`}
           >
             {/* Decorative corner */}
             <div
@@ -164,6 +166,8 @@ export function QuickAccess() {
             key={item.id}
             onClick={() => handleItemClick(item.id)}
             className={`${item.bgColor} p-4 rounded-home-xl shadow-sm border ${item.borderColor} relative overflow-hidden group cursor-pointer active:scale-95 transition-all duration-200 h-32 flex flex-col justify-center gap-2`}
+            aria-label={`Acesso rápido: ${item.title}`}
+            data-testid={`quickaccess-${item.id}`}
           >
             {/* Decorative corner */}
             <div

@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 50);
@@ -37,6 +38,7 @@ export default function LoginPage() {
     }
 
     setLoading(true);
+    setLoginError(null);
 
     const result = await login({ email, password });
 
@@ -47,22 +49,22 @@ export default function LoginPage() {
       const errorMessage = (result.error as any)?.message || 'Erro ao fazer login';
       const errorCode = (result.error as any)?.status || (result.error as any)?.code;
 
-      console.error('Login error:', { errorMessage, errorCode, error: result.error });
-
-      // Tratamento específico de erros comuns
+      let userMessage = '';
       if (errorMessage.includes('Invalid login credentials')) {
-        toast.error('Credenciais inválidas. Verifique email/senha ou entre em contato com o administrador para criar uma conta de teste.');
+        userMessage = 'Credenciais inválidas. Verifique email/senha ou entre em contato com o administrador para criar uma conta de teste.';
       } else if (errorMessage.includes('Email not confirmed')) {
-        toast.error('Email não confirmado. Verifique sua caixa de entrada.');
+        userMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
       } else if (errorMessage.includes('Too many requests')) {
-        toast.error('Muitas tentativas. Tente novamente em alguns minutos.');
+        userMessage = 'Muitas tentativas. Tente novamente em alguns minutos.';
       } else if (errorMessage.includes('User not found')) {
-        toast.error('Usuário não encontrado');
+        userMessage = 'Usuário não encontrado';
       } else if (errorCode === 400) {
-        toast.error('Dados de login inválidos. Verifique email e senha.');
+        userMessage = 'Dados de login inválidos. Verifique email e senha.';
       } else {
-        toast.error(`Erro ao fazer login: ${errorMessage}`);
+        userMessage = `Erro ao fazer login: ${errorMessage}`;
       }
+      setLoginError(userMessage);
+      toast.error(userMessage);
       setLoading(false);
     }
   };
@@ -164,6 +166,7 @@ export default function LoginPage() {
             {/* Submit */}
             <button
               type="submit"
+              aria-label="Entrar"
               disabled={loading}
               className="w-full py-4 rounded-xl bg-secondary text-white font-bold shadow-lg hover:bg-secondary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
@@ -179,6 +182,9 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+            {loginError && (
+              <div className="error-message text-red-600 text-sm mt-2 text-center">{loginError}</div>
+            )}
           </form>
 
           {/* Divider */}
