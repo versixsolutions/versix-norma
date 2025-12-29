@@ -183,10 +183,11 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let fullResponse = '';
-      let sources: Array<{ type: string; name: string; content: string }> = [];
+      const sources: Array<{ type: string; name: string; content: string }> = [];
       let suggestions: string[] = [];
 
       try {
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
