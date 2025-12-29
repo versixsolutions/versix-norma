@@ -106,7 +106,7 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
   }, []);
 
   // ============================================
-  // SEND MESSAGE
+  // SEND MESSAGE WITH STREAMING
   // ============================================
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || !condominioId || !userId) return;
@@ -149,32 +149,113 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
         timestamp: m.timestamp.toISOString(),
       }));
 
-      // Call Edge Function ask-norma
-      const { data, error: fnError } = await supabase.functions.invoke('ask-norma', {
-        body: {
+      // Get Supabase session for auth
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      // Call Edge Function with streaming
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ask-norma`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           message: text.trim(),
           condominioId,
           userId,
           conversationHistory,
-        },
+        }),
+        signal: abortController.signal,
       });
 
-      if (fnError) throw fnError;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+
+      // Handle SSE streaming
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+      let sources: Array<{ type: string; name: string; content: string }> = [];
+      let suggestions: string[] = [];
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') {
+                // Stream finished, generate suggestions and log
+                suggestions = generateSuggestions(fullResponse, sources);
+
+                // Log the interaction
+                await supabase.from('norma_chat_logs').insert({
+                  condominio_id: condominioId,
+                  user_id: userId,
+                  message: text.trim(),
+                  response: fullResponse,
+                  sources,
+                  created_at: new Date().toISOString(),
+                });
+
+                break;
+              }
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.content) {
+                  fullResponse += parsed.content;
+
+                  // Update message with streaming content
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === botMessageId
+                        ? {
+                            ...msg,
+                            text: fullResponse,
+                            status: 'streaming' as const,
+                          }
+                        : msg
+                    )
+                  );
+                }
+              } catch (e) {
+                // Ignore parsing errors for incomplete chunks
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
 
       // Check if request was aborted
       if (abortController.signal.aborted) {
         return;
       }
 
-      // Update bot message with complete response
+      // Update bot message with final status
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === botMessageId
             ? {
                 ...msg,
-                text: data.response || 'Desculpe, não consegui processar sua pergunta.',
-                sources: data.sources || [],
-                suggestions: data.suggestions || [],
+                text: fullResponse,
+                sources,
+                suggestions,
                 status: 'sent' as const,
               }
             : msg
@@ -227,6 +308,49 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
     loadHistory,
     stopStreaming,
   };
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function generateSuggestions(response: string, sources: Array<{ type: string; name: string; content: string }>): string[] {
+  const suggestions: string[] = [];
+
+  // Analyze response content to generate relevant suggestions
+  const lowerResponse = response.toLowerCase();
+
+  // Suggestions based on content analysis
+  if (lowerResponse.includes('assembleia') || lowerResponse.includes('reunião')) {
+    suggestions.push('Agendar assembleia', 'Verificar pauta', 'Convocar moradores');
+  }
+
+  if (lowerResponse.includes('regimento') || lowerResponse.includes('norma')) {
+    suggestions.push('Consultar regimento interno', 'Verificar direitos', 'Regras do condomínio');
+  }
+
+  if (lowerResponse.includes('síndico') || lowerResponse.includes('administração')) {
+    suggestions.push('Falar com síndico', 'Registrar ocorrência', 'Solicitar manutenção');
+  }
+
+  if (lowerResponse.includes('taxa') || lowerResponse.includes('pagamento') || lowerResponse.includes('financeiro')) {
+    suggestions.push('Verificar taxas pendentes', 'Consultar extrato', 'Formas de pagamento');
+  }
+
+  if (lowerResponse.includes('área comum') || lowerResponse.includes('festa') || lowerResponse.includes('reserva')) {
+    suggestions.push('Reservar salão', 'Verificar disponibilidade', 'Consultar regras');
+  }
+
+  if (lowerResponse.includes('manutenção') || lowerResponse.includes('reparo')) {
+    suggestions.push('Solicitar manutenção', 'Verificar status', 'Contatar zelador');
+  }
+
+  // Default suggestions if none were generated
+  if (suggestions.length === 0) {
+    suggestions.push('Verificar regimento interno', 'Agendar assembleia', 'Consultar síndico');
+  }
+
+  // Limit to 3 suggestions
+  return suggestions.slice(0, 3);
 }
 // ============================================
 // FALLBACK: Mock para desenvolvimento

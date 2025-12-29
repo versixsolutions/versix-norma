@@ -1,6 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { corsHeaders } from '../_shared/cors.ts';
 
+// PDF parsing library for Deno
+import pdfParse from 'https://esm.sh/pdf-parse@1.1.1';
+
 interface ProcessDocumentRequest {
   documentId: string;
   condominioId: string;
@@ -16,35 +19,23 @@ interface DocumentChunk {
   content: string;
 }
 
-// Simple PDF text extraction (basic implementation)
-// In production, you'd want to use a more robust PDF parsing library
+// PDF text extraction using pdf-parse
 async function extractTextFromPDF(fileUrl: string): Promise<string> {
   try {
-    // For now, we'll use a simple approach
-    // In production, integrate with pdf-parse or similar
     const response = await fetch(fileUrl);
     if (!response.ok) {
       throw new Error('Failed to fetch PDF');
     }
 
-    // This is a placeholder - real PDF extraction would require pdf.js or similar
-    // For demo purposes, we'll return mock content
-    return `Conteúdo extraído do documento PDF. Este é um placeholder para demonstração.
-    Em produção, seria implementada extração real de texto usando bibliotecas como pdf-parse ou pdf2pic.
+    const arrayBuffer = await response.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
 
-    Artigo 1º - O condomínio é uma comunhão de frações ideais do terreno e das edificações.
-    Artigo 2º - Cada fração ideal confere ao seu proprietário o direito de uso exclusivo das unidades.
-
-    Capítulo II - Da Administração
-    Artigo 10º - A administração do condomínio compete ao síndico, que poderá ser pessoa física ou jurídica.
-    Artigo 11º - O síndico será eleito em assembleia geral ordinária, por maioria absoluta dos votos.
-
-    Capítulo III - Das Cotas
-    Artigo 20º - As despesas do condomínio serão rateadas proporcionalmente às frações ideais.
-    Artigo 21º - As cotas condominiais deverão ser pagas até o dia 10 de cada mês.`;
+    // Parse PDF using pdf-parse
+    const data = await pdfParse(uint8Array);
+    return data.text;
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
-    throw error;
+    throw new Error(`Failed to extract text from PDF: ${error.message}`);
   }
 }
 

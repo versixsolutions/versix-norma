@@ -178,7 +178,7 @@ Conteúdo: ${chunk.content}`;
       },
     ];
 
-    // Call Groq API
+    // Call Groq API with streaming
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -190,7 +190,7 @@ Conteúdo: ${chunk.content}`;
         messages,
         max_tokens: 1000,
         temperature: 0.7,
-        stream: false,
+        stream: true, // Enable streaming
       }),
     });
 
@@ -202,28 +202,66 @@ Conteúdo: ${chunk.content}`;
       });
     }
 
-    const groqData = await groqResponse.json();
-    const aiResponse = groqData.choices[0].message.content;
+    // Handle streaming response with SSE
+    const reader = groqResponse.body?.getReader();
+    if (!reader) {
+      return new Response(JSON.stringify({ error: 'Failed to read response stream' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    // Generate contextual suggestions based on the response
-    const suggestions = generateSuggestions(aiResponse, sources);
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
 
-    // Log the interaction
-    await supabase.from('norma_chat_logs').insert({
-      condominio_id: condominioId,
-      user_id: userId,
-      message,
-      response: aiResponse,
-      sources,
-      created_at: new Date().toISOString(),
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+              break;
+            }
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') continue;
+
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices?.[0]?.delta?.content;
+                  if (content) {
+                    // Send chunk to client via SSE
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`));
+                  }
+                } catch (e) {
+                  // Ignore parsing errors for incomplete chunks
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Streaming error:', error);
+          controller.error(error);
+        } finally {
+          controller.close();
+          reader.releaseLock();
+        }
+      },
     });
 
-    return new Response(JSON.stringify({
-      response: aiResponse,
-      sources,
-      suggestions,
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(stream, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
     });
 
   } catch (error) {
