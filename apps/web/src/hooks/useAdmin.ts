@@ -48,16 +48,19 @@ export function useAdmin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Tipo do enum de status no banco de dados
+  type DbStatus = 'pending' | 'active' | 'inactive' | 'suspended' | 'removed';
+
   // Mapeamento de status português para inglês (DB usa enum em inglês)
-  const mapStatusToDb = (status: StatusType): string => {
-    const statusMap: Record<string, string> = {
+  const mapStatusToDb = (status: StatusType): DbStatus => {
+    const statusMap: Record<StatusType, DbStatus> = {
       'ativo': 'active',
       'inativo': 'inactive',
       'pendente': 'pending',
       'suspenso': 'suspended',
       'bloqueado': 'removed'
     };
-    return statusMap[status] || status;
+    return statusMap[status] ?? 'active';
   };
 
   const fetchUsers = useCallback(async (filters?: { status?: StatusType; role?: string; condominio_id?: string }) => {
@@ -70,9 +73,6 @@ export function useAdmin() {
       if (fetchError) throw fetchError;
 
       type UsuarioRow = Database['public']['Tables']['usuarios']['Row'];
-      type _CondominioRow = Database['public']['Tables']['condominios']['Row'];
-      type _BlocoRow = Database['public']['Tables']['blocos']['Row'];
-      type _UnidadeRow = Database['public']['Tables']['unidades_habitacionais']['Row'];
       // type UsuarioCondominioRow = Database['public']['Tables']['usuario_condominios']['Row'];
 
       type UsuarioWithCondominios = UsuarioRow & {
