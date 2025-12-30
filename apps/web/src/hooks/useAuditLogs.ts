@@ -106,12 +106,12 @@ export function useAuditLogs() {
         }
         const usuario = 'usuarios' in log && log.usuarios ? (log.usuarios as LogUser) : null;
         return [
-          log.id, 
-          new Date(log.created_at).toLocaleString('pt-BR'), 
+          log.id,
+          new Date(log.created_at).toLocaleString('pt-BR'),
           usuario?.nome || log.usuario_id,
           usuario?.email || '',
-          log.acao, 
-          log.tabela, 
+          log.acao,
+          log.tabela,
           log.registro_id || ''
         ];
       });
