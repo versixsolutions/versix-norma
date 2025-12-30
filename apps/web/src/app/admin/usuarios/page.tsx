@@ -2,6 +2,7 @@
 import { UserTable } from '@/components/admin/UserTable';
 import { AuthGuard } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
+import type { StatusType } from '@/types/database';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
@@ -9,7 +10,7 @@ import { Suspense, useEffect } from 'react';
 function AdminUsuariosContent() {
   const { fetchUsers } = useAdmin();
   const searchParams = useSearchParams();
-  const statusFilter = searchParams?.get('status') || undefined;
+  const statusFilter = searchParams?.get('status') as StatusType | undefined;
   const condominioFilter = searchParams?.get('condominio') || undefined;
   useEffect(() => { fetchUsers({ status: statusFilter, condominio_id: condominioFilter }); }, [fetchUsers, statusFilter, condominioFilter]);
   return (
