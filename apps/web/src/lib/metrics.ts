@@ -338,7 +338,7 @@ export function startProfiling(name: string): () => void {
 // EXPORT
 // =====================================================
 
-export default {
+const metricsLib = {
   recordMetric,
   recordNormaChatMetric,
   recordFinancialMetric,
@@ -350,3 +350,5 @@ export default {
   healthCheckServices,
   startProfiling,
 };
+
+export default metricsLib;

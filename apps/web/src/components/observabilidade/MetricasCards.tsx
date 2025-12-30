@@ -5,19 +5,18 @@
 
 'use client';
 
-import { 
-  Users, 
-  MessageSquare, 
-  Activity, 
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  Zap,
-  AlertTriangle,
-  CheckCircle
+import type { DashboardObservabilidade } from '@/types/observabilidade';
+import {
+    Activity,
+    AlertTriangle,
+    CheckCircle,
+    Clock,
+    DollarSign,
+    TrendingDown,
+    TrendingUp,
+    Users,
+    Zap
 } from 'lucide-react';
-import type { MetricasGlobais, DashboardObservabilidade } from '@/types/observabilidade';
 
 // =====================================================
 // MAIN COMPONENT
@@ -166,16 +165,16 @@ export function MetricaCard({
         <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
           <Icon className="w-5 h-5" />
         </div>
-        
+
         {trend && (
-          <TrendIndicator 
-            value={trend.value} 
+          <TrendIndicator
+            value={trend.value}
             direction={trend.direction}
             isPositive={trend.isPositive}
           />
         )}
       </div>
-      
+
       <div className="space-y-1">
         <p className="text-2xl font-bold text-gray-900">
           {prefix}{formatValue(value)}{suffix}
@@ -235,7 +234,7 @@ export function StatsGrid({ stats, columns = 4 }: StatsGridProps) {
   return (
     <div className={`grid ${gridCols[columns]} gap-4`}>
       {stats.map((stat, index) => (
-        <div 
+        <div
           key={index}
           className="bg-gray-50 rounded-lg p-4"
         >
@@ -300,15 +299,15 @@ interface ProgressMetricProps {
   color?: 'green' | 'yellow' | 'red' | 'blue' | 'indigo';
 }
 
-export function ProgressMetric({ 
-  label, 
-  current, 
-  max, 
+export function ProgressMetric({
+  label,
+  current,
+  max,
   unit = '',
-  color = 'indigo' 
+  color = 'indigo'
 }: ProgressMetricProps) {
   const percentage = Math.min((current / max) * 100, 100);
-  
+
   const colorClasses = {
     green: 'bg-green-500',
     yellow: 'bg-yellow-500',
@@ -326,7 +325,7 @@ export function ProgressMetric({
         </span>
       </div>
       <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div 
+        <div
           className={`h-full ${colorClasses[color]} transition-all duration-500`}
           style={{ width: `${percentage}%` }}
         />

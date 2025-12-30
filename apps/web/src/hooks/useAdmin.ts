@@ -48,19 +48,31 @@ export function useAdmin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Mapeamento de status português para inglês (DB usa enum em inglês)
+  const mapStatusToDb = (status: StatusType): string => {
+    const statusMap: Record<string, string> = {
+      'ativo': 'active',
+      'inativo': 'inactive',
+      'pendente': 'pending',
+      'suspenso': 'suspended',
+      'bloqueado': 'removed'
+    };
+    return statusMap[status] || status;
+  };
+
   const fetchUsers = useCallback(async (filters?: { status?: StatusType; role?: string; condominio_id?: string }) => {
     setLoading(true);
     setError(null);
     try {
       let query = supabase.from('usuarios').select(`id, auth_id, nome, email, telefone, avatar_url, status, created_at, updated_at, usuario_condominios (condominio_id, role, unidade_id, condominios:condominio_id (nome), unidades:unidade_id (identificador))`).order('created_at', { ascending: false });
-      if (filters?.status) query = query.eq('status', filters.status);
+      if (filters?.status) query = query.eq('status', mapStatusToDb(filters.status));
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
 
       type UsuarioRow = Database['public']['Tables']['usuarios']['Row'];
-      type CondominioRow = Database['public']['Tables']['condominios']['Row'];
-      type BlocoRow = Database['public']['Tables']['blocos']['Row'];
-      type UnidadeRow = Database['public']['Tables']['unidades_habitacionais']['Row'];
+      type _CondominioRow = Database['public']['Tables']['condominios']['Row'];
+      type _BlocoRow = Database['public']['Tables']['blocos']['Row'];
+      type _UnidadeRow = Database['public']['Tables']['unidades_habitacionais']['Row'];
       // type UsuarioCondominioRow = Database['public']['Tables']['usuario_condominios']['Row'];
 
       type UsuarioWithCondominios = UsuarioRow & {

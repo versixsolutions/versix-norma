@@ -103,6 +103,9 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    SENTRY_SUPPRESS_GLOBAL_ERROR_HANDLER_FILE_WARNING: '1',
+  },
   reactStrictMode: true,
 
   // Otimizações de performance para Lighthouse

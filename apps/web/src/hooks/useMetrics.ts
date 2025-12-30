@@ -176,7 +176,7 @@ export function useErrorTracking(componentName: string) {
   }, [componentName]);
 }
 
-export default {
+const metricsHooks = {
   useNormaChatMetrics,
   useFinancialMetrics,
   useAssembleiaMetrics,
@@ -184,3 +184,5 @@ export default {
   useRenderMetrics,
   useErrorTracking,
 };
+
+export default metricsHooks;
