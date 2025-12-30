@@ -63,6 +63,17 @@ export function useAdmin() {
     return statusMap[status] ?? 'active';
   };
 
+  const mapDbStatusToApp = (status: DbStatus): StatusType => {
+    const statusMap: Record<DbStatus, StatusType> = {
+      'active': 'ativo',
+      'inactive': 'inativo',
+      'pending': 'pendente',
+      'suspended': 'suspenso',
+      'removed': 'bloqueado',
+    };
+    return statusMap[status] ?? 'ativo';
+  };
+
   const fetchUsers = useCallback(async (filters?: { status?: StatusType; role?: string; condominio_id?: string }) => {
     setLoading(true);
     setError(null);
@@ -87,7 +98,7 @@ export function useAdmin() {
 
       let formattedUsers: AdminUser[] = (data || []).map((user: UsuarioWithCondominios) => ({
         id: user.id, auth_id: user.auth_id, nome: user.nome, email: user.email, telefone: user.telefone,
-        avatar_url: user.avatar_url, status: user.status, created_at: user.created_at, updated_at: user.updated_at,
+        avatar_url: user.avatar_url, status: mapDbStatusToApp(user.status as DbStatus), created_at: user.created_at, updated_at: user.updated_at,
         condominios: (user.usuario_condominios || []).map((uc) => ({
           condominio_id: uc.condominio_id,
           condominio_nome: '',
@@ -104,7 +115,7 @@ export function useAdmin() {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, [supabase, mapStatusToDb]);
 
   const fetchCondominios = useCallback(async () => {
     setLoading(true);
