@@ -69,7 +69,7 @@ export default function IntegracoesPage() {
   };
 
 const handleBaixar = async (exp: Exportacao) => {
-    const url = await baixarExportacao(exp as any);
+    const url = await baixarExportacao(exp);
     if (url) window.open(url, '_blank');
   };
 
@@ -211,7 +211,7 @@ const handleBaixar = async (exp: Exportacao) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Tipo</label>
-                    <select value={exportForm.tipo} onChange={e => setExportForm({ ...exportForm, tipo: e.target.value as any })}
+                    <select value={exportForm.tipo} onChange={e => setExportForm({ ...exportForm, tipo: e.target.value as 'financeiro' | 'moradores' | 'ocorrencias' | 'reservas' | 'completo' })}
                       className="w-full mt-1 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 border-none">
                       <option value="financeiro">Financeiro</option>
                       <option value="moradores">Moradores</option>
@@ -222,7 +222,7 @@ const handleBaixar = async (exp: Exportacao) => {
                   </div>
                   <div>
                     <label className="text-sm font-medium">Formato</label>
-                    <select value={exportForm.formato} onChange={e => setExportForm({ ...exportForm, formato: e.target.value as any })}
+                    <select value={exportForm.formato} onChange={e => setExportForm({ ...exportForm, formato: e.target.value as 'csv' | 'xlsx' | 'ofx' | 'pdf' })}
                       className="w-full mt-1 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 border-none">
                       <option value="csv">CSV</option>
                       <option value="xlsx">Excel (XLSX)</option>

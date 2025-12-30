@@ -36,7 +36,8 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     // Registrar periodic sync para dados críticos
     if ('periodicSync' in registration) {
       try {
-        await (registration as any).periodicSync.register('update-critical-data', {
+        const regWithSync = registration as ServiceWorkerRegistrationWithPeriodicSync;
+        await regWithSync.periodicSync?.register('update-critical-data', {
           minInterval: 12 * 60 * 60 * 1000 // 12 horas
         });
       } catch {
@@ -95,12 +96,14 @@ export function useInstallPrompt() {
 
   useEffect(() => {
     // Detectar iOS
-    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isValidMSStream = !(window as any).MSStream;
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && isValidMSStream;
     setIsIOS(ios);
 
     // Detectar se já está instalado
+    const navigatorWithStandalone = navigator as NavigatorWithStandalone;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                         (navigator as any).standalone === true;
+                         navigatorWithStandalone.standalone === true;
     setIsInstalled(isStandalone);
 
     // Capturar evento de install prompt
@@ -235,7 +238,8 @@ export async function getStorageEstimate(): Promise<{ used: number; quota: numbe
 // NETWORK INFORMATION
 // ============================================
 export function getNetworkInfo(): { effectiveType: string; downlink: number; rtt: number; saveData: boolean } {
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  const navigator_ = navigator as Navigator & { connection?: NetworkInformation; mozConnection?: NetworkInformation; webkitConnection?: NetworkInformation };
+  const connection = navigator_.connection || navigator_.mozConnection || navigator_.webkitConnection;
 
   if (connection) {
     return {
@@ -256,7 +260,8 @@ export async function requestBackgroundSync(tag: string): Promise<boolean> {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     try {
       const registration = await navigator.serviceWorker.ready;
-      await (registration as any).sync.register(tag);
+      const regWithSync = registration as ServiceWorkerRegistrationWithPeriodicSync & { sync?: { register(tag: string): Promise<void> } };
+      await regWithSync.sync?.register(tag);
       return true;
     } catch {
       return false;

@@ -64,7 +64,7 @@ export function AlertasPanel() {
             {/* Filtro */}
             <select
               value={filtroSeveridade}
-              onChange={(e) => setFiltroSeveridade(e.target.value as any)}
+              onChange={(e) => setFiltroSeveridade(e.target.value as 'todos' | 'critical' | 'error' | 'warning' | 'info')}
               className="text-sm border border-gray-200 rounded-lg px-2 py-1"
             >
               <option value="todos">Todos</option>

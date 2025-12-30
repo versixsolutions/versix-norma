@@ -267,7 +267,8 @@ export function measureSync<T>(
 // =====================================================
 
 export function setCustomMetric(name: string, value: number, unit?: string) {
-  Sentry.setMeasurement(name, value, unit as any);
+  // Sentry.setMeasurement accepts string units - just pass directly
+  Sentry.setMeasurement(name, value, unit);
 }
 
 // =====================================================

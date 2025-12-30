@@ -60,7 +60,7 @@ export default function ObservabilidadePage() {
             {/* Período */}
             <select
               value={periodo}
-              onChange={(e) => setPeriodo(e.target.value as any)}
+              onChange={(e) => setPeriodo(e.target.value as '24h' | '7d' | '30d')}
               className="px-3 py-2 border border-gray-200 rounded-lg bg-white text-sm"
             >
               <option value="24h">Últimas 24 horas</option>

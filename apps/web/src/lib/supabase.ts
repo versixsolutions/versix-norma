@@ -3,9 +3,16 @@ import { createBrowserClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 // ============================================
+// TYPE DEFINITIONS
+// ============================================
+type SupabaseBrowserClient = ReturnType<typeof createBrowserClient<Database>>;
+type SupabaseServerClient = ReturnType<typeof createSupabaseClient<Database>>;
+type SupabaseAnyClient = SupabaseBrowserClient | SupabaseServerClient;
+
+// ============================================
 // BROWSER CLIENT (Client Components)
 // ============================================
-export function createClient() {
+export function createClient(): SupabaseBrowserClient {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -15,15 +22,15 @@ export function createClient() {
 // ============================================
 // SINGLETON CLIENT (para hooks)
 // ============================================
-let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null;
+let browserClient: SupabaseBrowserClient | null = null;
 
-export function getSupabaseClient() {
+export function getSupabaseClient(): SupabaseAnyClient {
   if (typeof window === 'undefined') {
-    // Server-side: sempre criar novo (mas retornar como any para evitar checagens estritas)
+    // Server-side: sempre criar novo
     return createSupabaseClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    ) as any;
+    );
   }
 
   // Browser: singleton
@@ -31,10 +38,10 @@ export function getSupabaseClient() {
     browserClient = createBrowserClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    ) as any;
+    );
   }
 
-  return browserClient as any;
+  return browserClient;
 }
 
 // ============================================

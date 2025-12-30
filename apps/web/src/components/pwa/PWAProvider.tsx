@@ -2,6 +2,13 @@
 
 import { useEffect } from 'react';
 
+// ============================================
+// TYPE DEFINITIONS
+// ============================================
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
 interface PWAProviderProps {
   children: React.ReactNode;
 }
@@ -21,8 +28,9 @@ export function PWAProvider({ children }: PWAProviderProps) {
     }
 
     // Detectar se está rodando como PWA
+    const navigatorWithStandalone = window.navigator as NavigatorWithStandalone;
     const isPWA = window.matchMedia('(display-mode: standalone)').matches ||
-                  (window.navigator as any).standalone === true;
+                  navigatorWithStandalone.standalone === true;
 
     if (isPWA) {
       console.log('[PWA] Aplicativo rodando em modo standalone');

@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAuthContext } from '@/contexts/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useAuthContext } from '@/contexts/AuthContext';
 
 export default function SignupPage() {
   const router = useRouter();
   const { signup, isAuthenticated, loading: authLoading } = useAuthContext();
-  
+
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -69,8 +69,13 @@ export default function SignupPage() {
       toast.success('Conta criada! Verifique seu email para confirmar.');
       router.push('/login');
     } else {
-      const errorMessage = (result.error as any)?.message || 'Erro ao criar conta';
-      
+      interface AuthError {
+        message?: string;
+      }
+
+      const error = result.error as AuthError | null;
+      const errorMessage = error?.message || 'Erro ao criar conta';
+
       if (errorMessage.includes('already registered')) {
         toast.error('Este email já está cadastrado');
       } else {

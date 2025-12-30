@@ -99,7 +99,22 @@ export function useAuditLogs() {
       if (fetchError) throw fetchError;
 
       const headers = ['ID', 'Data/Hora', 'Usuário', 'Email', 'Ação', 'Tabela', 'Registro'];
-      const rows = (data || []).map((log: AuditLog) => [log.id, new Date(log.created_at).toLocaleString('pt-BR'), (log as any).usuarios?.nome || log.usuario_id, (log as any).usuarios?.email || '', log.acao, log.tabela, log.registro_id || '']);
+      const rows = (data || []).map((log: AuditLog) => {
+        interface LogUser {
+          nome?: string;
+          email?: string;
+        }
+        const usuario = 'usuarios' in log && log.usuarios ? (log.usuarios as LogUser) : null;
+        return [
+          log.id, 
+          new Date(log.created_at).toLocaleString('pt-BR'), 
+          usuario?.nome || log.usuario_id,
+          usuario?.email || '',
+          log.acao, 
+          log.tabela, 
+          log.registro_id || ''
+        ];
+      });
       return [headers.join(','), ...rows.map(row => row.map(cell => `"${cell}"`).join(','))].join('\n');
     } catch (err) {
       setError(getErrorMessage(err));

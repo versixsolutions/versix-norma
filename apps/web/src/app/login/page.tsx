@@ -46,8 +46,15 @@ export default function LoginPage() {
       toast.success('Login realizado com sucesso!');
       router.push('/home');
     } else {
-      const errorMessage = (result.error as any)?.message || 'Erro ao fazer login';
-      const errorCode = (result.error as any)?.status || (result.error as any)?.code;
+      interface AuthError {
+        message?: string;
+        status?: number;
+        code?: string;
+      }
+
+      const error = result.error as AuthError | null;
+      const errorMessage = error?.message || 'Erro ao fazer login';
+      const errorCode = error?.status || error?.code;
 
       let userMessage = '';
       if (errorMessage.includes('Invalid login credentials')) {

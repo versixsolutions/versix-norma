@@ -171,13 +171,12 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
                       onClick={() => {
                         // Navegar para o documento fonte
                         logger.log('Fonte clicada:', source);
-                        const sourceAny = source as any;
-                        if (source.type === 'regimento' && sourceAny.id) {
-                          window.open(`/documentos/regimento/${sourceAny.id}`, '_blank');
-                        } else if (source.type === 'ata' && sourceAny.assembleia_id) {
-                          window.open(`/assembleias/${sourceAny.assembleia_id}`, '_blank');
-                        } else if (sourceAny.id) {
-                          window.open(`/documentos/${sourceAny.id}`, '_blank');
+                        if (source.type === 'regimento' && 'id' in source && typeof source.id === 'string') {
+                          window.open(`/documentos/regimento/${source.id}`, '_blank');
+                        } else if (source.type === 'ata' && 'assembleia_id' in source && typeof source.assembleia_id === 'string') {
+                          window.open(`/assembleias/${source.assembleia_id}`, '_blank');
+                        } else if ('id' in source && typeof source.id === 'string') {
+                          window.open(`/documentos/${source.id}`, '_blank');
                         }
                       }}
                     >

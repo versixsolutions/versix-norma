@@ -1,9 +1,9 @@
 'use client';
 
+import { useAnexos } from '@/hooks/useAnexos';
+import type { Comunicado, ComunicadoCategoria, ComunicadoStatus, CreateComunicadoInput } from '@/hooks/useComunicados';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import type { Comunicado, CreateComunicadoInput, ComunicadoCategoria, ComunicadoStatus } from '@/hooks/useComunicados';
-import { useAnexos } from '@/hooks/useAnexos';
 
 interface ComunicadoFormProps {
   comunicado?: Comunicado;
@@ -129,7 +129,7 @@ export function ComunicadoForm({ comunicado, condominioId, onSubmit, onCancel }:
       <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button type="button" onClick={onCancel} className="px-6 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">Cancelar</button>
         <button type="submit" disabled={loading} className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl font-medium disabled:opacity-50">Salvar Rascunho</button>
-        <button type="button" onClick={e => handleSubmit(e as any, 'publicado')} disabled={loading} className="px-6 py-3 bg-primary text-white rounded-xl font-medium disabled:opacity-50">{loading ? 'Publicando...' : 'Publicar'}</button>
+        <button type="button" onClick={e => handleSubmit(e as React.MouseEvent<HTMLButtonElement>, 'publicado')} disabled={loading} className="px-6 py-3 bg-primary text-white rounded-xl font-medium disabled:opacity-50">{loading ? 'Publicando...' : 'Publicar'}</button>
       </div>
     </form>
   );
