@@ -1,11 +1,11 @@
 'use client';
 
+import { NormaChatDynamic } from '@/components';
 import { AvatarMenu } from '@/components/features/AvatarMenu';
 import { BottomNav } from '@/components/features/BottomNav';
 import { FinancialPulse } from '@/components/features/FinancialPulse';
 import { MarketplaceCarousel } from '@/components/features/MarketplaceCarousel';
 import { MuralDigital } from '@/components/features/MuralDigital';
-import { NormaChat } from '@/components/features/NormaChat';
 import { NotificationPanel } from '@/components/features/NotificationPanel';
 import { QuickAccess } from '@/components/features/QuickAccess';
 import { SOSButton } from '@/components/features/SOSButton';
@@ -233,7 +233,7 @@ function HomeContent() {
           isOpen={showAvatarMenu}
           onClose={() => setShowAvatarMenu(false)}
         />
-        <NormaChat
+        <NormaChatDynamic
           isOpen={showNormaChat}
           onClose={() => setShowNormaChat(false)}
         />

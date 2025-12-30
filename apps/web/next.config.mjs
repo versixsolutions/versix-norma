@@ -128,10 +128,58 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
 
-  // Otimizações de bundle
+  // Otimizações de bundle e code-splitting
   experimental: {
     optimizeCss: true,
     scrollRestoration: true,
+    optimizePackageImports: [
+      '@versix/shared',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      'recharts',
+      'sonner',
+    ],
+  },
+
+  // Webpack config para melhor code-splitting
+  webpack: (config, { isServer }) => {
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          // Vendor libraries separados
+          vendors: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            priority: 10,
+            reuseExistingChunk: true,
+          },
+          // Componentes UI/Radix
+          ui: {
+            test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+            name: 'ui-components',
+            priority: 20,
+            reuseExistingChunk: true,
+          },
+          // Recharts para gráficos
+          charts: {
+            test: /[\\/]node_modules[\\/]recharts[\\/]/,
+            name: 'charts',
+            priority: 20,
+            reuseExistingChunk: true,
+          },
+          // Código compartilhado da aplicação
+          shared: {
+            minChunks: 2,
+            priority: 5,
+            reuseExistingChunk: true,
+            name: 'shared',
+          },
+        },
+      },
+    };
+    return config;
   },
 
   // Headers de segurança e performance
