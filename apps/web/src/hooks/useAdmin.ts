@@ -52,7 +52,7 @@ export function useAdmin() {
   type DbStatus = 'pending' | 'active' | 'inactive' | 'suspended' | 'removed';
 
   // Mapeamento de status português para inglês (DB usa enum em inglês)
-  const mapStatusToDb = (status: StatusType): DbStatus => {
+  const mapStatusToDb = useCallback((status: StatusType): DbStatus => {
     const statusMap: Record<StatusType, DbStatus> = {
       'ativo': 'active',
       'inativo': 'inactive',
@@ -61,9 +61,9 @@ export function useAdmin() {
       'bloqueado': 'removed'
     };
     return statusMap[status] ?? 'active';
-  };
+  }, []);
 
-  const mapDbStatusToApp = (status: DbStatus): StatusType => {
+  const mapDbStatusToApp = useCallback((status: DbStatus): StatusType => {
     const statusMap: Record<DbStatus, StatusType> = {
       'active': 'ativo',
       'inactive': 'inativo',
@@ -72,7 +72,7 @@ export function useAdmin() {
       'removed': 'bloqueado',
     };
     return statusMap[status] ?? 'ativo';
-  };
+  }, []);
 
   const fetchUsers = useCallback(async (filters?: { status?: StatusType; role?: string; condominio_id?: string }) => {
     setLoading(true);
@@ -94,7 +94,10 @@ export function useAdmin() {
         }>;
       };
 
-      const rows = (data || []) as UsuarioQueryResult[];
+      const rows: UsuarioQueryResult[] = (data || []).map((user) => ({
+        ...user,
+        usuario_condominios: Array.isArray(user.usuario_condominios) ? user.usuario_condominios : [],
+      }));
 
       let formattedUsers: AdminUser[] = rows.map((user) => ({
         id: user.id, auth_id: user.auth_id, nome: user.nome, email: user.email, telefone: user.telefone,
