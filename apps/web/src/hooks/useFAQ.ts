@@ -1,6 +1,6 @@
-import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { CreateFAQInput, FAQ, FAQFilters, PaginatedResponse, UpdateFAQInput } from '@versix/shared';
 import { useCallback, useState } from 'react';

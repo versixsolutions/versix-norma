@@ -1,7 +1,7 @@
-import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
 import { getErrorMessage } from '@/lib/errors';
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { RoleType, StatusType } from '@/types/database';
 import { Database } from '@versix/shared';

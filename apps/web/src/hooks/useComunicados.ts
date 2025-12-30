@@ -1,7 +1,7 @@
-import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
 import { getErrorMessage } from '@/lib/errors';
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { Comunicado, ComunicadoCategoria, ComunicadoFilters, ComunicadoStatus, CreateComunicadoInput, PaginatedResponse, UpdateComunicadoInput } from '@versix/shared';
 import { Database } from '@versix/shared';

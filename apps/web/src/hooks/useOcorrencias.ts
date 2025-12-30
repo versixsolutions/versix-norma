@@ -1,7 +1,7 @@
-import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
 import { getErrorMessage } from '@/lib/errors';
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { CreateOcorrenciaInput, Ocorrencia, OcorrenciaCategoria, OcorrenciaFilters, OcorrenciaHistorico, OcorrenciaStats, OcorrenciaStatus, PaginatedResponse, Prioridade, UpdateOcorrenciaInput } from '@versix/shared';
 import { Database } from '@versix/shared';

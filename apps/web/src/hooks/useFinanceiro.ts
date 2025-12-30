@@ -1,6 +1,6 @@
-import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { CategoriaFinanceira, Comprovante, ContaBancaria, CreateLancamentoInput, DashboardFinanceiro, LancamentoFilters, LancamentoFinanceiro, LancamentoStatus, LancamentoTipo, SaldoPeriodo, UpdateLancamentoInput } from '@versix/shared/types/financial';
 import { useCallback, useState } from 'react';
