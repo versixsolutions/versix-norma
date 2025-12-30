@@ -2,9 +2,14 @@
 
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
-import { Database } from '@versix/shared/database.types';
+import { Database } from '@versix/shared';
 import type { CreatePrestacaoInput, PrestacaoContas, PrestacaoStatus, RelatorioMensal, UpdatePrestacaoInput } from '@versix/shared/types/financial';
 import { useCallback, useState } from 'react';
+
+type LancamentoRow = Database['public']['Tables']['lancamentos_financeiros']['Row'];
+type LancamentoWithCategoria = LancamentoRow & {
+  categoria: { nome: string } | null;
+};
 
 export function usePrestacaoContas() {
   const supabase = getSupabaseClient();
@@ -43,10 +48,10 @@ export function usePrestacaoContas() {
 
       // Agrupar por categoria
       const porCategoria: Record<string, { receitas: number; despesas: number }> = {};
-      type LancamentoRow = Database['public']['Tables']['lancamentos_financeiros']['Row'];
-      type LancamentoWithCategoria = LancamentoRow & {
-        categoria: { nome: string } | null;
-      };
+  type LancamentoRow = Database['public']['Tables']['lancamentos_financeiros']['Row'];
+  type LancamentoWithCategoria = LancamentoRow & {
+    categoria: { nome: string } | null;
+  };
       (lancamentos || []).forEach((l: LancamentoWithCategoria) => {
         const cat = l.categoria?.nome || 'Outros';
         if (!porCategoria[cat]) porCategoria[cat] = { receitas: 0, despesas: 0 };

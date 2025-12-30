@@ -31,7 +31,7 @@
           - generic [ref=e33]:
             - generic [ref=e36]: Saúde Financeira
             - heading "Contas em Dia" [level=3] [ref=e37]
-            - paragraph [ref=e38]: "Última atualização: 29/12/2025"
+            - paragraph [ref=e38]: "Última atualização: 30/12/2025"
           - generic [ref=e41]: verified_user
         - generic [ref=e42]:
           - generic [ref=e43]:

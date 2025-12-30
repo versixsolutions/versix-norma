@@ -3,7 +3,7 @@
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { AvaliarChamadoInput, Chamado, ChamadoCategoria, ChamadoFilters, ChamadoMensagem, ChamadoStats, ChamadoStatus, CreateChamadoInput, CreateMensagemInput, PaginatedResponse, UpdateChamadoInput } from '@versix/shared';
-import { Database } from '@versix/shared/database.types';
+import { Database } from '@versix/shared';
 import { useCallback, useEffect, useState } from 'react';
 
 export function useChamados(options?: { condominioId?: string | null; userId?: string | null; apenasMinhaUnidade?: boolean }) {

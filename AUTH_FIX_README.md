@@ -13,7 +13,7 @@ Antes de executar o script, você precisa da **Service Role Key** do Supabase:
 3. Adicione ao arquivo `.env.local`:
 
 ```bash
-SUPABASE_SERVICE_ROLE_KEY="sua-service-role-key-aqui"
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkcnlmYWxrdnVsaHpvYWhndnFjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjMwNTU2OSwiZXhwIjoyMDgxODgxNTY5fQ.LHC6YvYOhuy2bv6GjjcH3b6LQOxTQa4qln3e3LcmTGI
 ```
 
 ⚠️ **Importante**: Nunca commite esta chave no git. Ela dá acesso administrativo completo ao seu projeto.

@@ -2,7 +2,7 @@
 
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
-import { Database, Json } from '@versix/shared/database.types';
+import { Database, Json } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 export interface AuditLog {

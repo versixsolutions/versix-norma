@@ -2,7 +2,7 @@
 
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
-import { Database } from '@versix/shared/database.types';
+import { Database } from '@versix/shared';
 import type { CobrancaStatus, CreateTaxaInput, TaxaFilters, TaxaTipo, TaxaUnidade, UpdateTaxaInput } from '@versix/shared/types/financial';
 import { useCallback, useState } from 'react';
 

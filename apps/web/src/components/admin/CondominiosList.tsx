@@ -28,7 +28,7 @@ export function CondominiosList({ condominios, loading }: CondominiosListProps) 
               <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0"><span className="material-symbols-outlined text-primary text-3xl">apartment</span></div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">{condo.nome}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{condo.endereco?.logradouro && <>{condo.endereco.logradouro}{condo.endereco.numero && `, ${condo.endereco.numero}`}{condo.endereco.bairro && ` - ${condo.endereco.bairro}`}</>}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{condo.endereco}</p>
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-gray-400 text-lg">group</span><span className="text-gray-600 dark:text-gray-300">{condo.total_usuarios} usuários</span></div>
                   <div className="flex items-center gap-2 text-sm"><span className="material-symbols-outlined text-gray-400 text-lg">home</span><span className="text-gray-600 dark:text-gray-300">{condo.total_unidades} unidades</span></div>

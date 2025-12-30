@@ -3,7 +3,7 @@
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { Comunicado, ComunicadoCategoria, ComunicadoFilters, ComunicadoStatus, CreateComunicadoInput, PaginatedResponse, UpdateComunicadoInput } from '@versix/shared';
-import { Database } from '@versix/shared/database.types';
+import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 export function useComunicados(_options?: { condominioId?: string | null; userId?: string | null }) {
@@ -63,11 +63,30 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
     }
   }, [supabase]);
 
+  // Mapeia categoria do front para o enum do banco
+  // Tipos aceitos pelo banco
+  type CategoriaDb = 'urgente' | 'geral' | 'manutencao' | 'financeiro' | 'seguranca' | 'evento' | 'obras' | 'assembleia';
+  function mapCategoriaToDb(categoria?: ComunicadoCategoria): CategoriaDb | undefined {
+    if (!categoria) return undefined;
+    if (categoria === 'aviso_geral' || categoria === 'outros') return 'geral';
+    if (categoria === 'eventos') return 'evento';
+    // Garantir que só retorna valores válidos
+    if ([
+      'urgente', 'geral', 'manutencao', 'financeiro', 'seguranca', 'evento', 'obras', 'assembleia'
+    ].includes(categoria)) {
+      return categoria as CategoriaDb;
+    }
+    return 'geral';
+  }
+
   const createComunicado = useCallback(async (condominioId: string, autorId: string, input: CreateComunicadoInput): Promise<Comunicado | null> => {
     setLoading(true);
     try {
       const { data, error: insertError } = await supabase.from('comunicados').insert({
-        condominio_id: condominioId, autor_id: autorId, ...input,
+        condominio_id: condominioId,
+        autor_id: autorId,
+        ...input,
+        categoria: mapCategoriaToDb(input.categoria),
         published_at: input.status === 'publicado' ? new Date().toISOString() : null
       }).select().single();
       if (insertError) throw insertError;
@@ -85,12 +104,15 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
     setLoading(true);
     try {
       const { id, ...updates } = input;
+      // Mapeia categoria para o enum do banco
+      const categoriaDb = mapCategoriaToDb(updates.categoria);
       // Se publicando agora, definir published_at
       if (updates.status === 'publicado') {
         const current = comunicados.find(c => c.id === id);
         type ComunicadoUpdate = Database['public']['Tables']['comunicados']['Update'] & { published_at?: string };
         const updatePayload: ComunicadoUpdate = {
           ...updates,
+          categoria: categoriaDb,
           ...(current?.status !== 'publicado' && { published_at: new Date().toISOString() })
         };
         const { data, error: updateError } = await supabase.from('comunicados').update(updatePayload).eq('id', id).select().single();
@@ -98,14 +120,11 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
         setComunicados(prev => prev.map(c => c.id === id ? data : c));
         return data;
       } else {
-        const { data, error: updateError } = await supabase.from('comunicados').update(updates).eq('id', id).select().single();
+        const { data, error: updateError } = await supabase.from('comunicados').update({ ...updates, categoria: categoriaDb }).eq('id', id).select().single();
         if (updateError) throw updateError;
         setComunicados(prev => prev.map(c => c.id === id ? data : c));
         return data;
       }
-      if (updateError) throw updateError;
-      setComunicados(prev => prev.map(c => c.id === id ? data : c));
-      return data;
     } catch (err) {
       setError(getErrorMessage(err) || 'Erro ao atualizar comunicado');
       return null;

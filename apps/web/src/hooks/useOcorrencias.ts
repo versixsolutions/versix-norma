@@ -3,7 +3,7 @@
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { CreateOcorrenciaInput, Ocorrencia, OcorrenciaCategoria, OcorrenciaFilters, OcorrenciaHistorico, OcorrenciaStats, OcorrenciaStatus, PaginatedResponse, Prioridade, UpdateOcorrenciaInput } from '@versix/shared';
-import { Database } from '@versix/shared/database.types';
+import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 export function useOcorrencias() {
