@@ -84,19 +84,19 @@ export function useAdmin() {
       if (fetchError) throw fetchError;
 
       type UsuarioRow = Database['public']['Tables']['usuarios']['Row'];
-      // type UsuarioCondominioRow = Database['public']['Tables']['usuario_condominios']['Row'];
-
-      type UsuarioWithCondominios = UsuarioRow & {
-        usuario_condominios: Array<{
+      type UsuarioQueryResult = Pick<UsuarioRow, 'id' | 'auth_id' | 'nome' | 'email' | 'telefone' | 'avatar_url' | 'status' | 'created_at' | 'updated_at'> & {
+        usuario_condominios?: Array<{
           condominio_id: string;
-          condominio_nome: string;
           role: RoleType;
           unidade_id: string | null;
-          unidade_identificador: string | null;
+          unidade_identificador?: string | null;
+          condominio_nome?: string | null;
         }>;
       };
 
-      let formattedUsers: AdminUser[] = (data || []).map((user: UsuarioWithCondominios) => ({
+      const rows = (data || []) as UsuarioQueryResult[];
+
+      let formattedUsers: AdminUser[] = rows.map((user) => ({
         id: user.id, auth_id: user.auth_id, nome: user.nome, email: user.email, telefone: user.telefone,
         avatar_url: user.avatar_url, status: mapDbStatusToApp(user.status as DbStatus), created_at: user.created_at, updated_at: user.updated_at,
         condominios: (user.usuario_condominios || []).map((uc) => ({
@@ -115,7 +115,7 @@ export function useAdmin() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, mapStatusToDb]);
+  }, [supabase, mapStatusToDb, mapDbStatusToApp]);
 
   const fetchCondominios = useCallback(async () => {
     setLoading(true);
