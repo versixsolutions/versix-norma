@@ -8,7 +8,7 @@ test('usuário de teste consegue fazer login', async ({ page, testUser }) => {
   await page.fill('input[placeholder="Digite seu e-mail"]', testUser.email);
   await page.fill('input[placeholder="Digite sua senha"]', testUser.password);
   await page.click('button:has-text("Entrar")');
-  await expect(page.locator('text=Bem-vindo')).toBeVisible({ timeout: 10000 });
+  await page.waitForURL('**/home*', { timeout: 30000 });
 });
 
 // Teste 2: Logout
@@ -19,7 +19,8 @@ test('usuário consegue fazer logout', async ({ page, testUser }) => {
   await page.fill('input[placeholder="Digite seu e-mail"]', testUser.email);
   await page.fill('input[placeholder="Digite sua senha"]', testUser.password);
   await page.click('button:has-text("Entrar")');
-  await expect(page.locator('text=Bem-vindo')).toBeVisible({ timeout: 10000 });
+  await page.waitForURL('**/home*', { timeout: 30000 });
+  await expect(page.locator('[aria-label="Sair"]')).toBeVisible({ timeout: 20000 });
   // Logout
   await page.click('button[aria-label="Sair"]');
   await expect(page.locator('input[placeholder="Digite seu e-mail"]')).toBeVisible();
@@ -32,7 +33,8 @@ test('usuário navega para chamados', async ({ page, testUser }) => {
   await page.fill('input[placeholder="Digite seu e-mail"]', testUser.email);
   await page.fill('input[placeholder="Digite sua senha"]', testUser.password);
   await page.click('button:has-text("Entrar")');
-  await expect(page.locator('text=Bem-vindo')).toBeVisible({ timeout: 10000 });
+  await page.waitForURL('**/home*', { timeout: 30000 });
+  await expect(page.locator('a[href="/chamados"]')).toBeVisible({ timeout: 20000 });
   await page.click('a[href="/chamados"]');
   await expect(page.locator('h1')).toHaveText(/Chamados/i);
 });

@@ -48,7 +48,7 @@ export function useAdmin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUsers = useCallback(async (filters?: { status?: string; role?: string; condominio_id?: string }) => {
+  const fetchUsers = useCallback(async (filters?: { status?: StatusType; role?: string; condominio_id?: string }) => {
     setLoading(true);
     setError(null);
     try {

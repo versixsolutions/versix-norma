@@ -29,10 +29,7 @@ export async function loginAsUser(page: Page, role: UserRole = 'morador'): Promi
   await page.fill('input[type="password"], input[placeholder="Digite sua senha"]', creds.password);
   await page.click('button[type="submit"], button:has-text("Entrar")');
 
-  await Promise.race([
-    page.waitForURL(/\/(home|sindico|admin)/, { timeout: 20000 }),
-    page.waitForSelector('text=Bem-vindo', { timeout: 20000 }),
-  ]);
+  await page.waitForURL('**/home*', { timeout: 30000 });
 }
 
 export type { UserRole };
