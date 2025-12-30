@@ -3,6 +3,7 @@
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useContextualSuggestions } from '@/hooks/useContextualSuggestions';
 import { useNormaChat, useNormaChatMock } from '@/hooks/useNormaChat';
+import { logger } from '@/lib/logger';
 import { useEffect, useRef, useState } from 'react';
 
 interface NormaChatProps {
@@ -168,8 +169,16 @@ export function NormaChat({ isOpen, onClose }: NormaChatProps) {
                       key={i}
                       className="w-full text-left p-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
                       onClick={() => {
-                        // TODO: Abrir modal ou navegar para o documento
-                        console.log('Fonte clicada:', source);
+                        // Navegar para o documento fonte
+                        logger.log('Fonte clicada:', source);
+                        const sourceAny = source as any;
+                        if (source.type === 'regimento' && sourceAny.id) {
+                          window.open(`/documentos/regimento/${sourceAny.id}`, '_blank');
+                        } else if (source.type === 'ata' && sourceAny.assembleia_id) {
+                          window.open(`/assembleias/${sourceAny.assembleia_id}`, '_blank');
+                        } else if (sourceAny.id) {
+                          window.open(`/documentos/${sourceAny.id}`, '_blank');
+                        }
                       }}
                     >
                       <div className="flex items-start gap-2">

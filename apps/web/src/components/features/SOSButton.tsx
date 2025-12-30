@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { logger } from '@/lib/logger';
+import { getSupabaseClient } from '@/lib/supabase';
+import { useEffect, useRef, useState } from 'react';
 
 export function SOSButton() {
   const [pressing, setPressing] = useState(false);
   const [progress, setProgress] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const supabase = getSupabaseClient();
 
   const startPress = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -32,12 +35,31 @@ export function SOSButton() {
     }
   };
 
-  const handleSOS = () => {
-    console.log('🆘 SOS Acionado!');
-    // TODO: Integrar com backend - enviar alerta de emergência
-    alert('🆘 Emergência acionada! Equipe de resposta notificada.');
-    setPressing(false);
-    setProgress(0);
+  const handleSOS = async () => {
+    try {
+      // Enviar alerta de emergência para o backend
+      const { error } = await supabase.functions.invoke('send-emergency-alert', {
+        body: {
+          tipo: 'sos',
+          localizacao: window.location.href,
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+      if (error) {
+        console.error('⚠️ Erro ao enviar SOS:', error);
+        alert('⚠️ Não foi possível enviar o alerta. Por favor, ligue diretamente para a emergência.');
+      } else {
+        logger.log('🆘 SOS Acionado com sucesso!');
+        alert('🆘 Emergência acionada! Equipe de resposta notificada.');
+      }
+    } catch (err) {
+      console.error('⚠️ Erro ao acionar SOS:', err);
+      alert('⚠️ Erro ao enviar alerta. Ligue para: 190 (Polícia) ou 193 (Bombeiros)');
+    } finally {
+      setPressing(false);
+      setProgress(0);
+    }
   };
 
   useEffect(() => {

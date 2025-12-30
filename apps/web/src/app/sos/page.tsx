@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useOnlineStatus } from '@/lib/pwa';
 import { getAllCriticalData, type EmergencyContact, type VulnerableResident } from '@/lib/offline-db';
+import { useOnlineStatus } from '@/lib/pwa';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 const TIPO_ICONS: Record<string, string> = {
   bombeiros: '🚒',
@@ -97,7 +97,7 @@ export default function SOSPage() {
             <span className="material-symbols-outlined">call</span>
             Telefones de Emergência
           </h2>
-          
+
           {contacts.length === 0 ? (
             <div className="bg-red-500 rounded-xl p-4 text-white/80 text-center">
               <p>Nenhum telefone sincronizado</p>
@@ -134,7 +134,7 @@ export default function SOSPage() {
               <span className="material-symbols-outlined">elderly</span>
               Moradores que Precisam de Ajuda
             </h2>
-            
+
             <div className="bg-white rounded-xl overflow-hidden shadow-lg">
               {vulnerable.map((res, idx) => (
                 <div key={res.id} className={`p-4 flex items-center gap-3 ${idx > 0 ? 'border-t border-gray-100' : ''}`}>
@@ -168,7 +168,7 @@ export default function SOSPage() {
             <span className="material-symbols-outlined">bolt</span>
             Ações Rápidas
           </h2>
-          
+
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => makeCall('192')}
@@ -178,7 +178,7 @@ export default function SOSPage() {
               <span className="font-bold text-gray-800">SAMU</span>
               <span className="text-2xl font-bold text-red-600">192</span>
             </button>
-            
+
             <button
               onClick={() => makeCall('193')}
               className="bg-white rounded-xl p-4 flex flex-col items-center gap-2 shadow-lg active:scale-98"
@@ -187,7 +187,7 @@ export default function SOSPage() {
               <span className="font-bold text-gray-800">Bombeiros</span>
               <span className="text-2xl font-bold text-red-600">193</span>
             </button>
-            
+
             <button
               onClick={() => makeCall('190')}
               className="bg-white rounded-xl p-4 flex flex-col items-center gap-2 shadow-lg active:scale-98"
@@ -196,7 +196,7 @@ export default function SOSPage() {
               <span className="font-bold text-gray-800">Polícia</span>
               <span className="text-2xl font-bold text-red-600">190</span>
             </button>
-            
+
             <button
               onClick={() => makeCall('180')}
               className="bg-white rounded-xl p-4 flex flex-col items-center gap-2 shadow-lg active:scale-98"
@@ -216,7 +216,7 @@ export default function SOSPage() {
               <div>
                 <p className="font-bold">Você está offline</p>
                 <p className="text-sm text-amber-100 mt-1">
-                  Os dados exibidos foram sincronizados anteriormente. 
+                  Os dados exibidos foram sincronizados anteriormente.
                   Ligações funcionam normalmente via rede celular.
                 </p>
               </div>

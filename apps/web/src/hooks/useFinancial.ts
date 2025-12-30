@@ -133,12 +133,37 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
         const despesasMes = despesas?.reduce((sum, l) => sum + Math.abs(l.valor || 0), 0) || 0;
 
+        // Calcular inadimplência real
+        const { data: boletosVencidos } = await supabase
+          .from('boletos')
+          .select('valor')
+          .eq('condominio_id', condominioId)
+          .eq('status', 'pendente')
+          .lt('vencimento', new Date().toISOString());
+
+        const { data: boletosTotal } = await supabase
+          .from('boletos')
+          .select('valor')
+          .eq('condominio_id', condominioId);
+
+        const valorVencido = boletosVencidos?.reduce((sum, b) => sum + (b.valor || 0), 0) || 0;
+        const valorTotalBoletos = boletosTotal?.reduce((sum, b) => sum + (b.valor || 0), 0) || 1;
+        const inadimplenciaPercent = valorTotalBoletos > 0 ? Math.round((valorVencido / valorTotalBoletos) * 100) : 0;
+
+        // Buscar saldo do fundo de reserva
+        const { data: fundoReserva } = await supabase
+          .from('contas_bancarias')
+          .select('saldo')
+          .eq('condominio_id', condominioId)
+          .eq('tipo', 'fundo_reserva')
+          .single();
+
         setDashboard({
           saldo_total: saldoTotal,
           receitas_mes: receitasMes,
           despesas_mes: despesasMes,
-          inadimplencia_percent: 8, // TODO: calcular real
-          fundo_reserva: saldoTotal * 0.3, // TODO: conta específica
+          inadimplencia_percent: inadimplenciaPercent,
+          fundo_reserva: fundoReserva?.saldo || 0,
         });
       } else {
         setDashboard(data);
