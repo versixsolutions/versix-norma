@@ -524,7 +524,7 @@ x-documentation:
   - title: Tratamento de Erros
     description: |
       Todos os endpoints retornam erros padrão:
-      
+
       ```json
       {
         "error": "Descrição do erro",

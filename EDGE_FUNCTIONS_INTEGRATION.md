@@ -28,7 +28,7 @@ const token = session?.access_token;
 ```typescript
 async function askNorma(message: string) {
   const { data: { session } } = await supabase.auth.getSession();
-  
+
   const response = await fetch(
     'https://{project}.functions.supabase.co/ask-norma',
     {
@@ -45,7 +45,7 @@ async function askNorma(message: string) {
       }),
     }
   );
-  
+
   const { message: response, sources } = await response.json();
   return { response, sources };
 }
@@ -74,7 +74,7 @@ async function sendSOSAlert(description: string, location?: { lat: number; lng: 
       }),
     }
   );
-  
+
   const { alert_id, notified } = await response.json();
   return { alert_id, notified };
 }
@@ -106,7 +106,7 @@ async function sendNotificationEmail(to: string, subject: string, htmlContent: s
       }),
     }
   );
-  
+
   return response.json();
 }
 ```
@@ -133,10 +133,10 @@ async function trackEvent(event: string, data: Record<string, any>) {
 }
 
 // Exemplo de uso:
-trackEvent('norma_chat_message', { 
+trackEvent('norma_chat_message', {
   topic: 'assembleias',
   responseTime: 1200,
-  hadSources: true 
+  hadSources: true
 });
 ```
 
@@ -154,13 +154,13 @@ async function validateUserSession() {
       },
     }
   );
-  
+
   if (response.status === 401) {
     // Sessão expirada, fazer logout
     await supabase.auth.signOut();
     return null;
   }
-  
+
   const { userId, expiresAt } = await response.json();
   return { userId, expiresAt };
 }
@@ -179,12 +179,12 @@ export function useNormaChat(condominioId: string, userId: string) {
   const supabase = getSupabaseClient();
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  
+
   const sendMessage = useCallback(async (input: string) => {
     try {
       setIsTyping(true);
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       const response = await fetch(
         'https://{project}.functions.supabase.co/ask-norma',
         {
@@ -201,9 +201,9 @@ export function useNormaChat(condominioId: string, userId: string) {
           }),
         }
       );
-      
+
       const { message, sources } = await response.json();
-      setMessages(prev => [...prev, 
+      setMessages(prev => [...prev,
         { role: 'user', content: input },
         { role: 'assistant', content: message, sources }
       ]);
@@ -211,7 +211,7 @@ export function useNormaChat(condominioId: string, userId: string) {
       setIsTyping(false);
     }
   }, [supabase, condominioId, userId, messages]);
-  
+
   return { messages, isTyping, sendMessage };
 }
 ```
