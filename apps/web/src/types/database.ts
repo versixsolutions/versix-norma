@@ -6252,7 +6252,7 @@ export interface Lancamento {
   data_pagamento?: string;
   numero_documento?: string;
   observacoes?: string;
-  anexos?: any[];
+  anexos?: Record<string, unknown>[];
   created_at: string;
   updated_at: string;
 }

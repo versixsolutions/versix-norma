@@ -5,7 +5,7 @@ import { WebhookEventosSelector } from '@/components/integracoes/WebhookEventosS
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useExportacoes } from '@/hooks/useExportacoes';
 import { useIntegracoes } from '@/hooks/useIntegracoes';
-import type { CreateExportacaoInput, CreateIntegracaoApiInput, CreateWebhookInput } from '@versix/shared';
+import type { CreateExportacaoInput, CreateIntegracaoApiInput, CreateWebhookInput, Exportacao } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -68,8 +68,8 @@ export default function IntegracoesPage() {
     setSubmitting(false);
   };
 
-  const handleBaixar = async (exp: any) => {
-    const url = await baixarExportacao(exp);
+const handleBaixar = async (exp: Exportacao) => {
+    const url = await baixarExportacao(exp as any);
     if (url) window.open(url, '_blank');
   };
 

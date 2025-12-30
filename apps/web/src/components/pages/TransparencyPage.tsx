@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthContext } from '@/contexts/AuthContext';
+import type { LancamentoComDetalhes } from '@/hooks/useFinancial';
 import { useFinancial } from '@/hooks/useFinancial';
 
 interface DashboardData {
@@ -127,7 +128,7 @@ export function TransparencyPage({ onScroll, dashboard: propDashboard }: Transpa
           </div>
         ) : (
           <div className="space-y-3">
-            {lancamentos.slice(0, 10).map((lancamento: any) => (
+            {lancamentos.slice(0, 10).map((lancamento: LancamentoComDetalhes) => (
               <div
                 key={lancamento.id}
                 className="bg-white dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between"

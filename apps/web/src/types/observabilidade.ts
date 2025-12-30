@@ -22,13 +22,13 @@ export interface MetricasUso {
   condominio_id: string;
   periodo: string; // DATE
   tipo_periodo: TipoPeriodo;
-  
+
   // Uso
   usuarios_ativos: number;
   sessoes_totais: number;
   tempo_medio_sessao_segundos: number;
   page_views: number;
-  
+
   // Features
   comunicados_criados: number;
   comunicados_visualizados: number;
@@ -39,7 +39,7 @@ export interface MetricasUso {
   reservas_feitas: number;
   votos_assembleias: number;
   documentos_acessados: number;
-  
+
   // IA
   norma_conversas: number;
   norma_mensagens: number;
@@ -47,7 +47,7 @@ export interface MetricasUso {
   norma_tokens_saida: number;
   norma_tempo_resposta_avg_ms: number;
   norma_satisfacao_avg: number | null;
-  
+
   // Comunicação
   notificacoes_enviadas: number;
   notificacoes_lidas: number;
@@ -56,14 +56,14 @@ export interface MetricasUso {
   sms_enviados: number;
   push_enviados: number;
   push_clicados: number;
-  
+
   // Custos (centavos)
   custo_ia_centavos: number;
   custo_email_centavos: number;
   custo_sms_centavos: number;
   custo_storage_centavos: number;
   custo_total_centavos: number;
-  
+
   created_at: string;
   updated_at: string;
 }
@@ -73,25 +73,25 @@ export interface MetricasPerformance {
   periodo: string;
   endpoint: string;
   metodo: string;
-  
+
   total_requests: number;
   requests_sucesso: number;
   requests_erro: number;
   requests_timeout: number;
-  
+
   latencia_min: number | null;
   latencia_p50: number | null;
   latencia_p90: number | null;
   latencia_p99: number | null;
   latencia_max: number | null;
   latencia_avg: number | null;
-  
+
   rps_max: number | null;
   rps_avg: number | null;
-  
+
   response_size_avg: number | null;
   response_size_max: number | null;
-  
+
   created_at: string;
 }
 
@@ -99,30 +99,30 @@ export interface AlertaSistema {
   id: string;
   tipo: string;
   severidade: SeveridadeAlerta;
-  
+
   condominio_id: string | null;
   usuario_id: string | null;
   endpoint: string | null;
-  
+
   titulo: string;
   descricao: string | null;
   dados: Record<string, any>;
   stack_trace: string | null;
-  
+
   status: StatusAlerta;
   resolvido_em: string | null;
   resolvido_por: string | null;
   resolucao_notas: string | null;
-  
+
   notificado_slack: boolean;
   notificado_email: boolean;
   notificado_pagerduty: boolean;
-  
+
   fingerprint: string | null;
   ocorrencias: number;
   primeira_ocorrencia: string;
   ultima_ocorrencia: string;
-  
+
   created_at: string;
 }
 
@@ -131,14 +131,14 @@ export interface UptimeCheck {
   endpoint_nome: string;
   endpoint_url: string;
   endpoint_critico: boolean;
-  
+
   status: StatusUptime;
   status_code: number | null;
   latencia_ms: number | null;
-  
+
   erro_mensagem: string | null;
   erro_tipo: string | null;
-  
+
   checked_at: string;
 }
 
@@ -149,25 +149,25 @@ export interface ApiRequestLog {
   path: string;
   query_params: Record<string, any> | null;
   headers_selecionados: Record<string, any> | null;
-  
+
   status_code: number;
   response_time_ms: number;
   response_size_bytes: number | null;
-  
+
   usuario_id: string | null;
   condominio_id: string | null;
-  
+
   ip_address: string | null;
   user_agent: string | null;
   referer: string | null;
-  
+
   erro: boolean;
   erro_tipo: string | null;
   erro_mensagem: string | null;
-  
+
   edge_function: string | null;
   edge_region: string | null;
-  
+
   created_at: string;
 }
 
@@ -175,19 +175,19 @@ export interface AnomaliaDetectada {
   id: string;
   metrica: string;
   condominio_id: string | null;
-  
+
   valor_atual: number;
   baseline_media: number;
   baseline_desvio: number;
   z_score: number;
-  
+
   severidade: SeveridadeAnomalia;
   direcao: 'acima' | 'abaixo';
-  
+
   confirmada: boolean | null;
   falso_positivo: boolean;
   investigada: boolean;
-  
+
   detected_at: string;
 }
 
@@ -198,17 +198,17 @@ export interface HealthCheckConfig {
   metodo: string;
   headers: Record<string, string>;
   body: Record<string, any> | null;
-  
+
   ativo: boolean;
   critico: boolean;
   intervalo_segundos: number;
   timeout_segundos: number;
-  
+
   expect_status: number;
   expect_body_contains: string | null;
-  
+
   alertar_apos_falhas: number;
-  
+
   created_at: string;
   updated_at: string;
 }
@@ -388,7 +388,7 @@ export interface SentryContext {
   usuario_id?: string;
   endpoint?: string;
   request_id?: string;
-  [key: string]: any;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 // =====================================================

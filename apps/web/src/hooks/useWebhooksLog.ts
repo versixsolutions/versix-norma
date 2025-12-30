@@ -46,8 +46,8 @@ export function useWebhooksLog() {
       if (fetchError) throw fetchError;
       setApiLogs(data || []);
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
       return [];
     } finally {
       setLoading(false);

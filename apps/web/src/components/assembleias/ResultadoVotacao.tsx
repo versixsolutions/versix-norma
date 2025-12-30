@@ -1,10 +1,10 @@
 'use client';
 
-import type { Pauta } from '@versix/shared/types/assembleias';
+import type { Pauta, PautaResultado } from '@versix/shared/types/assembleias';
 
 interface ResultadoVotacaoProps {
   pauta: Pauta;
-  resultado?: any;
+  resultado?: PautaResultado;
 }
 
 export function ResultadoVotacao({ pauta, resultado }: ResultadoVotacaoProps) {
@@ -73,7 +73,7 @@ export function ResultadoVotacao({ pauta, resultado }: ResultadoVotacaoProps) {
         </div>
 
         <div className="space-y-3">
-          {res.eleitos.map((eleito: any, index: number) => (
+          {res.eleitos.map((eleito: { opcao_id: string; titulo: string; votos: number; fracoes?: number }, index: number) => (
             <div key={eleito.opcao_id} className="flex items-center gap-3 bg-white/50 dark:bg-black/20 rounded-xl p-3">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${index === 0 ? 'bg-amber-400 text-white' : 'bg-gray-300 text-gray-700'}`}>
                 {index + 1}

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 // ============================================
 // TYPES
 // ============================================
-interface DashboardFinanceiro {
+export interface DashboardFinanceiro {
   saldo_total: number;
   receitas_mes: number;
   despesas_mes: number;
@@ -16,7 +16,7 @@ interface DashboardFinanceiro {
   fundo_reserva: number;
 }
 
-interface ContaBancaria {
+export interface ContaBancaria {
   id: string;
   nome: string;
   banco: string;
@@ -24,7 +24,7 @@ interface ContaBancaria {
   is_principal: boolean;
 }
 
-interface LancamentoComDetalhes extends Lancamento {
+export interface LancamentoComDetalhes extends Lancamento {
   categoria_nome?: string;
   unidade_identificador?: string;
 }

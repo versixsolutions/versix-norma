@@ -23,7 +23,7 @@ export function PreferenciasCanais({ preferencias, onSave, loading }: Preferenci
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const handleChange = (key: keyof UpdatePreferenciasInput, value: any) => {
+  const handleChange = (key: keyof UpdatePreferenciasInput, value: string | number | boolean) => {
     setForm(prev => ({ ...prev, [key]: value }));
     setSaved(false);
   };

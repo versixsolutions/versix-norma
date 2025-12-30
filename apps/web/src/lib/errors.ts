@@ -1,6 +1,6 @@
 /**
  * Helper para tratamento de erros tipado
- * Substitui o padrão (err: any) => err.message
+ * Substitui o padrão (err: unknown) => err.message
  */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {

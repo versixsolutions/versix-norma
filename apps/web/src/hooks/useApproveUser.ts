@@ -40,7 +40,17 @@ export function useApproveUser() {
 
       if (fetchError) throw fetchError;
 
-      const formattedUsers: PendingUser[] = (data || []).map((user: any) => ({
+      interface RawUser {
+        id: string;
+        nome: string;
+        email: string;
+        telefone: string | null;
+        status: string;
+        created_at: string;
+        unidade_id: string | null;
+        unidades?: { identificador?: string; blocos?: { nome?: string } };
+      }
+      const formattedUsers: PendingUser[] = (data || []).map((user: RawUser) => ({
         id: user.id, nome: user.nome, email: user.email, telefone: user.telefone,
         status: user.status, created_at: user.created_at, unidade_id: user.unidade_id,
         unidade_identificador: user.unidades?.identificador, bloco_nome: user.unidades?.blocos?.nome,
