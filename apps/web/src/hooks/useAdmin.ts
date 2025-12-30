@@ -9,7 +9,7 @@ import { useCallback, useState } from 'react';
 
 export interface AdminUser {
   id: string;
-  auth_id: string;
+    auth_id: string | null;
   nome: string;
   email: string;
   telefone: string | null;
