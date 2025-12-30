@@ -4,7 +4,7 @@
 // =====================================================
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -17,6 +17,23 @@ interface CheckResult {
   status: 'ok' | 'degraded' | 'error';
   latencyMs: number;
   message?: string;
+}
+
+// ============================================
+// HELPER: Safe error message extraction
+// ============================================
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (error && typeof error === 'object' && 'message' in error) {
+    const msg = (error as Record<string, unknown>).message;
+    return typeof msg === 'string' ? msg : 'Unknown error occurred';
+  }
+  return 'Unknown error occurred';
 }
 
 const APP_VERSION = Deno.env.get('APP_VERSION') || '1.0.0';
@@ -40,18 +57,18 @@ serve(async (req) => {
 
   // Database check
   checks.database = await checkDatabase(supabase);
-  
+
   // Auth check
   checks.auth = await checkAuth(supabase);
-  
+
   // Storage check
   checks.storage = await checkStorage(supabase);
-  
+
   // Groq check (se configurado)
   if (Deno.env.get('GROQ_API_KEY')) {
     checks.groq = await checkGroq();
   }
-  
+
   // Qdrant check (se configurado)
   if (Deno.env.get('QDRANT_URL')) {
     checks.qdrant = await checkQdrant();
@@ -78,7 +95,7 @@ serve(async (req) => {
   });
 });
 
-async function checkDatabase(supabase: any): Promise<CheckResult> {
+async function checkDatabase(supabase: SupabaseClient): Promise<CheckResult> {
   const start = Date.now();
   try {
     const { error } = await supabase.from('condominios').select('id').limit(1);
@@ -87,22 +104,22 @@ async function checkDatabase(supabase: any): Promise<CheckResult> {
       latencyMs: Date.now() - start,
       message: error?.message,
     };
-  } catch (e: any) {
-    return { status: 'error', latencyMs: Date.now() - start, message: e.message };
+  } catch (e: unknown) {
+    return { status: 'error', latencyMs: Date.now() - start, message: getErrorMessage(e) };
   }
 }
 
-async function checkAuth(supabase: any): Promise<CheckResult> {
+async function checkAuth(supabase: SupabaseClient): Promise<CheckResult> {
   const start = Date.now();
   try {
     const { error } = await supabase.auth.getSession();
     return { status: 'ok', latencyMs: Date.now() - start };
-  } catch (e: any) {
-    return { status: 'error', latencyMs: Date.now() - start, message: e.message };
+  } catch (e: unknown) {
+    return { status: 'error', latencyMs: Date.now() - start, message: getErrorMessage(e) };
   }
 }
 
-async function checkStorage(supabase: any): Promise<CheckResult> {
+async function checkStorage(supabase: SupabaseClient): Promise<CheckResult> {
   const start = Date.now();
   try {
     const { error } = await supabase.storage.listBuckets();
@@ -110,8 +127,8 @@ async function checkStorage(supabase: any): Promise<CheckResult> {
       status: error ? 'degraded' : 'ok',
       latencyMs: Date.now() - start,
     };
-  } catch (e: any) {
-    return { status: 'degraded', latencyMs: Date.now() - start, message: e.message };
+  } catch (e: unknown) {
+    return { status: 'degraded', latencyMs: Date.now() - start, message: getErrorMessage(e) };
   }
 }
 
@@ -125,8 +142,8 @@ async function checkGroq(): Promise<CheckResult> {
       status: response.ok ? 'ok' : 'degraded',
       latencyMs: Date.now() - start,
     };
-  } catch (e: any) {
-    return { status: 'degraded', latencyMs: Date.now() - start, message: e.message };
+  } catch (e: unknown) {
+    return { status: 'degraded', latencyMs: Date.now() - start, message: getErrorMessage(e) };
   }
 }
 
@@ -138,7 +155,7 @@ async function checkQdrant(): Promise<CheckResult> {
       status: response.ok ? 'ok' : 'degraded',
       latencyMs: Date.now() - start,
     };
-  } catch (e: any) {
-    return { status: 'degraded', latencyMs: Date.now() - start, message: e.message };
+  } catch (e: unknown) {
+    return { status: 'degraded', latencyMs: Date.now() - start, message: getErrorMessage(e) };
   }
 }

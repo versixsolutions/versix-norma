@@ -2,6 +2,18 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// ============================================
+// TYPE DEFINITIONS
+// ============================================
+interface FetchError {
+  name?: string;
+  message?: string;
+}
+
+function isFetchError(error: unknown): error is FetchError {
+  return typeof error === 'object' && error !== null;
+}
+
 const ENDPOINTS = [
   { nome: 'Health', url: '/functions/v1/health', critico: true },
   { nome: 'API Gateway', url: '/rest/v1/', critico: true },
@@ -27,9 +39,14 @@ serve(async () => {
       });
       statusCode = res.status;
       status = res.ok ? 'ok' : 'error';
-    } catch (e: any) {
-      status = e.name === 'TimeoutError' ? 'timeout' : 'error';
-      erro = e.message;
+    } catch (e: unknown) {
+      if (isFetchError(e)) {
+        status = e.name === 'TimeoutError' ? 'timeout' : 'error';
+        erro = e.message || 'Unknown error occurred';
+      } else {
+        status = 'error';
+        erro = 'Unknown error occurred';
+      }
     }
 
     const latencia = Date.now() - start;

@@ -3,6 +3,24 @@
 import type { UpdatePreferenciasInput, UsuarioCanaisPreferencias } from '@versix/shared/types/comunicacao';
 import { useState } from 'react';
 
+// ============================================
+// TYPE DEFINITIONS
+// ============================================
+type ToggleKey = keyof Pick<UpdatePreferenciasInput,
+  | 'push_habilitado'
+  | 'email_habilitado'
+  | 'whatsapp_habilitado'
+  | 'sms_habilitado'
+  | 'voz_emergencia_habilitado'
+>;
+
+interface CanalConfig {
+  key: ToggleKey;
+  label: string;
+  icon: string;
+  desc: string;
+}
+
 interface PreferenciasCanaisProps {
   preferencias: UsuarioCanaisPreferencias;
   onSave: (input: UpdatePreferenciasInput) => Promise<boolean>;
@@ -38,7 +56,7 @@ export function PreferenciasCanais({ preferencias, onSave, loading }: Preferenci
     }
   };
 
-  const canais = [
+  const canais: CanalConfig[] = [
     { key: 'push_habilitado', label: 'Push Notifications', icon: 'notifications', desc: 'Notificações no celular' },
     { key: 'email_habilitado', label: 'Email', icon: 'email', desc: 'Receber por email' },
     { key: 'whatsapp_habilitado', label: 'WhatsApp', icon: 'chat', desc: 'Mensagens no WhatsApp' },
@@ -71,8 +89,8 @@ export function PreferenciasCanais({ preferencias, onSave, loading }: Preferenci
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
-                checked={(form as any)[canal.key]}
-                onChange={e => handleChange(canal.key as any, e.target.checked)}
+                checked={form[canal.key]}
+                onChange={e => handleChange(canal.key, e.target.checked)}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
