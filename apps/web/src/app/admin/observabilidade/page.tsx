@@ -292,16 +292,14 @@ interface HealthCheckCardProps {
 }
 
 function HealthCheckCard({ nome, status, latencia, critico }: HealthCheckCardProps) {
-  const getIcon = () => {
+  const IconComponent = (() => {
     switch (nome.toLowerCase()) {
       case 'database': return Database;
       case 'auth': return Server;
       case 'storage': return Cloud;
       default: return Server;
     }
-  };
-
-  const Icon = getIcon();
+  })();
 
   const statusColors = {
     ok: 'text-green-600 bg-green-50 border-green-200',
@@ -312,7 +310,7 @@ function HealthCheckCard({ nome, status, latencia, critico }: HealthCheckCardPro
   return (
     <div className={`p-4 rounded-lg border ${statusColors}`}>
       <div className="flex items-center justify-between mb-2">
-        <Icon className="w-5 h-5" />
+        <IconComponent className="w-5 h-5" />
         {critico && (
           <span className="text-xs font-medium uppercase">Crítico</span>
         )}

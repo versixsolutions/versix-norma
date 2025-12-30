@@ -1,6 +1,7 @@
 'use client';
 
 import { getErrorMessage } from '@/lib/errors';
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { AvaliarChamadoInput, Chamado, ChamadoCategoria, ChamadoFilters, ChamadoMensagem, ChamadoStats, ChamadoStatus, CreateChamadoInput, CreateMensagemInput, PaginatedResponse, UpdateChamadoInput } from '@versix/shared';
 import { Database } from '@versix/shared';
@@ -31,7 +32,11 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       if (filters?.prioridade) query = query.eq('prioridade', filters.prioridade);
       if (filters?.atendente_id) query = query.eq('atendente_id', filters.atendente_id);
       if (filters?.solicitante_id) query = query.eq('solicitante_id', filters.solicitante_id);
-      if (filters?.busca) query = query.or(`titulo.ilike.%${filters.busca}%,descricao.ilike.%${filters.busca}%`);
+      if (filters?.busca) {
+        const buscaSanitizada = sanitizeSearchQuery(filters.busca);
+        if (buscaSanitizada)
+          query = query.or(`titulo.ilike.%${buscaSanitizada}%,descricao.ilike.%${buscaSanitizada}%`);
+      }
 
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;

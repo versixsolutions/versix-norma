@@ -61,11 +61,11 @@ export function useDatabaseHealth() {
           latencyMs: Date.now() - start,
           message: error?.message,
         };
-      } catch (err: any) {
+      } catch (err) {
         return {
           status: 'error',
           latencyMs: Date.now() - start,
-          message: err.message,
+          message: err instanceof Error ? err.message : 'Erro desconhecido',
         };
       }
     },
@@ -88,11 +88,11 @@ export function useAuthHealth() {
           latencyMs: Date.now() - start,
           message: error?.message,
         };
-      } catch (err: any) {
+      } catch (err) {
         return {
           status: 'error',
           latencyMs: Date.now() - start,
-          message: err.message,
+          message: err instanceof Error ? err.message : 'Erro desconhecido',
         };
       }
     },
@@ -115,11 +115,11 @@ export function useStorageHealth() {
           latencyMs: Date.now() - start,
           message: error?.message,
         };
-      } catch (err: any) {
+      } catch (err) {
         return {
           status: 'degraded',
           latencyMs: Date.now() - start,
-          message: err.message,
+          message: err instanceof Error ? err.message : 'Erro desconhecido',
         };
       }
     },

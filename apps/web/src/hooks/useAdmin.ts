@@ -1,3 +1,4 @@
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
 import { getErrorMessage } from '@/lib/errors';
@@ -187,8 +188,9 @@ export function useAdmin() {
   const searchUsers = useCallback(async (query: string): Promise<AdminUser[]> => {
     if (!query || query.length < 2) return [];
     try {
-      const { data } = await supabase.from('usuarios').select(`id, auth_id, nome, email, telefone, avatar_url, status, created_at, updated_at`).or(`nome.ilike.%${query}%,email.ilike.%${query}%`).limit(20);
-      return (data || []).map((user: any) => ({ ...user, condominios: [] }));
+      const buscaSanitizada = sanitizeSearchQuery(query);
+      const { data } = await supabase.from('usuarios').select(`id, auth_id, nome, email, telefone, avatar_url, status, created_at, updated_at`).or(`nome.ilike.%${buscaSanitizada}%,email.ilike.%${buscaSanitizada}%`).limit(20);
+      return (data || []).map((user: AdminUser) => ({ ...user, condominios: [] }));
     } catch (err) {
       setError(getErrorMessage(err));
       return [];

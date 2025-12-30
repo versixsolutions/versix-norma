@@ -1,9 +1,15 @@
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
 import type { CategoriaFinanceira, Comprovante, ContaBancaria, CreateLancamentoInput, DashboardFinanceiro, LancamentoFilters, LancamentoFinanceiro, LancamentoStatus, LancamentoTipo, SaldoPeriodo, UpdateLancamentoInput } from '@versix/shared/types/financial';
 import { useCallback, useState } from 'react';
 
+/**
+ * Hook para gerenciamento de lançamentos financeiros
+ * Inclui métodos para buscar categorias, contas, lançamentos e dashboard financeiro.
+ * @returns Métodos e estados financeiros
+ */
 export function useFinanceiro() {
   const supabase = getSupabaseClient();
   const [loading, setLoading] = useState(false);
@@ -69,7 +75,11 @@ export function useFinanceiro() {
       if (filters?.status) query = query.eq('status', filters.status);
       if (filters?.data_inicio) query = query.gte('data_competencia', filters.data_inicio);
       if (filters?.data_fim) query = query.lte('data_competencia', filters.data_fim);
-      if (filters?.busca) query = query.or(`descricao.ilike.%${filters.busca}%,fornecedor_nome.ilike.%${filters.busca}%`);
+      if (filters?.busca) {
+        const buscaSanitizada = sanitizeSearchQuery(filters.busca);
+        if (buscaSanitizada)
+          query = query.or(`descricao.ilike.%${buscaSanitizada}%,fornecedor_nome.ilike.%${buscaSanitizada}%`);
+      }
 
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;

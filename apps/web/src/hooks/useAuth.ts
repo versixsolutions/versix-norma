@@ -6,6 +6,8 @@ import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
+import { logger } from '@/lib/logger';
+
 // ============================================
 // UTILITY FUNCTIONS FOR SECURE CONTEXT MANAGEMENT
 // ============================================
@@ -106,6 +108,11 @@ interface SignupCredentials {
 // ============================================
 // HOOK
 // ============================================
+/**
+ * Hook de autenticação para gerenciar sessão do usuário
+ * Fornece métodos de login, logout, registro e manipulação de sessão.
+ * @returns Contexto e métodos de autenticação
+ */
 export function useAuth() {
   const router = useRouter();
   const supabase = getSupabaseClient();
@@ -226,7 +233,7 @@ export function useAuth() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: Session | null) => {
-        console.log('Auth event:', event);
+        logger.log('Auth event:', event);
 
         // Evitar processamento desnecessário para eventos que não alteram o estado
         if (event === 'TOKEN_REFRESHED' && session && session.user) {

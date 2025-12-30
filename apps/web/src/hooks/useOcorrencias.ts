@@ -1,3 +1,4 @@
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
 import { getErrorMessage } from '@/lib/errors';
@@ -29,7 +30,11 @@ export function useOcorrencias() {
       if (filters?.categoria) query = query.eq('categoria', filters.categoria);
       if (filters?.prioridade) query = query.eq('prioridade', filters.prioridade);
       if (filters?.responsavel_id) query = query.eq('responsavel_id', filters.responsavel_id);
-      if (filters?.busca) query = query.or(`titulo.ilike.%${filters.busca}%,descricao.ilike.%${filters.busca}%`);
+      if (filters?.busca) {
+        const buscaSanitizada = sanitizeSearchQuery(filters.busca);
+        if (buscaSanitizada)
+          query = query.or(`titulo.ilike.%${buscaSanitizada}%,descricao.ilike.%${buscaSanitizada}%`);
+      }
 
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;

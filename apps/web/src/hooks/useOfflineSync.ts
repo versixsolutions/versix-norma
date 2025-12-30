@@ -1,24 +1,24 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { getSupabaseClient } from '@/lib/supabase';
-import { useOnlineStatus, requestBackgroundSync } from '@/lib/pwa';
 import {
-  saveEmergencyContacts,
-  saveVulnerableResidents,
-  saveCondominioInfo,
-  saveUserProfile,
-  cacheNotifications,
-  getPendingActions,
-  removePendingAction,
-  incrementActionRetry,
-  getLastSyncTime,
-  type EmergencyContact,
-  type VulnerableResident,
-  type CachedCondominioInfo,
-  type CachedUserProfile,
-  type PendingAction
+    cacheNotifications,
+    getLastSyncTime,
+    getPendingActions,
+    incrementActionRetry,
+    removePendingAction,
+    saveCondominioInfo,
+    saveEmergencyContacts,
+    saveUserProfile,
+    saveVulnerableResidents,
+    type CachedCondominioInfo,
+    type CachedUserProfile,
+    type EmergencyContact,
+    type PendingAction,
+    type VulnerableResident
 } from '@/lib/offline-db';
+import { requestBackgroundSync, useOnlineStatus } from '@/lib/pwa';
+import { getSupabaseClient } from '@/lib/supabase';
+import { useCallback, useEffect, useState } from 'react';
 
 const MAX_RETRIES = 5;
 
@@ -65,7 +65,7 @@ export function useOfflineSync() {
         .eq('condominio_id', condominioId);
 
       if (vulnerable) {
-        await saveVulnerableResidents(vulnerable.map((v: any) => ({
+        await saveVulnerableResidents(vulnerable.map((v) => ({
           id: v.id,
           nome: v.nome,
           unidade: v.unidade?.identificador || '',
@@ -101,7 +101,7 @@ export function useOfflineSync() {
         .limit(30);
 
       if (notifs) {
-        await cacheNotifications(notifs.map((n: any) => ({
+        await cacheNotifications(notifs.map((n) => ({
           id: n.notificacao_id,
           titulo: n.titulo,
           corpo: n.corpo,
@@ -229,4 +229,5 @@ export function useOfflineSync() {
   };
 }
 
-export type { EmergencyContact, VulnerableResident, CachedCondominioInfo, CachedUserProfile, PendingAction };
+export type { CachedCondominioInfo, CachedUserProfile, EmergencyContact, PendingAction, VulnerableResident };
+

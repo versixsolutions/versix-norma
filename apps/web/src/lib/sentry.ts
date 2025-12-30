@@ -1,3 +1,5 @@
+
+import { logger } from '@/lib/logger';
 // =====================================================
 // SPRINT 10: SENTRY CONFIGURATION
 // Error tracking & performance monitoring
@@ -129,7 +131,7 @@ export function initSentry() {
     },
   });
 
-  console.log('[Sentry] Inicializado:', { environment: ENVIRONMENT, version: APP_VERSION });
+  logger.log('[Sentry] Inicializado:', { environment: ENVIRONMENT, version: APP_VERSION });
 }
 
 // =====================================================

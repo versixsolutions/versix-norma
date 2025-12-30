@@ -1,8 +1,8 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
+import type { Comentario, CreateComentarioInput, PautaStatus, Presenca, VotarInput, Voto } from '@versix/shared/types/assembleias';
 import { useCallback, useState } from 'react';
-import type { Voto, Presenca, PautaStatus, VotarInput, Comentario, CreateComentarioInput } from '@versix/shared/types/assembleias';
 
 export function useVotacao() {
   const supabase = getSupabaseClient();
@@ -90,7 +90,7 @@ export function useVotacao() {
   }, [supabase]);
 
   // Encerrar votação de pauta
-  const encerrarPauta = useCallback(async (pautaId: string): Promise<any> => {
+  const encerrarPauta = useCallback(async (pautaId: string): Promise<unknown> => {
     try {
       const { data, error: rpcError } = await supabase.rpc('encerrar_pauta', { p_pauta_id: pautaId });
       if (rpcError) throw rpcError;
@@ -157,13 +157,13 @@ export function useVotacao() {
   }, [supabase]);
 
   // Realtime votos
-  const subscribeToVotos = useCallback((pautaId: string, onUpdate: (resultado: any) => void) => {
+  const subscribeToVotos = useCallback((pautaId: string, onUpdate: (resultado: unknown) => void) => {
     const channel = supabase.channel(`votos-${pautaId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'assembleia_votos', filter: `pauta_id=eq.${pautaId}` }, async () => {
         const { data } = await supabase.from('v_pauta_resultado').select('*').eq('pauta_id', pautaId).single();
         if (data) onUpdate(data);
       }).subscribe();
-    
+
     return () => { supabase.removeChannel(channel); };
   }, [supabase]);
 
@@ -176,4 +176,5 @@ export function useVotacao() {
   };
 }
 
-export type { Voto, Presenca, PautaStatus, VotarInput, Comentario, CreateComentarioInput };
+export type { Comentario, CreateComentarioInput, PautaStatus, Presenca, VotarInput, Voto };
+

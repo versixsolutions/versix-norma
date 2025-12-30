@@ -82,8 +82,8 @@ export function useImpersonate() {
       }
       window.location.reload();
       return response.data;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Erro ao iniciar impersonate';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao iniciar impersonate';
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -107,8 +107,8 @@ export function useImpersonate() {
       setIsImpersonating(false);
       window.location.reload();
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao parar impersonate');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao parar impersonate');
       return false;
     } finally {
       setLoading(false);

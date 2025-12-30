@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { logger } from '@/lib/logger';
+
 interface ServiceWorkerState {
   isSupported: boolean;
   isRegistered: boolean;
@@ -56,7 +58,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
     if (typeof window === 'undefined') return;
     if (!('serviceWorker' in navigator)) return;
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[SW] Skipping registration in development');
+      logger.log('[SW] Skipping registration in development');
       return;
     }
 
@@ -75,7 +77,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         updateViaCache: 'none',
       });
 
-      console.log('[SW] Registered successfully:', registration.scope);
+      logger.log('[SW] Registered successfully:', registration.scope);
 
       // Verifica por atualizações
       registration.addEventListener('updatefound', () => {
@@ -83,7 +85,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('[SW] Update available');
+              logger.log('[SW] Update available');
               setState((prev) => ({ ...prev, isUpdateAvailable: true }));
             }
           });
@@ -122,7 +124,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
     try {
       const success = await state.registration.unregister();
       if (success) {
-        console.log('[SW] Unregistered successfully');
+        logger.log('[SW] Unregistered successfully');
         setState((prev) => ({
           ...prev,
           isRegistered: false,
@@ -139,7 +141,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
 
     try {
       await state.registration.update();
-      console.log('[SW] Checked for updates');
+      logger.log('[SW] Checked for updates');
     } catch (error) {
       console.error('[SW] Update check failed:', error);
     }
@@ -160,7 +162,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
     if (!navigator.serviceWorker.controller) return;
 
     navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
-    console.log('[SW] Cache clear requested');
+    logger.log('[SW] Cache clear requested');
   }, []);
 
   const requestNotificationPermission = useCallback(async (): Promise<NotificationPermission> => {
@@ -170,7 +172,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
     }
 
     const permission = await Notification.requestPermission();
-    console.log('[SW] Notification permission:', permission);
+    logger.log('[SW] Notification permission:', permission);
     return permission;
   }, []);
 
@@ -198,7 +200,7 @@ export function useServiceWorker(): UseServiceWorkerReturn {
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
       });
 
-      console.log('[SW] Push subscription:', subscription.endpoint);
+      logger.log('[SW] Push subscription:', subscription.endpoint);
       return subscription;
 
     } catch (error) {

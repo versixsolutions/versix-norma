@@ -335,13 +335,13 @@ async function fetchMetricasGlobais() {
   ]);
 
   // Calcular tendência
-  const tendencia = (semanaRes.data || []).reduce((acc: any[], m: MetricasUso) => {
+  const tendencia = (semanaRes.data || []).reduce((acc, m: MetricasUso) => {
     acc.push(
       { data: m.periodo, metrica: 'usuarios', valor: m.usuarios_ativos },
       { data: m.periodo, metrica: 'requests', valor: m.sessoes_totais }
     );
     return acc;
-  }, []);
+  }, [] as { data: string; metrica: string; valor: number }[]);
 
   return {
     hoje: hojeRes.data || {

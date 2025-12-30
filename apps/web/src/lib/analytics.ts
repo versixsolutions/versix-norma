@@ -31,7 +31,11 @@ export function reportWebVitals(vitals: Partial<WebVitals>) {
 
   // Log em desenvolvimento
   if (process.env.NODE_ENV === 'development') {
-    console.log('[WebVitals]', vitals);
+    // eslint-disable-next-line import/no-named-as-default-member
+    // @ts-ignore
+    // logger.log pode ser removido em produção
+    // eslint-disable-next-line
+    require('@/lib/logger').logger.log('[WebVitals]', vitals);
   }
 }
 

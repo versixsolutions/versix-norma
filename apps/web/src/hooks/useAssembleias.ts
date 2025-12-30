@@ -4,6 +4,11 @@ import { getSupabaseClient } from '@/lib/supabase';
 import type { Assembleia, AssembleiaFilters, AssembleiaStatus, CreateAssembleiaInput, CreatePautaInput, Pauta, Presenca, QuorumInfo, UpdateAssembleiaInput } from '@versix/shared/types/assembleias';
 import { useCallback, useState } from 'react';
 
+/**
+ * Hook para gerenciamento de assembleias condominiais
+ * Permite buscar assembleias, pautas, presenças e atualizar informações.
+ * @returns Métodos e estados de assembleias
+ */
 export function useAssembleias() {
   const supabase = getSupabaseClient();
   const [assembleias, setAssembleias] = useState<Assembleia[]>([]);

@@ -18,8 +18,8 @@ export function useExportacoes() {
       if (fetchError) throw fetchError;
       setExportacoes(data || []);
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
       return [];
     } finally {
       setLoading(false);
@@ -44,8 +44,8 @@ export function useExportacoes() {
       await fetchExportacoes(condominioId);
 
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
       return null;
     } finally {
       setLoading(false);
@@ -58,8 +58,8 @@ export function useExportacoes() {
       const { data, error: fetchError } = await supabase.from('exportacoes').select('*').eq('id', id).single();
       if (fetchError) throw fetchError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
       return null;
     }
   }, [supabase]);
@@ -72,8 +72,8 @@ export function useExportacoes() {
       const { data, error: downloadError } = await supabase.storage.from('exportacoes').createSignedUrl(exportacao.arquivo_path, 3600);
       if (downloadError) throw downloadError;
       return data.signedUrl;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
       return null;
     }
   }, [supabase]);

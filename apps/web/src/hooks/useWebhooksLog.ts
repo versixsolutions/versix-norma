@@ -24,8 +24,8 @@ export function useWebhooksLog() {
       if (fetchError) throw fetchError;
       setEntregas(data || []);
       return data || [];
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
       return [];
     } finally {
       setLoading(false);
@@ -60,8 +60,8 @@ export function useWebhooksLog() {
       const { data, error: rpcError } = await supabase.rpc('retentar_webhook', { p_entrega_id: entregaId });
       if (rpcError) throw rpcError;
       return data;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
       return null;
     }
   }, [supabase]);

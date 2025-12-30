@@ -19,7 +19,7 @@ import { useComunicados } from '@/hooks/useComunicados';
 import { useFinancial } from '@/hooks/useFinancial';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 
 function HomeContent() {
   const router = useRouter();
@@ -65,7 +65,10 @@ function HomeContent() {
 
   // Reset scroll state when changing tabs
   useEffect(() => {
-    setIsScrolled(false);
+    // Use transition to avoid cascading renders
+    startTransition(() => {
+      setIsScrolled(false);
+    });
   }, [activeNav]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {

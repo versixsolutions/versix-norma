@@ -1,3 +1,4 @@
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
 import { getErrorMessage } from '@/lib/errors';
@@ -29,7 +30,11 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
       if (filters?.status) query = query.eq('status', filters.status);
       if (filters?.categoria) query = query.eq('categoria', filters.categoria);
       if (filters?.fixado !== undefined) query = query.eq('fixado', filters.fixado);
-      if (filters?.busca) query = query.or(`titulo.ilike.%${filters.busca}%,conteudo.ilike.%${filters.busca}%`);
+      if (filters?.busca) {
+        const buscaSanitizada = sanitizeSearchQuery(filters.busca);
+        if (buscaSanitizada)
+          query = query.or(`titulo.ilike.%${buscaSanitizada}%,conteudo.ilike.%${buscaSanitizada}%`);
+      }
 
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;

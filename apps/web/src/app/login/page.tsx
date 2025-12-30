@@ -114,7 +114,7 @@ export default function LoginPage() {
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
+          <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4" aria-label="Formulário de login">
             {/* Email */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -126,6 +126,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg transition-all text-sm"
                 placeholder="Digite seu e-mail"
+                aria-label="E-mail"
                 required
                 disabled={loading}
               />
@@ -142,6 +143,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-12 pr-12 py-4 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-none text-gray-700 dark:text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-secondary shadow-lg transition-all text-sm"
                 placeholder="Digite sua senha"
+                aria-label="Senha"
                 required
                 disabled={loading}
               />
@@ -149,6 +151,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
               >
                 <span className="material-symbols-outlined text-gray-400 text-xl hover:text-gray-600 transition-colors">
                   {showPassword ? 'visibility_off' : 'visibility'}
@@ -199,6 +202,7 @@ export default function LoginPage() {
             onClick={handleGoogleLogin}
             disabled={loading}
             className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 transition-colors border border-white/10"
+            aria-label="Entrar com Google"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

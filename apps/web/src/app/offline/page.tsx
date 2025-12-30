@@ -1,16 +1,12 @@
 'use client';
 
+import { getAllCriticalData, type EmergencyContact } from '@/lib/offline-db';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getAllCriticalData, type EmergencyContact } from '@/lib/offline-db';
 
 export default function OfflinePage() {
   const [hasEmergencyData, setHasEmergencyData] = useState(false);
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
-
-  useEffect(() => {
-    checkOfflineData();
-  }, []);
 
   const checkOfflineData = async () => {
     try {
@@ -21,6 +17,10 @@ export default function OfflinePage() {
       // IndexedDB não disponível
     }
   };
+
+  useEffect(() => {
+    checkOfflineData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center justify-center p-6">

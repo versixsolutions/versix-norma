@@ -65,8 +65,8 @@ export function useApproveUser() {
       if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao aprovar usuário');
       setPendingUsers(prev => prev.filter(u => u.id !== userId));
       return response.data as ApproveUserResponse;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Erro ao aprovar usuário';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao aprovar usuário';
       setError(errorMessage);
       return { success: false, usuario: null, error: errorMessage };
     } finally {
@@ -85,8 +85,8 @@ export function useApproveUser() {
       if (!response.data?.success) throw new Error(response.data?.error || 'Erro ao rejeitar usuário');
       setPendingUsers(prev => prev.filter(u => u.id !== userId));
       return response.data as ApproveUserResponse;
-    } catch (err: any) {
-      const errorMessage = err.message || 'Erro ao rejeitar usuário';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao rejeitar usuário';
       setError(errorMessage);
       return { success: false, usuario: null, error: errorMessage };
     } finally {

@@ -1,3 +1,4 @@
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
@@ -25,7 +26,11 @@ export function useFAQ() {
 
       if (filters?.categoria) query = query.eq('categoria', filters.categoria);
       if (filters?.destaque !== undefined) query = query.eq('destaque', filters.destaque);
-      if (filters?.busca) query = query.or(`pergunta.ilike.%${filters.busca}%,resposta.ilike.%${filters.busca}%`);
+      if (filters?.busca) {
+        const buscaSanitizada = sanitizeSearchQuery(filters.busca);
+        if (buscaSanitizada)
+          query = query.or(`pergunta.ilike.%${buscaSanitizada}%,resposta.ilike.%${buscaSanitizada}%`);
+      }
       if (filters?.tags && filters.tags.length > 0) query = query.overlaps('tags', filters.tags);
 
       const { data, error: fetchError, count } = await query;
@@ -45,8 +50,8 @@ export function useFAQ() {
       setFaqs(result.data);
       setPagination(result.pagination);
       return result;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar FAQs');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao carregar FAQs');
       return { data: [], pagination: { page: 1, pageSize: 50, total: 0, totalPages: 0, hasMore: false } };
     } finally {
       setLoading(false);
@@ -76,8 +81,8 @@ export function useFAQ() {
       if (insertError) throw insertError;
       setFaqs(prev => [data, ...prev]);
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao criar FAQ');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao criar FAQ');
       return null;
     } finally {
       setLoading(false);
@@ -92,8 +97,8 @@ export function useFAQ() {
       if (updateError) throw updateError;
       setFaqs(prev => prev.map(f => f.id === id ? data : f));
       return data;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao atualizar FAQ');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar FAQ');
       return null;
     } finally {
       setLoading(false);
@@ -107,8 +112,8 @@ export function useFAQ() {
       if (deleteError) throw deleteError;
       setFaqs(prev => prev.filter(f => f.id !== id));
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao excluir FAQ');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao excluir FAQ');
       return false;
     } finally {
       setLoading(false);
@@ -146,8 +151,8 @@ export function useFAQ() {
         return ordered.map((f, i) => ({ ...f, ordem: i }));
       });
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao reordenar FAQs');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao reordenar FAQs');
       return false;
     } finally {
       setLoading(false);

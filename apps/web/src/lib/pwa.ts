@@ -1,3 +1,5 @@
+
+import { logger } from '@/lib/logger';
 // ============================================
 // VERSIX NORMA - PWA UTILITIES
 // Sprint 9: Service Worker, Install Prompt, Online Status
@@ -38,11 +40,11 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
           minInterval: 12 * 60 * 60 * 1000 // 12 horas
         });
       } catch {
-        console.log('Periodic sync não disponível');
+        logger.log('Periodic sync não disponível');
       }
     }
 
-    console.log('Service Worker registrado com sucesso');
+    logger.log('Service Worker registrado com sucesso');
     return registration;
   } catch (error) {
     console.error('Erro ao registrar Service Worker:', error);

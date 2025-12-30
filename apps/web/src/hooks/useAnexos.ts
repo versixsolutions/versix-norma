@@ -51,8 +51,8 @@ export function useAnexos() {
         tamanho: file.size,
         uploaded_at: new Date().toISOString()
       };
-    } catch (err: any) {
-      setError(err.message || 'Erro ao fazer upload');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao fazer upload');
       return null;
     } finally {
       setUploading(false);
@@ -78,8 +78,8 @@ export function useAnexos() {
       const { error: deleteError } = await supabase.storage.from('anexos').remove([path]);
       if (deleteError) throw deleteError;
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Erro ao excluir arquivo');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao excluir arquivo');
       return false;
     }
   }, [supabase]);
