@@ -1,177 +1,272 @@
-# Supabase CLI
+# Versix Norma
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+![Version](https://img.shields.io/badge/version-1.0.1-blue)
+![License](https://img.shields.io/badge/license-Proprietary-red)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+**Plataforma de Governança Condominial Inteligente**
 
-This repository contains all the functionality for Supabase CLI.
+Versix Norma é um sistema SaaS completo para gestão de condomínios, com assistente de IA integrado (Norma), módulos financeiros, assembleias digitais, e comunicação multicanal.
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+---
 
-## Getting started
+## 🚀 Quick Start
 
-### Install the CLI
+### Pré-requisitos
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+- Node.js 20.x ou superior
+- pnpm 8.x ou superior
+- Docker (para Supabase local)
 
-```bash
-npm i supabase --save-dev
-```
-
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
-
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
-
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
-
-<details>
-  <summary><b>macOS</b></summary>
-
-  Available via [Homebrew](https://brew.sh). To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+### Instalação
 
 ```bash
-supabase bootstrap
+# Clone o repositório
+git clone https://github.com/versixsolutions/versix-norma.git
+cd versix-norma
+
+# Instale as dependências
+pnpm install
+
+# Configure as variáveis de ambiente
+cp apps/web/.env.example apps/web/.env.local
+
+# Inicie o servidor de desenvolvimento
+pnpm dev
 ```
 
-Or using npx:
+Acesse [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 🏗️ Arquitetura
+
+```
+versix-norma/
+├── apps/
+│   └── web/                      # Next.js 14 App Router
+│       ├── src/
+│       │   ├── app/              # Páginas (App Router)
+│       │   ├── components/       # Componentes React
+│       │   ├── hooks/            # Custom Hooks
+│       │   └── lib/              # Utilitários
+│       └── tests/                # Testes E2E (Playwright)
+├── packages/
+│   └── shared/                   # Tipos, validators compartilhados
+├── supabase/
+│   ├── functions/                # Edge Functions (Deno)
+│   └── migrations/               # SQL Migrations
+└── public/                       # Assets estáticos, PWA
+```
+
+### Stack Tecnológico
+
+| Camada | Tecnologia |
+|--------|-----------|
+| **Frontend** | Next.js 14, React 18, TypeScript 5, Tailwind CSS |
+| **Backend** | Supabase (PostgreSQL, Auth, Storage, Edge Functions) |
+| **AI** | Groq API, pgvector, RAG |
+| **Testes** | Playwright (E2E), Vitest (Unit) |
+| **Infra** | Vercel, Supabase Cloud, Sentry |
+
+---
+
+## 🔧 Configuração
+
+### Variáveis de Ambiente
+
+Copie `.env.example` e configure:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+SUPABASE_SERVICE_ROLE_KEY=xxx
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NODE_ENV=development
+
+# AI
+GROQ_API_KEY=xxx
+
+# Monitoramento
+NEXT_PUBLIC_SENTRY_DSN=xxx
+SENTRY_AUTH_TOKEN=xxx
+```
+
+### Banco de Dados Local
 
 ```bash
-npx supabase bootstrap
+# Iniciar Supabase localmente
+supabase start
+
+# Executar migrations
+supabase migration dev
+
+# Ver dashboard
+supabase status
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+---
 
-## Docs
+## 📚 Módulos Principais
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+### 🤖 Norma Chat
+Assistente de IA que responde perguntas sobre:
+- Documentos (Regimentos, Atas)
+- Assembleias e votações
+- Procedimentos condominiais
 
-## Breaking changes
+### 💰 Módulo Financeiro
+- Dashboard com saldo/receitas/despesas
+- Lançamentos e categorização
+- Prestação de contas
+- Relatórios (PDF/Excel)
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+### 🏛️ Assembleias Digitais
+- Criação e envio de pautas
+- Votação online
+- Quórum automático
+- Geração de Atas (PDF/assinado)
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+### 📢 Comunicação Multicanal
+- Push, Email, SMS, WhatsApp
+- Avisos de emergência
+- Histórico de notificações
+- Integração com Zapier/webhooks
 
-## Developing
+---
 
-To run from source:
+## 🧪 Testes
 
-```sh
-# Go >= 1.22
-go run . help
+### Rodar Testes Unitários
+
+```bash
+pnpm test:unit
 ```
+
+**Cobertura:**
+- 38 testes passando
+- Utils, Comunicados, Assembleias, Financeiro
+
+### Rodar Testes E2E
+
+```bash
+pnpm test:e2e
+```
+
+Requisitos:
+- App rodando em localhost:3000
+- Dados de teste criados
+
+### Cobertura
+
+```bash
+pnpm test:coverage
+```
+
+---
+
+## 📊 Monitoramento
+
+### Sentry
+Rastreamento de erros e performance:
+- Métricas customizadas
+- Breadcrumbs automáticos
+- Alertas em tempo real
+
+### Health Check
+
+```bash
+curl https://seu-app.com/functions/v1/health
+```
+
+Retorna status de:
+- PostgreSQL
+- Auth
+- Storage
+- Groq API
+- Qdrant (Vector DB)
+
+---
+
+## 🚀 Deploy
+
+### Vercel
+
+```bash
+# Deploy automático via GitHub Actions
+git push origin main
+```
+
+### Supabase Edge Functions
+
+```bash
+# Deploy função individual
+supabase functions deploy ask-norma
+
+# Deploy todas
+supabase functions deploy
+```
+
+---
+
+## 📖 Documentação Técnica
+
+- [CONTRIBUTING.md](./CONTRIBUTING.md) - Guia de contribuição
+- [EDGE_FUNCTIONS_API.yaml](./EDGE_FUNCTIONS_API.yaml) - Especificação OpenAPI
+- [CODE_SPLITTING_STRATEGY.md](./CODE_SPLITTING_STRATEGY.md) - Otimização de bundle
+- [SENTRY_METRICS_GUIDE.md](./SENTRY_METRICS_GUIDE.md) - Instrumentação de metrics
+
+---
+
+## 🔐 Segurança
+
+- **RLS (Row Level Security)** ativado em todas as tabelas
+- **CSP Headers** configurados
+- **Input Sanitization** em todos os formulários
+- **HTTPS** obrigatório em produção
+- **JWT** para autenticação
+
+---
+
+## 🤝 Contribuindo
+
+Leia [CONTRIBUTING.md](./CONTRIBUTING.md) para:
+- Padrões de código
+- Fluxo de branches
+- Convenção de commits
+- Checklist de PR
+
+---
+
+## 📞 Suporte
+
+- Email: dev@versixsolutions.com.br
+- Issues: GitHub Issues
+- Documentação: Confluence (interno)
+
+---
+
+## 📄 Licença
+
+Proprietary © 2024-2025 Versix Solutions. Todos os direitos reservados.
+
+---
+
+## 🎯 Status
+
+| Item | Status |
+|------|--------|
+| TypeScript | ✅ Strict Mode |
+| Tests | ✅ 38/38 Passing |
+| Performance | ✅ Code-splitting |
+| Security | ✅ CSP + RLS |
+| Documentation | ✅ Complete |
+| Monitoring | ✅ Sentry Active |
+
+**Versão:** 1.0.1  
+**Data:** Dezembro 2025  
+**Time:** Versix Solutions
