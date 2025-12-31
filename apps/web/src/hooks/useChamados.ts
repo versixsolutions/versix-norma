@@ -41,9 +41,15 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;
 
+      // Transformar dados para garantir tipos corretos
+      const transformedData = (data || []).map(chamado => ({
+        ...chamado,
+        anexos: Array.isArray(chamado.anexos) ? chamado.anexos : []
+      }));
+
       const total = count || 0;
       const result: PaginatedResponse<Chamado> = {
-        data: data || [],
+        data: transformedData,
         pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize), hasMore: to < total - 1 }
       };
       setChamados(result.data);
