@@ -129,7 +129,7 @@ export function useAdmin() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: fetchError } = await supabase.from('condominios').select(`id, nome,  endereco, created_at, blocos (unidades (id)), usuario_condominios (role, usuarios:usuario_id (nome))`).order('nome');
+      const { data, error: fetchError } = await supabase.from('condominios').select(`id, nome,  endereco, created_at, blocos (unidades_habitacionais (id)), usuario_condominios (role, usuarios:usuario_id (nome))`).order('nome');
       if (fetchError) throw fetchError;
 
       if (!data || !Array.isArray(data)) {
@@ -142,12 +142,12 @@ export function useAdmin() {
         nome: string;
         endereco: string;
         created_at: string;
-        blocos: Array<{ unidades: Array<{ id: string }> }>;
+        blocos: Array<{ unidades_habitacionais: Array<{ id: string }> }>;
         usuario_condominios: Array<{ role: RoleType; usuarios: { nome: string } }>;
       };
       const formattedCondominios: AdminCondominio[] = (data || []).map((condo: CondominioWithRelations) => {
         const totalUnidades = condo.blocos?.reduce(
-          (acc: number, bloco) => acc + (bloco.unidades?.length || 0),
+          (acc: number, bloco) => acc + (bloco.unidades_habitacionais?.length || 0),
           0
         ) || 0;
         const sindico = condo.usuario_condominios?.find((uc) => uc.role === 'sindico');
