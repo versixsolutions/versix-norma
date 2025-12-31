@@ -64,7 +64,7 @@ export function useAuditLogs() {
         id: log.id, usuario_id: log.usuario_id, usuario_nome: log.usuarios?.nome, usuario_email: log.usuarios?.email,
         condominio_id: log.condominio_id, condominio_nome: log.condominios?.nome, acao: log.acao, tabela: log.tabela,
         registro_id: log.registro_id, dados_antes: log.dados_antes, dados_depois: log.dados_depois,
-        ip_address: log.ip_address, user_agent: log.user_agent, created_at: log.created_at,
+        ip_address: log.ip_address as string | null, user_agent: log.user_agent, created_at: log.created_at,
       }));
       setLogs(formattedLogs);
       setTotalCount(count || 0);
@@ -79,7 +79,13 @@ export function useAuditLogs() {
     try {
       const { data, error: fetchError } = await supabase.from('audit_logs').select(`*, usuarios:usuario_id (nome, email), condominios:condominio_id (nome)`).eq('id', logId).single();
       if (fetchError) throw fetchError;
-      return { ...data, usuario_nome: data.usuarios?.nome, usuario_email: data.usuarios?.email, condominio_nome: data.condominios?.nome };
+      return {
+        ...data,
+        usuario_nome: data.usuarios?.nome,
+        usuario_email: data.usuarios?.email,
+        condominio_nome: data.condominios?.nome,
+        ip_address: data.ip_address as string | null,
+      };
     } catch (err) {
       setError(getErrorMessage(err));
       return null;
