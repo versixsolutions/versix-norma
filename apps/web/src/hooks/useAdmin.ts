@@ -23,7 +23,6 @@ export interface AdminUser {
 export interface AdminCondominio {
   id: string;
   nome: string;
-  slug: string;
   endereco: Database['public']['Tables']['condominios']['Row']['endereco'];
   status: StatusType;
   created_at: string;
@@ -83,6 +82,12 @@ export function useAdmin() {
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
 
+      if (!data || !Array.isArray(data)) {
+        console.error('Invalid data format in fetchCondominios:', data);
+        throw new Error('Failed to load condomínios');
+      }
+
+
       type UsuarioRow = Database['public']['Tables']['usuarios']['Row'];
       type UsuarioQueryResult = Pick<UsuarioRow, 'id' | 'auth_id' | 'nome' | 'email' | 'telefone' | 'avatar_url' | 'status' | 'created_at' | 'updated_at'> & {
         usuario_condominios?: Array<{
@@ -124,14 +129,18 @@ export function useAdmin() {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: fetchError } = await supabase.from('condominios').select(`id, nome, slug, endereco, status, created_at, blocos (unidades (id)), usuario_condominios (role, usuarios:usuario_id (nome))`).order('nome');
+      const { data, error: fetchError } = await supabase.from('condominios').select(`id, nome,  endereco, created_at, blocos (unidades (id)), usuario_condominios (role, usuarios:usuario_id (nome))`).order('nome');
       if (fetchError) throw fetchError;
+
+      if (!data || !Array.isArray(data)) {
+        console.error('Invalid data format in fetchCondominios:', data);
+        throw new Error('Failed to load condomínios');
+      }
+
       type CondominioWithRelations = {
         id: string;
         nome: string;
-        slug: string;
         endereco: string;
-        status: StatusType;
         created_at: string;
         blocos: Array<{ unidades: Array<{ id: string }> }>;
         usuario_condominios: Array<{ role: RoleType; usuarios: { nome: string } }>;
@@ -145,9 +154,8 @@ export function useAdmin() {
         return {
           id: condo.id,
           nome: condo.nome,
-          slug: condo.slug,
           endereco: condo.endereco,
-          status: condo.status,
+          status: 'ativo' as StatusType,
           created_at: condo.created_at,
           total_usuarios: condo.usuario_condominios?.length || 0,
           total_unidades: totalUnidades,
