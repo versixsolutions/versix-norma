@@ -70,7 +70,7 @@ export function ApprovalList({ condominioId, onUserApproved }: ApprovalListProps
                 <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                   {user.telefone && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">phone</span>{user.telefone}</span>}
                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">schedule</span>{formatDate(user.created_at)}</span>
-                  {user.unidade_identificador && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">home</span>{user.bloco_nome && `${user.bloco_nome} - `}{user.unidade_identificador}</span>}
+                  {user.unidade_numero && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">home</span>{user.bloco_nome && `${user.bloco_nome} - `}{user.unidade_numero}</span>}
                 </div>
               </div>
               <div className="flex items-center gap-2">

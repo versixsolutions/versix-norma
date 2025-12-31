@@ -11,7 +11,7 @@ export interface PendingUser {
   status: string;
   created_at: string;
   unidade_id: string | null;
-  unidade_identificador?: string;
+  unidade_numero?: string;
   bloco_nome?: string;
 }
 
@@ -31,16 +31,30 @@ export function useApproveUser() {
     setLoading(true);
     setError(null);
     try {
+      // Query corrigida com nomes corretos das tabelas e colunas
       const { data, error: fetchError } = await supabase
         .from('usuarios')
-        .select(`id, nome, email, telefone, status, created_at, unidade_id, unidades:unidade_id (identificador, blocos:bloco_id (nome))`)
+        .select(`
+          id,
+          nome,
+          email,
+          telefone,
+          status,
+          created_at,
+          unidade_id,
+          unidades_habitacionais:unidade_id (
+            numero,
+            blocos:bloco_id (nome)
+          )
+        `)
         .eq('condominio_id', condominioId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
 
-      interface RawUser {
+      // Tipo para os dados retornados pela query
+      type RawUser = {
         id: string;
         nome: string;
         email: string;
@@ -48,12 +62,22 @@ export function useApproveUser() {
         status: string;
         created_at: string;
         unidade_id: string | null;
-        unidades?: { identificador?: string; blocos?: { nome?: string } };
-      }
+        unidades_habitacionais: {
+          numero: string;
+          blocos: { nome: string } | null;
+        } | null;
+      };
+
       const formattedUsers: PendingUser[] = (data || []).map((user: RawUser) => ({
-        id: user.id, nome: user.nome, email: user.email, telefone: user.telefone,
-        status: user.status, created_at: user.created_at, unidade_id: user.unidade_id,
-        unidade_identificador: user.unidades?.identificador, bloco_nome: user.unidades?.blocos?.nome,
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        telefone: user.telefone,
+        status: user.status,
+        created_at: user.created_at,
+        unidade_id: user.unidade_id,
+        unidade_numero: user.unidades_habitacionais?.numero,
+        bloco_nome: user.unidades_habitacionais?.blocos?.nome,
       }));
       setPendingUsers(formattedUsers);
     } catch (err) {
