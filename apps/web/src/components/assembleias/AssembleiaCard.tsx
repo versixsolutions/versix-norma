@@ -24,8 +24,8 @@ const TIPO_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 export function AssembleiaCard({ assembleia, isSindico }: AssembleiaCardProps) {
-  const status = STATUS_CONFIG[assembleia.status];
-  const tipo = TIPO_CONFIG[assembleia.tipo];
+  const status = assembleia.status ? STATUS_CONFIG[assembleia.status] : STATUS_CONFIG['rascunho'];
+  const tipo = assembleia.tipo ? TIPO_CONFIG[assembleia.tipo] : TIPO_CONFIG['AGO'];
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const href = isSindico ? `/sindico/assembleias/${assembleia.id}` : `/assembleias/${assembleia.id}`;

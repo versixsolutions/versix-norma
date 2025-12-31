@@ -30,15 +30,15 @@ const CATEGORIA_ICONS: Record<string, string> = {
 };
 
 export function OcorrenciaCard({ ocorrencia, onClick, showReporter = false }: OcorrenciaCardProps) {
-  const status = STATUS_CONFIG[ocorrencia.status];
-  const prioridade = PRIORIDADE_CONFIG[ocorrencia.prioridade];
+  const status = ocorrencia.status ? STATUS_CONFIG[ocorrencia.status] : STATUS_CONFIG['aberta'];
+  const prioridade = ocorrencia.prioridade ? PRIORIDADE_CONFIG[ocorrencia.prioridade] : PRIORIDADE_CONFIG['media'];
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
   return (
     <div onClick={onClick} className={`bg-white dark:bg-card-dark rounded-2xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-lg transition-all ${onClick ? 'cursor-pointer' : ''}`}>
       <div className="flex items-start gap-4">
         <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-          <span className="material-symbols-outlined text-gray-600 dark:text-gray-400">{CATEGORIA_ICONS[ocorrencia.categoria]}</span>
+          <span className="material-symbols-outlined text-gray-600 dark:text-gray-400">{ocorrencia.categoria ? CATEGORIA_ICONS[ocorrencia.categoria] : 'report'}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">

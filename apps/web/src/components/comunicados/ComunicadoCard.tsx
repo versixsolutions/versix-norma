@@ -37,15 +37,15 @@ export function ComunicadoCard({ comunicado, onClick, showStatus }: ComunicadoCa
             <span className="material-symbols-outlined text-white text-sm">push_pin</span>
           </div>
         )}
-        <div className={`w-12 h-12 rounded-xl ${CATEGORIA_COLORS[comunicado.categoria]} flex items-center justify-center flex-shrink-0`}>
-          <span className="material-symbols-outlined">{CATEGORIA_ICONS[comunicado.categoria]}</span>
+        <div className={`w-12 h-12 rounded-xl ${comunicado.categoria ? CATEGORIA_COLORS[comunicado.categoria] : 'bg-gray-100 text-gray-700'} flex items-center justify-center flex-shrink-0`}>
+          <span className="material-symbols-outlined">{comunicado.categoria ? CATEGORIA_ICONS[comunicado.categoria] : 'info'}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
             <h3 className="font-semibold text-gray-800 dark:text-white line-clamp-2">{comunicado.titulo}</h3>
-            {showStatus && (
-              <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_BADGES[comunicado.status].color}`}>
-                {STATUS_BADGES[comunicado.status].label}
+            {showStatus && comunicado.status && (
+              <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_BADGES[comunicado.status]?.color || 'bg-gray-100 text-gray-600'}`}>
+                {STATUS_BADGES[comunicado.status]?.label || comunicado.status}
               </span>
             )}
           </div>

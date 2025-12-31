@@ -22,7 +22,7 @@ const CATEGORIA_LABELS: Record<string, string> = {
 };
 
 export function ChamadoCard({ chamado, onClick, isSindico = false }: ChamadoCardProps) {
-  const status = STATUS_CONFIG[chamado.status];
+  const status = chamado.status ? STATUS_CONFIG[chamado.status] : STATUS_CONFIG['novo'];
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 
   return (
@@ -33,7 +33,7 @@ export function ChamadoCard({ chamado, onClick, isSindico = false }: ChamadoCard
             <span className="material-symbols-outlined text-sm">{status.icon}</span>
             {status.label}
           </span>
-          <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">{CATEGORIA_LABELS[chamado.categoria]}</span>
+          <span className="text-xs text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">{chamado.categoria ? CATEGORIA_LABELS[chamado.categoria] : 'Outros'}</span>
         </div>
         {chamado.avaliacao_nota && (
           <div className="flex items-center gap-0.5">
