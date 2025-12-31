@@ -41,7 +41,7 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      let query = supabase.from('chamados').select(`*, solicitante:solicitante_id (nome, avatar_url, email), atendente:atendente_id (nome)`, { count: 'exact' })
+      let query = supabase.from('chamados').select(`*, solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email), atendente:usuarios!chamados_atendente_id_fkey (nome)`, { count: 'exact' })
         .eq('condominio_id', condominioId).is('deleted_at', null).order(filters?.orderBy || 'created_at', { ascending: filters?.orderDir === 'asc' }).range(from, to);
 
       if (filters?.status) query = query.eq('status', filters.status);
@@ -91,7 +91,7 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
 
   const getChamado = useCallback(async (id: string): Promise<Chamado | null> => {
     try {
-      const { data, error: fetchError } = await supabase.from('chamados').select(`*, solicitante:solicitante_id (nome, avatar_url, email), atendente:atendente_id (nome)`).eq('id', id).single();
+      const { data, error: fetchError } = await supabase.from('chamados').select(`*, solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email), atendente:usuarios!chamados_atendente_id_fkey (nome)`).eq('id', id).single();
       if (fetchError) throw fetchError;
       // Buscar mensagens
       const { data: mensagens } = await supabase.from('chamados_mensagens').select(`*, autor:autor_id (nome, avatar_url)`).eq('chamado_id', id).order('created_at', { ascending: true });
