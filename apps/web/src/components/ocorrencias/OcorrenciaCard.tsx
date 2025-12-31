@@ -82,7 +82,7 @@ export function OcorrenciaCard({ ocorrencia, onClick, showReporter = false }: Oc
                 {ocorrencia.responsavel.nome}
               </span>
             )}
-            {ocorrencia.anexos.length > 0 && (
+            {Array.isArray(ocorrencia.anexos) && ocorrencia.anexos.length > 0 && (
               <span className="flex items-center gap-1">
                 <span className="material-symbols-outlined text-sm">image</span>
                 {ocorrencia.anexos.length} foto(s)

@@ -65,7 +65,7 @@ export function ComunicadoCard({ comunicado, onClick, showStatus }: ComunicadoCa
               <span className="material-symbols-outlined text-sm">visibility</span>
               {comunicado.visualizacoes}
             </span>
-            {comunicado.anexos.length > 0 && (
+            {Array.isArray(comunicado.anexos) && comunicado.anexos.length > 0 && (
               <span className="flex items-center gap-1">
                 <span className="material-symbols-outlined text-sm">attach_file</span>
                 {comunicado.anexos.length}
