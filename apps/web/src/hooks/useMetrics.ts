@@ -97,7 +97,7 @@ export function useAssembleiaMetrics(condominioId: string, assembleiaId: string)
         logger.error('[AssembleiaMetrics Error]', error);
       }
     },
-    [condominioId, assembleiaId]
+    []
   );
 
   return { trackEvent };

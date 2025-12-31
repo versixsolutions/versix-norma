@@ -7,6 +7,22 @@ import type { Comunicado, ComunicadoCategoria, ComunicadoFilters, ComunicadoStat
 import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
+// Tipos aceitos pelo banco
+type CategoriaDb = 'urgente' | 'geral' | 'manutencao' | 'financeiro' | 'seguranca' | 'evento' | 'obras' | 'assembleia';
+
+// Mapeia categoria do front para o enum do banco
+function mapCategoriaToDb(categoria?: ComunicadoCategoria): CategoriaDb | undefined {
+  if (!categoria) return undefined;
+  if (categoria === 'aviso_geral' || categoria === 'outros') return 'geral';
+  if (categoria === 'eventos') return 'evento';
+  if ([
+    'urgente', 'geral', 'manutencao', 'financeiro', 'seguranca', 'evento', 'obras', 'assembleia'
+  ].includes(categoria)) {
+    return categoria as CategoriaDb;
+  }
+  return 'geral';
+}
+
 export function useComunicados(_options?: { condominioId?: string | null; userId?: string | null }) {
   const supabase = getSupabaseClient();
   const [comunicados, setComunicados] = useState<Comunicado[]>([]);
@@ -67,22 +83,6 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
       return null;
     }
   }, [supabase]);
-
-  // Mapeia categoria do front para o enum do banco
-  // Tipos aceitos pelo banco
-  type CategoriaDb = 'urgente' | 'geral' | 'manutencao' | 'financeiro' | 'seguranca' | 'evento' | 'obras' | 'assembleia';
-  function mapCategoriaToDb(categoria?: ComunicadoCategoria): CategoriaDb | undefined {
-    if (!categoria) return undefined;
-    if (categoria === 'aviso_geral' || categoria === 'outros') return 'geral';
-    if (categoria === 'eventos') return 'evento';
-    // Garantir que só retorna valores válidos
-    if ([
-      'urgente', 'geral', 'manutencao', 'financeiro', 'seguranca', 'evento', 'obras', 'assembleia'
-    ].includes(categoria)) {
-      return categoria as CategoriaDb;
-    }
-    return 'geral';
-  }
 
   const createComunicado = useCallback(async (condominioId: string, autorId: string, input: CreateComunicadoInput): Promise<Comunicado | null> => {
     setLoading(true);
