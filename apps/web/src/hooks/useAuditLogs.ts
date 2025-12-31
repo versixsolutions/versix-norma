@@ -7,7 +7,7 @@ import { useCallback, useState } from 'react';
 
 export interface AuditLog {
   id: string;
-  usuario_id: string;
+  usuario_id: string | null;
   usuario_nome?: string;
   usuario_email?: string;
   condominio_id: string | null;
