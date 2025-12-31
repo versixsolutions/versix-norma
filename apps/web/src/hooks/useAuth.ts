@@ -155,14 +155,14 @@ export function useAuth() {
       }
 
       const rawUser = profileData[0];
-      
+
       // Validar que usuario_condominios é array antes de fazer cast
       if (!rawUser.usuario_condominios || !Array.isArray(rawUser.usuario_condominios)) {
         console.error('usuario_condominios não é um array válido:', rawUser.usuario_condominios);
         return null;
       }
 
-      const usuario = rawUser as UsuarioWithCondominios;
+      const usuario = rawUser as unknown as UsuarioWithCondominios;
 
       // Transformar dados dos condomínios
       const userCondominios = usuario.usuario_condominios.map((uc: UsuarioCondominioJoin) => ({
