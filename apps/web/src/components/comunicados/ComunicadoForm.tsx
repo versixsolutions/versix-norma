@@ -1,12 +1,12 @@
 'use client';
 
 import { useAnexos } from '@/hooks/useAnexos';
-import type { Comunicado, ComunicadoCategoria, ComunicadoStatus, CreateComunicadoInput } from '@/hooks/useComunicados';
+import type { ComunicadoCategoria, ComunicadoComJoins, ComunicadoStatus, CreateComunicadoInput } from '@versix/shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface ComunicadoFormProps {
-  comunicado?: Comunicado;
+  comunicado?: ComunicadoComJoins;
   condominioId: string;
   onSubmit: (data: CreateComunicadoInput) => Promise<boolean>;
   onCancel: () => void;

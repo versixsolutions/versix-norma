@@ -2,8 +2,8 @@
 
 import { ComunicadoCard } from '@/components/comunicados/ComunicadoCard';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
-import type { ComunicadoCategoria } from '@/hooks/useComunicados';
 import { useComunicados } from '@/hooks/useComunicados';
+import type { ComunicadoCategoria } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 

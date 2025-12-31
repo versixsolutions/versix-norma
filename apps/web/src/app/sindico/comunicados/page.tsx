@@ -3,7 +3,8 @@
 import { ComunicadoCard } from '@/components/comunicados/ComunicadoCard';
 import { ComunicadoForm } from '@/components/comunicados/ComunicadoForm';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
-import { useComunicados, type ComunicadoStatus, type CreateComunicadoInput } from '@/hooks/useComunicados';
+import { useComunicados } from '@/hooks/useComunicados';
+import type { ComunicadoStatus, CreateComunicadoInput } from '@versix/shared';
 import type { ComunicadoLeitura } from '@versix/shared/types/operational';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';

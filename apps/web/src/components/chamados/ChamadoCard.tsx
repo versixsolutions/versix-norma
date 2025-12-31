@@ -1,9 +1,9 @@
 'use client';
 
-import type { Chamado } from '@/hooks/useChamados';
+import type { ChamadoComJoins } from '@versix/shared';
 
 interface ChamadoCardProps {
-  chamado: Chamado;
+  chamado: ChamadoComJoins;
   onClick?: () => void;
   isSindico?: boolean;
 }

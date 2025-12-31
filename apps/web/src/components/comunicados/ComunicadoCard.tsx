@@ -1,9 +1,9 @@
 'use client';
 
-import type { Comunicado } from '@/hooks/useComunicados';
+import type { ComunicadoComJoins } from '@versix/shared';
 
 interface ComunicadoCardProps {
-  comunicado: Comunicado;
+  comunicado: ComunicadoComJoins;
   onClick?: () => void;
   showStatus?: boolean;
 }

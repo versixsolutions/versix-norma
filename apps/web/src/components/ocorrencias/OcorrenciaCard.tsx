@@ -1,9 +1,9 @@
 'use client';
 
-import type { Ocorrencia } from '@/hooks/useOcorrencias';
+import type { OcorrenciaComJoins } from '@versix/shared';
 
 interface OcorrenciaCardProps {
-  ocorrencia: Ocorrencia;
+  ocorrencia: OcorrenciaComJoins;
   onClick?: () => void;
   showReporter?: boolean;
 }
