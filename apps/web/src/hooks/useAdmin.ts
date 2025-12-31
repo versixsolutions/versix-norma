@@ -4,7 +4,20 @@ import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { RoleType, StatusType } from '@/types/database';
+import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
+
+// ============================================
+// TIPOS
+// ============================================
+type UserStatus = Database['public']['Enums']['user_status'];
+type UserRole = Database['public']['Enums']['user_role'];
+
+interface FetchUsersFilters {
+  status?: UserStatus;
+  role?: UserRole;
+  condominio_id?: string;
+}
 
 export interface AdminUser {
   id: string;
@@ -54,27 +67,23 @@ export function useAdmin() {
   const [error, setError] = useState<string | null>(null);
 
   // ============================================
-  // FETCH USERS
+  // FETCH USERS - COM TIPAGEM CORRETA
   // ============================================
-  const fetchUsers = useCallback(async (filters?: { 
-    status?: string; 
-    role?: string; 
-    condominio_id?: string 
-  }) => {
+  const fetchUsers = useCallback(async (filters?: FetchUsersFilters) => {
     setLoading(true);
     setError(null);
     try {
       let query = supabase
         .from('usuarios')
         .select(`
-          id, 
-          auth_id, 
-          nome, 
-          email, 
-          telefone, 
-          avatar_url, 
-          status, 
-          created_at, 
+          id,
+          auth_id,
+          nome,
+          email,
+          telefone,
+          avatar_url,
+          status,
+          created_at,
           updated_at,
           role,
           condominio_id,
@@ -104,30 +113,30 @@ export function useAdmin() {
         email: string;
         telefone: string | null;
         avatar_url: string | null;
-        status: StatusType;
+        status: UserStatus;
         created_at: string;
         updated_at: string;
-        role: RoleType;
+        role: UserRole;
         condominio_id: string | null;
         unidade_id: string | null;
         condominios: { nome: string } | null;
         unidades_habitacionais: { identificador: string } | null;
       };
 
-      const formattedUsers: AdminUser[] = (data || []).map((user: UsuarioWithRelations) => ({
+      const formattedUsers: AdminUser[] = ((data || []) as UsuarioWithRelations[]).map((user) => ({
         id: user.id,
         auth_id: user.auth_id || '',
         nome: user.nome,
         email: user.email,
         telefone: user.telefone,
         avatar_url: user.avatar_url,
-        status: user.status,
+        status: user.status as StatusType,
         created_at: user.created_at,
         updated_at: user.updated_at,
         condominios: user.condominio_id ? [{
           condominio_id: user.condominio_id,
           condominio_nome: user.condominios?.nome || '',
-          role: user.role,
+          role: user.role as RoleType,
           unidade_id: user.unidade_id,
           unidade_identificador: user.unidades_habitacionais?.identificador || null,
         }] : [],
@@ -151,11 +160,11 @@ export function useAdmin() {
       const { data, error: fetchError } = await supabase
         .from('condominios')
         .select(`
-          id, 
-          nome, 
+          id,
+          nome,
           cnpj,
-          endereco, 
-          created_at, 
+          endereco,
+          created_at,
           blocos (
             unidades_habitacionais (id)
           ),
@@ -255,13 +264,12 @@ export function useAdmin() {
     setLoading(true);
     try {
       // Map StatusType to DbStatus
-      const dbStatusMap: Record<StatusType, string> = {
+      const dbStatusMap: Record<StatusType, UserStatus> = {
         'ativo': 'active',
         'inativo': 'inactive',
         'pendente': 'pending',
         'suspenso': 'suspended',
-        'bloqueado': 'removed',
-        'removido': 'removed'
+        'bloqueado': 'removed'
       };
       const dbStatus = dbStatusMap[status] || 'active';
 
@@ -286,8 +294,8 @@ export function useAdmin() {
   // UPDATE USER ROLE
   // ============================================
   const updateUserRole = useCallback(async (
-    userId: string, 
-    condominioId: string, 
+    userId: string,
+    condominioId: string,
     role: RoleType
   ): Promise<boolean> => {
     setLoading(true);
@@ -295,7 +303,7 @@ export function useAdmin() {
       // Atualiza diretamente na tabela usuarios (relação 1:1)
       const { error: updateError } = await supabase
         .from('usuarios')
-        .update({ role })
+        .update({ role: role as UserRole })
         .eq('id', userId)
         .eq('condominio_id', condominioId);
 
@@ -305,7 +313,7 @@ export function useAdmin() {
         if (u.id === userId) {
           return {
             ...u,
-            condominios: u.condominios.map(c => 
+            condominios: u.condominios.map(c =>
               c.condominio_id === condominioId ? { ...c, role } : c
             ),
           };
@@ -332,14 +340,14 @@ export function useAdmin() {
       const { data } = await supabase
         .from('usuarios')
         .select(`
-          id, 
-          auth_id, 
-          nome, 
-          email, 
-          telefone, 
-          avatar_url, 
-          status, 
-          created_at, 
+          id,
+          auth_id,
+          nome,
+          email,
+          telefone,
+          avatar_url,
+          status,
+          created_at,
           updated_at,
           role,
           condominio_id
