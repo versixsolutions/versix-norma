@@ -23,6 +23,7 @@ export interface Assembleia {
   titulo: string;
   descricao: string | null;
   numero_sequencial: number | null;
+  ano_referencia: number;
   data_primeira_convocacao: string | null;
   data_segunda_convocacao: string | null;
   data_inicio: string | null;
@@ -33,14 +34,25 @@ export interface Assembleia {
   max_procuracoes_por_pessoa: number;
   quorum_minimo_primeira: number;
   quorum_minimo_segunda: number;
-  quorum_atingido: number;
+  quorum_atingido: number | null;
   local_presencial: string | null;
+  endereco_presencial: string | null;
   link_video: string | null;
+  codigo_acesso_video: string | null;
+  qr_token: string | null;
   status: AssembleiaStatus;
   ata_texto: string | null;
   ata_pdf_path: string | null;
   ata_hash: string | null;
-  criado_por: string;
+  ata_assinada?: boolean;
+  observacoes_internas: string | null;
+  notificacao_convocacao_enviada?: boolean;
+  notificacao_lembrete_enviada?: boolean;
+  notificacao_resultado_enviada?: boolean;
+  metadata?: Record<string, unknown> | null;
+  criado_por: string | null;
+  convocada_em: string | null;
+  iniciada_em: string | null;
   created_at: string;
   updated_at: string;
   encerrada_em: string | null;
@@ -84,14 +96,15 @@ export interface Pauta {
   descricao: string | null;
   tipo_votacao: PautaTipoVotacao;
   voto_secreto: boolean;
-  quorum_especial: QuorumEspecial;
+  quorum_especial: QuorumEspecial | null;
   permite_abstencao: boolean;
   cargo: string | null;
-  max_eleitos: number;
+  max_eleitos: number | null;
   bloqueia_inadimplentes: boolean;
   status: PautaStatus;
   resultado: PautaResultado | null;
   created_at: string;
+  updated_at: string;
   // Joins
   opcoes?: PautaOpcao[];
   votos?: Voto[];
@@ -168,7 +181,8 @@ export interface Presenca {
   user_agent: string | null;
   // Joins
   usuario?: { nome: string; avatar_url?: string };
-  unidade?: { identificador: string; bloco?: { nome: string } };
+  unidade?: { numero: string; bloco?: { nome: string } };
+  unidades_habitacionais?: { numero: string; blocos?: { nome: string } };
   representante?: { nome: string };
 }
 
@@ -189,7 +203,7 @@ export interface Voto {
   ip_address: string | null;
   // Joins (se não for voto secreto)
   usuario?: { nome: string };
-  unidade?: { identificador: string };
+  unidade?: { numero: string };
 }
 
 export interface VotarInput {
@@ -251,18 +265,21 @@ export interface AssinarInput {
 // QUORUM
 // ============================================
 export interface QuorumInfo {
-  assembleia_id: string;
-  condominio_id: string;
-  status: AssembleiaStatus;
-  total_fracoes: number;
-  fracoes_presentes: number;
-  quorum_percentual: number;
-  unidades_presentes: number;
-  total_unidades: number;
-  presenciais: number;
-  online: number;
-  procuracoes: number;
-  votos_antecipados: number;
+  assembleia_id: string | null;
+  condominio_id: string | null;
+  status: AssembleiaStatus | null;
+  total_fracoes: number | null;
+  fracoes_presentes: number | null;
+  fracao_presente: number | null;
+  quorum_percentual: number | null;
+  quorum_minimo_primeira: number | null;
+  quorum_minimo_segunda: number | null;
+  unidades_presentes: number | null;
+  total_unidades: number | null;
+  presenciais: number | null;
+  online: number | null;
+  procuracoes: number | null;
+  votos_antecipados: number | null;
 }
 
 // ============================================
