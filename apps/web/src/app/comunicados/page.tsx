@@ -8,8 +8,10 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 const CATEGORIAS = [
-  { value: '', label: 'Todas' }, { value: 'aviso_geral', label: 'Avisos' }, { value: 'manutencao', label: 'Manutenção' },
-  { value: 'financeiro', label: 'Financeiro' }, { value: 'assembleia', label: 'Assembleia' }, { value: 'seguranca', label: 'Segurança' }
+  { value: '', label: 'Todas' }, { value: 'geral', label: 'Geral' }, { value: 'urgente', label: 'Urgente' },
+  { value: 'manutencao', label: 'Manutenção' }, { value: 'financeiro', label: 'Financeiro' },
+  { value: 'assembleia', label: 'Assembleia' }, { value: 'seguranca', label: 'Segurança' }, { value: 'evento', label: 'Evento' },
+  { value: 'obras', label: 'Obras' }
 ];
 
 export default function ComunicadosPage() {

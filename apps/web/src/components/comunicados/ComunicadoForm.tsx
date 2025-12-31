@@ -13,10 +13,10 @@ interface ComunicadoFormProps {
 }
 
 const CATEGORIAS: { value: ComunicadoCategoria; label: string }[] = [
-  { value: 'aviso_geral', label: 'Aviso Geral' }, { value: 'manutencao', label: 'Manutenção' },
-  { value: 'financeiro', label: 'Financeiro' }, { value: 'assembleia', label: 'Assembleia' },
-  { value: 'seguranca', label: 'Segurança' }, { value: 'eventos', label: 'Eventos' },
-  { value: 'obras', label: 'Obras' }, { value: 'outros', label: 'Outros' }
+  { value: 'urgente', label: 'Urgente' }, { value: 'geral', label: 'Geral' },
+  { value: 'manutencao', label: 'Manutenção' }, { value: 'financeiro', label: 'Financeiro' },
+  { value: 'assembleia', label: 'Assembleia' }, { value: 'seguranca', label: 'Segurança' },
+  { value: 'evento', label: 'Evento' }, { value: 'obras', label: 'Obras' }
 ];
 
 export function ComunicadoForm({ comunicado, condominioId, onSubmit, onCancel }: ComunicadoFormProps) {
@@ -26,7 +26,7 @@ export function ComunicadoForm({ comunicado, condominioId, onSubmit, onCancel }:
     titulo: comunicado?.titulo || '',
     conteudo: comunicado?.conteudo || '',
     resumo: comunicado?.resumo || '',
-    categoria: comunicado?.categoria || 'aviso_geral',
+    categoria: comunicado?.categoria || 'geral',
     fixado: comunicado?.fixado || false,
     destaque: comunicado?.destaque || false,
     publicar_em: comunicado?.publicar_em || null,

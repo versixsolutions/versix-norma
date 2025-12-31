@@ -8,7 +8,7 @@
 // ============================================
 
 export type ComunicadoStatus = 'rascunho' | 'publicado' | 'arquivado';
-export type ComunicadoCategoria = 'aviso_geral' | 'manutencao' | 'financeiro' | 'assembleia' | 'seguranca' | 'eventos' | 'obras' | 'outros';
+export type ComunicadoCategoria = 'geral' | 'manutencao' | 'financeiro' | 'seguranca' | 'evento' | 'urgente' | 'obras' | 'assembleia';
 export type OcorrenciaStatus = 'aberta' | 'em_analise' | 'em_andamento' | 'resolvida' | 'arquivada';
 export type OcorrenciaCategoria = 'barulho' | 'vazamento' | 'iluminacao' | 'limpeza' | 'seguranca' | 'area_comum' | 'elevador' | 'portaria' | 'animais' | 'estacionamento' | 'outros';
 export type Prioridade = 'baixa' | 'media' | 'alta' | 'urgente';

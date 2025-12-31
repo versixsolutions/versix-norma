@@ -5,7 +5,7 @@ import { z } from 'zod';
 // ============================================
 
 export const comunicadoStatusSchema = z.enum(['rascunho', 'publicado', 'arquivado']);
-export const comunicadoCategoriaSchema = z.enum(['aviso_geral', 'manutencao', 'financeiro', 'assembleia', 'seguranca', 'eventos', 'obras', 'outros']);
+export const comunicadoCategoriaSchema = z.enum(['geral', 'manutencao', 'financeiro', 'seguranca', 'evento', 'urgente', 'obras', 'assembleia']);
 export const ocorrenciaStatusSchema = z.enum(['aberta', 'em_analise', 'em_andamento', 'resolvida', 'arquivada']);
 export const ocorrenciaCategoriaSchema = z.enum(['barulho', 'vazamento', 'iluminacao', 'limpeza', 'seguranca', 'area_comum', 'elevador', 'portaria', 'animais', 'estacionamento', 'outros']);
 export const prioridadeSchema = z.enum(['baixa', 'media', 'alta', 'urgente']);
@@ -32,7 +32,7 @@ const baseComunicadoSchema = z.object({
   titulo: z.string().min(5, 'Título deve ter pelo menos 5 caracteres').max(200),
   conteudo: z.string().min(10, 'Conteúdo deve ter pelo menos 10 caracteres'),
   resumo: z.string().max(500).optional(),
-  categoria: comunicadoCategoriaSchema.default('aviso_geral'),
+  categoria: comunicadoCategoriaSchema.default('geral'),
   fixado: z.boolean().default(false),
   destaque: z.boolean().default(false),
   publicar_em: z.string().datetime().optional().nullable(),

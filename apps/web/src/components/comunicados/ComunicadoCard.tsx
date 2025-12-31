@@ -9,15 +9,15 @@ interface ComunicadoCardProps {
 }
 
 const CATEGORIA_ICONS: Record<string, string> = {
-  aviso_geral: 'campaign', manutencao: 'build', financeiro: 'payments', assembleia: 'groups',
-  seguranca: 'shield', eventos: 'celebration', obras: 'construction', outros: 'info'
+  urgente: 'warning', geral: 'campaign', manutencao: 'build', financeiro: 'payments',
+  assembleia: 'groups', seguranca: 'shield', evento: 'celebration', obras: 'construction'
 };
 
 const CATEGORIA_COLORS: Record<string, string> = {
-  aviso_geral: 'bg-blue-100 text-blue-700', manutencao: 'bg-orange-100 text-orange-700',
-  financeiro: 'bg-green-100 text-green-700', assembleia: 'bg-purple-100 text-purple-700',
-  seguranca: 'bg-red-100 text-red-700', eventos: 'bg-pink-100 text-pink-700',
-  obras: 'bg-amber-100 text-amber-700', outros: 'bg-gray-100 text-gray-700'
+  urgente: 'bg-red-100 text-red-700', geral: 'bg-blue-100 text-blue-700',
+  manutencao: 'bg-orange-100 text-orange-700', financeiro: 'bg-green-100 text-green-700',
+  assembleia: 'bg-purple-100 text-purple-700', seguranca: 'bg-rose-100 text-rose-700',
+  evento: 'bg-pink-100 text-pink-700', obras: 'bg-amber-100 text-amber-700'
 };
 
 const STATUS_BADGES: Record<string, { label: string; color: string }> = {
