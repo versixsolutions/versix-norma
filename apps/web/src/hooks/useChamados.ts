@@ -81,7 +81,12 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       if (fetchError) throw fetchError;
       // Buscar mensagens
       const { data: mensagens } = await supabase.from('chamados_mensagens').select(`*, autor:autor_id (nome, avatar_url)`).eq('chamado_id', id).order('created_at', { ascending: true });
-      return { ...data, mensagens: (mensagens as unknown as ChamadoMensagem[]) || [], total_mensagens: mensagens?.length || 0 };
+      return { 
+        ...data, 
+        anexos: Array.isArray(data.anexos) ? data.anexos : [],
+        mensagens: (mensagens as unknown as ChamadoMensagem[]) || [], 
+        total_mensagens: mensagens?.length || 0 
+      } as unknown as Chamado;
     } catch (err) {
       console.error('Erro ao buscar chamado:', err);
       return null;
