@@ -7,7 +7,7 @@ export default function AguardandoAprovacaoPage() {
   const { profile, isAuthenticated, loading, logout } = useAuthContext();
   const router = useRouter();
 
-  useEffect(() => { if (!loading && !isAuthenticated) router.push('/login'); if (!loading && profile?.status === 'ativo') router.push('/home'); }, [loading, isAuthenticated, profile, router]);
+  useEffect(() => { if (!loading && !isAuthenticated) router.push('/login'); if (!loading && profile?.status === 'active') router.push('/home'); }, [loading, isAuthenticated, profile, router]);
   const handleLogout = async () => { await logout(); router.push('/login'); };
 
   if (loading) return (<div className="min-h-screen flex items-center justify-center bg-primary"><div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin" /></div>);

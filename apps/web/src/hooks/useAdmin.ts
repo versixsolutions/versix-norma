@@ -263,19 +263,10 @@ export function useAdmin() {
   const updateUserStatus = useCallback(async (userId: string, status: StatusType): Promise<boolean> => {
     setLoading(true);
     try {
-      // Map StatusType to DbStatus
-      const dbStatusMap: Record<StatusType, UserStatus> = {
-        'ativo': 'active',
-        'inativo': 'inactive',
-        'pendente': 'pending',
-        'suspenso': 'suspended',
-        'bloqueado': 'removed'
-      };
-      const dbStatus = dbStatusMap[status] || 'active';
-
+      // StatusType agora já está em inglês, não precisa mapear
       const { error: updateError } = await supabase
         .from('usuarios')
-        .update({ status: dbStatus, updated_at: new Date().toISOString() })
+        .update({ status: status as UserStatus, updated_at: new Date().toISOString() })
         .eq('id', userId);
 
       if (updateError) throw updateError;

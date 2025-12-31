@@ -62,7 +62,7 @@ export function ProfilePage({ onScroll }: ProfilePageProps) {
           )}
           <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span className="material-symbols-outlined text-[10px]">check_circle</span>
-            {profile?.status === 'ativo' ? 'Ativo' : profile?.status}
+            {profile?.status === 'active' ? 'Ativo' : profile?.status}
           </span>
           <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
             {profile?.condominio_atual?.role || 'morador'}

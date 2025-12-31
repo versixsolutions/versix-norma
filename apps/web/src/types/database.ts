@@ -6225,7 +6225,18 @@ export const Constants = {
 // Enums customizados (não gerados automaticamente)
 export type TierType = 'starter' | 'professional' | 'enterprise';
 export type RoleType = 'superadmin' | 'admin_master' | 'sindico' | 'subsindico' | 'conselheiro' | 'morador' | 'porteiro' | 'zelador';
-export type StatusType = 'ativo' | 'inativo' | 'pendente' | 'suspenso' | 'bloqueado';
+// StatusType agora usa valores do banco de dados (em inglês)
+export type StatusType = 'pending' | 'active' | 'inactive' | 'suspended' | 'removed';
+
+// Mapeamento para exibição em português
+export const STATUS_LABELS: Record<StatusType, string> = {
+  pending: 'Pendente',
+  active: 'Ativo',
+  inactive: 'Inativo',
+  suspended: 'Suspenso',
+  removed: 'Removido',
+};
+
 export type TipoUnidade = 'apartamento' | 'casa' | 'sala_comercial' | 'loja' | 'garagem' | 'deposito';
 export type TipoVinculo = 'proprietario' | 'inquilino' | 'morador' | 'dependente' | 'funcionario';
 export type TipoLancamento = 'receita' | 'despesa' | 'transferencia';
