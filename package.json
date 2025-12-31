@@ -12,7 +12,7 @@
     "dev": "pnpm --filter @versix/web dev",
     "build": "pnpm --filter @versix/web build",
     "start": "pnpm --filter @versix/web start",
-    "lint": "eslint apps/web/src --ext .ts,.tsx",
+    "lint": "eslint apps/web/src",
     "lint:fix": "pnpm lint -- --fix",
     "type-check": "tsc --noEmit -p apps/web",
     "test": "pnpm --filter @versix/shared test:run",

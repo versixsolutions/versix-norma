@@ -19,7 +19,8 @@ export default function OfflinePage() {
   };
 
   useEffect(() => {
-    checkOfflineData();
+    const handle = requestAnimationFrame(() => { void checkOfflineData(); });
+    return () => cancelAnimationFrame(handle);
   }, []);
 
   return (

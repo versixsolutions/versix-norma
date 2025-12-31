@@ -1,13 +1,12 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import {
+    createContext,
+    useContext,
+    useState,
+    type ReactNode
+} from 'react';
 
 // ============================================
 // TYPES
@@ -51,11 +50,7 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children, fallback, requiredRoles }: AuthGuardProps) {
   const { isAuthenticated, loading, profile } = useAuthContext();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [mounted] = useState(() => typeof window !== 'undefined');
 
   if (!mounted || loading) {
     return fallback || (

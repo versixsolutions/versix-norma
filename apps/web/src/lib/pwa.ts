@@ -91,21 +91,21 @@ interface BeforeInstallPromptEvent extends Event {
 
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const navigatorWithStandalone = navigator as NavigatorWithStandalone;
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      navigatorWithStandalone.standalone === true
+    );
+  });
+  const [isIOS] = useState(() => {
+    if (typeof navigator === 'undefined') return false;
+    const isValidMSStream = !(window as any).MSStream;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && isValidMSStream;
+  });
 
   useEffect(() => {
-    // Detectar iOS
-    const isValidMSStream = !(window as any).MSStream;
-    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && isValidMSStream;
-    setIsIOS(ios);
-
-    // Detectar se já está instalado
-    const navigatorWithStandalone = navigator as NavigatorWithStandalone;
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                         navigatorWithStandalone.standalone === true;
-    setIsInstalled(isStandalone);
-
     // Capturar evento de install prompt
     const handler = (e: Event) => {
       e.preventDefault();
@@ -115,13 +115,16 @@ export function useInstallPrompt() {
     window.addEventListener('beforeinstallprompt', handler);
 
     // Detectar instalação bem-sucedida
-    window.addEventListener('appinstalled', () => {
+    const handleInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
-    });
+    };
+
+    window.addEventListener('appinstalled', handleInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', handleInstalled);
     };
   }, []);
 

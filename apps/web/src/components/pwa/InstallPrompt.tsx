@@ -1,24 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useInstallPrompt } from '@/lib/pwa';
+import { useState } from 'react';
 
 export function InstallPrompt() {
   const { canInstall, isInstalled, isIOS, promptInstall } = useInstallPrompt();
-  const [dismissed, setDismissed] = useState(false);
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
-
-  // Verificar se já foi dismissado
-  useEffect(() => {
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false;
     const wasDismissed = localStorage.getItem('install-prompt-dismissed');
-    if (wasDismissed) {
-      const dismissedAt = parseInt(wasDismissed);
-      // Mostrar novamente após 7 dias
-      if (Date.now() - dismissedAt < 7 * 24 * 60 * 60 * 1000) {
-        setDismissed(true);
-      }
-    }
-  }, []);
+    if (!wasDismissed) return false;
+    const dismissedAt = parseInt(wasDismissed, 10);
+    return Date.now() - dismissedAt < 7 * 24 * 60 * 60 * 1000;
+  });
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
 
   const handleDismiss = () => {
     setDismissed(true);
@@ -70,7 +64,7 @@ export function InstallPrompt() {
                   <span className="material-symbols-outlined">close</span>
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">1</div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
 // ACCESSIBILITY SETTINGS
@@ -28,31 +28,23 @@ const FONT_SIZE_MAP = {
 };
 
 export function useAccessibility() {
-  const [settings, setSettings] = useState<AccessibilitySettings>(DEFAULT_SETTINGS);
-  const [loaded, setLoaded] = useState(false);
-
-  // Carregar configurações salvas
-  useEffect(() => {
+  const [settings, setSettings] = useState<AccessibilitySettings>(() => {
+    if (typeof window === 'undefined') return DEFAULT_SETTINGS;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        setSettings(JSON.parse(saved));
-      }
-
-      // Detectar preferências do sistema
+      const base = saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const prefersHighContrast = window.matchMedia('(prefers-contrast: high)').matches;
-
-      setSettings(prev => ({
-        ...prev,
-        reducedMotion: prev.reducedMotion || prefersReducedMotion,
-        highContrast: prev.highContrast || prefersHighContrast
-      }));
+      return {
+        ...base,
+        reducedMotion: base.reducedMotion || prefersReducedMotion,
+        highContrast: base.highContrast || prefersHighContrast
+      };
     } catch {
-      // localStorage não disponível
+      return DEFAULT_SETTINGS;
     }
-    setLoaded(true);
-  }, []);
+  });
+  const [loaded, setLoaded] = useState(() => typeof window !== 'undefined');
 
   // Aplicar configurações ao DOM
   useEffect(() => {

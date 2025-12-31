@@ -38,11 +38,13 @@ export default function FinanceiroDashboardPage() {
   }, [condominioId, fetchContas]);
 
   useEffect(() => {
-    if (condominioId) {
+    if (!condominioId) return;
+    const handle = requestAnimationFrame(() => {
       loadDashboard();
       loadCategorias();
       loadContas();
-    }
+    });
+    return () => cancelAnimationFrame(handle);
   }, [condominioId, loadDashboard, loadCategorias, loadContas]);
 
   const handleSubmit = async (e: React.FormEvent) => {

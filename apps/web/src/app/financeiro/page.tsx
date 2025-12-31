@@ -6,7 +6,7 @@ import { usePrestacaoContas } from '@/hooks/usePrestacaoContas';
 import { useTaxas } from '@/hooks/useTaxas';
 import type { SaldoPeriodo, TaxaUnidade } from '@versix/shared/types/financial';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function FinanceiroMoradorPage() {
   const { profile } = useAuthContext();
@@ -20,24 +20,28 @@ export default function FinanceiroMoradorPage() {
 
   const condominioId = profile?.condominio_atual?.id;
 
-  const loadData = useCallback(async () => {
-    if (!condominioId || !profile?.id) return;
-    setLoading(true);
-
-    const [taxasData, saldoData] = await Promise.all([
-      getMinhasTaxas(profile.id, condominioId),
-      calcularSaldoPeriodo(condominioId, `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`),
-      fetchPrestacoes(condominioId)
-    ]);
-
-    setMinhasTaxas(taxasData);
-    setSaldo(saldoData);
-    setLoading(false);
-  }, [condominioId, profile?.id, getMinhasTaxas, calcularSaldoPeriodo, fetchPrestacoes]);
-
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!condominioId || !profile?.id) return;
+    let active = true;
+    const handle = requestAnimationFrame(() => {
+      (async () => {
+        setLoading(true);
+        const [taxasData, saldoData] = await Promise.all([
+          getMinhasTaxas(profile.id, condominioId),
+          calcularSaldoPeriodo(condominioId, `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-01`),
+          fetchPrestacoes(condominioId)
+        ]);
+        if (!active) return;
+        setMinhasTaxas(taxasData);
+        setSaldo(saldoData);
+        setLoading(false);
+      })();
+    });
+    return () => {
+      active = false;
+      cancelAnimationFrame(handle);
+    };
+  }, [condominioId, profile?.id, getMinhasTaxas, calcularSaldoPeriodo, fetchPrestacoes]);
 
   const formatCurrency = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR');

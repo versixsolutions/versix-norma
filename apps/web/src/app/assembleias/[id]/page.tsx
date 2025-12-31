@@ -49,7 +49,10 @@ export default function AssembleiaDetalhePage() {
     setLoading(false);
   }, [id, getAssembleia, getMinhaPresenca, jaVotou]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => { void loadData(); });
+    return () => cancelAnimationFrame(handle);
+  }, [loadData]);
 
   // Subscribe to quorum updates
   useEffect(() => {
