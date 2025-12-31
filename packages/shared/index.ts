@@ -20,6 +20,6 @@ export * from './utils';
 export { type AvaliarChamadoInput, type CreateChamadoInput, type CreateComunicadoInput, type CreateFAQInput, type CreateMensagemInput, type CreateOcorrenciaInput, type UpdateChamadoInput, type UpdateComunicadoInput, type UpdateFAQInput, type UpdateOcorrenciaInput } from './src/validators/operational';
 
 // Legacy integration inputs (ainda não migrados para o schema)
-export { type CreateExportacaoInput, type CreateIntegracaoApiInput, type Exportacao } from './src/types/integracoes';
+export { type CreateExportacaoInput, type CreateIntegracaoApiInput, type Exportacao, type IntegracaoDashboard } from './src/types/integracoes';
 
 

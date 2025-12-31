@@ -1,7 +1,7 @@
 'use client';
 
 import { useAnexos } from '@/hooks/useAnexos';
-import type { ComunicadoCategoria, ComunicadoComJoins, ComunicadoStatus, CreateComunicadoInput } from '@versix/shared';
+import type { Anexo, ComunicadoCategoria, ComunicadoComJoins, ComunicadoStatus, CreateComunicadoInput } from '@versix/shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -19,9 +19,21 @@ const CATEGORIAS: { value: ComunicadoCategoria; label: string }[] = [
   { value: 'evento', label: 'Evento' }, { value: 'obras', label: 'Obras' }
 ];
 
+const normalizeAnexos = (value: unknown): Anexo[] => {
+  if (!Array.isArray(value)) return [];
+  return value.filter((anexo): anexo is Anexo =>
+    !!anexo && typeof anexo === 'object' &&
+    typeof (anexo as Anexo).url === 'string' &&
+    typeof (anexo as Anexo).nome === 'string' &&
+    typeof (anexo as Anexo).tipo === 'string' &&
+    typeof (anexo as Anexo).tamanho === 'number'
+  );
+};
+
 export function ComunicadoForm({ comunicado, condominioId, onSubmit, onCancel }: ComunicadoFormProps) {
   const { uploadMultiple, uploading } = useAnexos();
   const [loading, setLoading] = useState(false);
+  const initialAnexos: Anexo[] = normalizeAnexos(comunicado?.anexos);
   const [form, setForm] = useState<CreateComunicadoInput>({
     titulo: comunicado?.titulo || '',
     conteudo: comunicado?.conteudo || '',
@@ -31,7 +43,7 @@ export function ComunicadoForm({ comunicado, condominioId, onSubmit, onCancel }:
     destaque: comunicado?.destaque || false,
     publicar_em: comunicado?.publicar_em || null,
     expirar_em: comunicado?.expirar_em || null,
-    anexos: comunicado?.anexos || [],
+    anexos: initialAnexos,
     status: comunicado?.status || 'rascunho'
   });
 
@@ -39,12 +51,12 @@ export function ComunicadoForm({ comunicado, condominioId, onSubmit, onCancel }:
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
     const anexos = await uploadMultiple(condominioId, 'comunicados', files);
-    setForm(prev => ({ ...prev, anexos: [...prev.anexos!, ...anexos] }));
+    setForm(prev => ({ ...prev, anexos: [...(prev.anexos || []), ...anexos] }));
     toast.success(`${anexos.length} arquivo(s) enviado(s)`);
   };
 
   const removeAnexo = (index: number) => {
-    setForm(prev => ({ ...prev, anexos: prev.anexos!.filter((_, i) => i !== index) }));
+    setForm(prev => ({ ...prev, anexos: (prev.anexos || []).filter((_, i) => i !== index) }));
   };
 
   const handleSubmit = async (e: React.FormEvent, status?: ComunicadoStatus) => {

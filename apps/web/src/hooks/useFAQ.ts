@@ -37,10 +37,13 @@ export function useFAQ() {
       if (fetchError) throw fetchError;
 
       // Calcular percentual de utilidade
-      const faqsComUtilidade = (data || []).map(faq => ({
-        ...faq,
-        utilidade_percentual: faq.util_sim + faq.util_nao > 0 ? (faq.util_sim / (faq.util_sim + faq.util_nao)) * 100 : null
-      }));
+      const faqsComUtilidade = (data || []).map(faq => {
+        const totalVotos = (faq.votos_util ?? 0) + (faq.votos_inutil ?? 0);
+        return {
+          ...faq,
+          utilidade_percentual: totalVotos > 0 ? ((faq.votos_util ?? 0) / totalVotos) * 100 : null
+        };
+      });
 
       const total = count || 0;
       const result: PaginatedResponse<FAQ> = {
@@ -64,9 +67,10 @@ export function useFAQ() {
       if (fetchError) throw fetchError;
       // Incrementar visualização
       await supabase.from('faq').update({ visualizacoes: data.visualizacoes + 1 }).eq('id', id);
+      const totalVotos = (data.votos_util ?? 0) + (data.votos_inutil ?? 0);
       return {
         ...data,
-        utilidade_percentual: data.util_sim + data.util_nao > 0 ? (data.util_sim / (data.util_sim + data.util_nao)) * 100 : null
+        utilidade_percentual: totalVotos > 0 ? ((data.votos_util ?? 0) / totalVotos) * 100 : null
       };
     } catch (err) {
       console.error('Erro ao buscar FAQ:', err);
@@ -126,12 +130,12 @@ export function useFAQ() {
       // Atualizar localmente
       setFaqs(prev => prev.map(f => {
         if (f.id !== faqId) return f;
-        const newSim = useful ? f.util_sim + 1 : f.util_sim;
-        const newNao = useful ? f.util_nao : f.util_nao + 1;
+        const newSim = useful ? (f.votos_util ?? 0) + 1 : (f.votos_util ?? 0);
+        const newNao = useful ? (f.votos_inutil ?? 0) : (f.votos_inutil ?? 0) + 1;
         return {
           ...f,
-          util_sim: newSim,
-          util_nao: newNao,
+          votos_util: newSim,
+          votos_inutil: newNao,
           utilidade_percentual: (newSim / (newSim + newNao)) * 100
         };
       }));

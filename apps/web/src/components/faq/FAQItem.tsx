@@ -14,6 +14,9 @@ interface FAQItemProps {
 export function FAQItem({ faq, onVote, editable = false, onEdit, onDelete }: FAQItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [voted, setVoted] = useState<boolean | null>(null);
+  const tags: string[] = Array.isArray((faq as { tags?: unknown }).tags)
+    ? ((faq as { tags?: string[] }).tags as string[])
+    : [];
 
   const handleVote = (useful: boolean) => {
     if (voted !== null) return;
@@ -40,9 +43,9 @@ export function FAQItem({ faq, onVote, editable = false, onEdit, onDelete }: FAQ
         <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-700">
           <div className="pt-4 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{faq.resposta}</div>
 
-          {faq.tags.length > 0 && (
+          {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-4">
-              {faq.tags.map((tag, i) => (
+              {tags.map((tag, i) => (
                 <span key={i} className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">#{tag}</span>
               ))}
             </div>
@@ -55,11 +58,11 @@ export function FAQItem({ faq, onVote, editable = false, onEdit, onDelete }: FAQ
                 <div className="flex items-center gap-2">
                   <button onClick={() => handleVote(true)} disabled={voted !== null} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${voted === true ? 'bg-green-100 text-green-700' : voted !== null ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50 text-gray-600'}`}>
                     <span className="material-symbols-outlined text-lg">thumb_up</span>
-                    <span>{faq.util_sim}</span>
+                    <span>{faq.votos_util ?? 0}</span>
                   </button>
                   <button onClick={() => handleVote(false)} disabled={voted !== null} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${voted === false ? 'bg-red-100 text-red-700' : voted !== null ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-50 text-gray-600'}`}>
                     <span className="material-symbols-outlined text-lg">thumb_down</span>
-                    <span>{faq.util_nao}</span>
+                    <span>{faq.votos_inutil ?? 0}</span>
                   </button>
                 </div>
               </div>
