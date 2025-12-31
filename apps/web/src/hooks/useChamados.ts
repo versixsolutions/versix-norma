@@ -80,8 +80,8 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       const { data, error: fetchError } = await supabase.from('chamados').select(`*, solicitante:solicitante_id (nome, avatar_url, email), atendente:atendente_id (nome)`).eq('id', id).single();
       if (fetchError) throw fetchError;
       // Buscar mensagens
-      const { data: mensagens } = await supabase.from('chamados_mensagens').select(`*, editado_em, deleted_at, autor:autor_id (nome, avatar_url)`).eq('chamado_id', id).is('deleted_at', null).order('created_at', { ascending: true });
-      return { ...data, mensagens: mensagens || [], total_mensagens: mensagens?.length || 0 };
+      const { data: mensagens } = await supabase.from('chamados_mensagens').select(`*, autor:autor_id (nome, avatar_url)`).eq('chamado_id', id).order('created_at', { ascending: true });
+      return { ...data, mensagens: (mensagens as unknown as ChamadoMensagem[]) || [], total_mensagens: mensagens?.length || 0 };
     } catch (err) {
       console.error('Erro ao buscar chamado:', err);
       return null;
