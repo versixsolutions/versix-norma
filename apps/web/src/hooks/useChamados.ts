@@ -3,7 +3,7 @@
 import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { AvaliarChamadoInput, Chamado, ChamadoCategoria, ChamadoFilters, ChamadoMensagem, ChamadoStats, ChamadoStatus, CreateChamadoInput, CreateMensagemInput, PaginatedResponse, UpdateChamadoInput } from '@versix/shared';
+import type { Anexo, AvaliarChamadoInput, Chamado, ChamadoCategoria, ChamadoFilters, ChamadoMensagem, ChamadoStats, ChamadoStatus, CreateChamadoInput, CreateMensagemInput, PaginatedResponse, UpdateChamadoInput } from '@versix/shared';
 import { Database } from '@versix/shared';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -14,6 +14,23 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false });
+
+  type ChamadoRow = Database['public']['Tables']['chamados']['Row'];
+  type ChamadoWithJoins = ChamadoRow & {
+    solicitante?: { nome: string; avatar_url: string | null; email: string } | null;
+    atendente?: { nome: string } | null;
+    mensagens?: ChamadoMensagem[];
+    total_mensagens?: number;
+  };
+
+  const toChamado = (data: ChamadoWithJoins): Chamado => ({
+    ...data,
+    anexos: (data.anexos as Anexo[] | null) ?? [],
+    solicitante: data.solicitante ?? undefined,
+    atendente: data.atendente ?? undefined,
+    mensagens: data.mensagens,
+    total_mensagens: data.total_mensagens,
+  });
 
   const fetchChamados = useCallback(async (condominioId: string, filters?: ChamadoFilters): Promise<PaginatedResponse<Chamado>> => {
     setLoading(true);
@@ -42,10 +59,7 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       if (fetchError) throw fetchError;
 
       // Transformar dados para garantir tipos corretos
-      const transformedData = (data || []).map(chamado => ({
-        ...chamado,
-        anexos: Array.isArray(chamado.anexos) ? chamado.anexos : []
-      } as unknown as Chamado));
+      const transformedData = (data || []).map(chamado => toChamado(chamado as ChamadoWithJoins));
 
       const total = count || 0;
       const result: PaginatedResponse<Chamado> = {
@@ -81,12 +95,13 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       if (fetchError) throw fetchError;
       // Buscar mensagens
       const { data: mensagens } = await supabase.from('chamados_mensagens').select(`*, autor:autor_id (nome, avatar_url)`).eq('chamado_id', id).order('created_at', { ascending: true });
-      return { 
-        ...data, 
-        anexos: Array.isArray(data.anexos) ? data.anexos : [],
-        mensagens: (mensagens as unknown as ChamadoMensagem[]) || [], 
-        total_mensagens: mensagens?.length || 0 
-      } as unknown as Chamado;
+      return toChamado({
+        ...(data as ChamadoRow),
+        mensagens: (mensagens as unknown as ChamadoMensagem[]) || [],
+        total_mensagens: mensagens?.length || 0,
+        solicitante: (data as ChamadoWithJoins).solicitante,
+        atendente: (data as ChamadoWithJoins).atendente,
+      });
     } catch (err) {
       console.error('Erro ao buscar chamado:', err);
       return null;
@@ -98,8 +113,9 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
     try {
       const { data, error: insertError } = await supabase.from('chamados').insert({ condominio_id: condominioId, solicitante_id: solicitanteId, ...input }).select().single();
       if (insertError) throw insertError;
-      setChamados(prev => [data, ...prev]);
-      return data;
+      const chamado = toChamado(data as ChamadoWithJoins);
+      setChamados(prev => [chamado, ...prev]);
+      return chamado;
     } catch (err) {
       setError(getErrorMessage(err) || 'Erro ao criar chamado');
       return null;
@@ -117,8 +133,9 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       if (updates.status === 'resolvido') updateData.resolvido_em = new Date().toISOString();
       const { data, error: updateError } = await supabase.from('chamados').update(updateData).eq('id', id).select().single();
       if (updateError) throw updateError;
-      setChamados(prev => prev.map(c => c.id === id ? data : c));
-      return data;
+      const chamado = toChamado(data as ChamadoWithJoins);
+      setChamados(prev => prev.map(c => c.id === id ? chamado : c));
+      return chamado;
     } catch (err) {
       setError(getErrorMessage(err) || 'Erro ao atualizar chamado');
       return null;
