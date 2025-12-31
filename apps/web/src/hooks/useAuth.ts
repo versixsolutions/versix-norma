@@ -334,7 +334,7 @@ export function useAuth() {
             nome,
             email,
             telefone: telefone || null,
-            status: 'pendente',
+            status: 'pending',
             config: {},
           });
 
