@@ -45,7 +45,7 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
       const transformedData = (data || []).map(chamado => ({
         ...chamado,
         anexos: Array.isArray(chamado.anexos) ? chamado.anexos : []
-      }));
+      } as unknown as Chamado));
 
       const total = count || 0;
       const result: PaginatedResponse<Chamado> = {
