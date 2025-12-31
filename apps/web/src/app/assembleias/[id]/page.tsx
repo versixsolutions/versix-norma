@@ -6,7 +6,7 @@ import { VotacaoCard } from '@/components/assembleias/VotacaoCard';
 import { AuthGuard } from '@/contexts/AuthContext';
 import { useAssembleias } from '@/hooks/useAssembleias';
 import { useVotacao } from '@/hooks/useVotacao';
-import type { Assembleia, Presenca, QuorumInfo } from '@versix/shared/types/assembleias';
+import type { AssembleiaComJoins, Presenca, QuorumInfo } from '@versix/shared';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,7 +18,7 @@ export default function AssembleiaDetalhePage() {
   const { getAssembleia, subscribeToQuorum } = useAssembleias();
   const { registrarPresenca, getMinhaPresenca, votar, jaVotou } = useVotacao();
 
-  const [assembleia, setAssembleia] = useState<Assembleia | null>(null);
+  const [assembleia, setAssembleia] = useState<AssembleiaComJoins | null>(null);
   const [minhaPresenca, setMinhaPresenca] = useState<Presenca | null>(null);
   const [quorum, setQuorum] = useState<QuorumInfo | null>(null);
   const [votosRegistrados, setVotosRegistrados] = useState<Set<string>>(new Set());

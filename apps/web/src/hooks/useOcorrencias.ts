@@ -3,18 +3,47 @@
 import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { CreateOcorrenciaInput, Ocorrencia, OcorrenciaCategoria, OcorrenciaFilters, OcorrenciaHistorico, OcorrenciaStats, OcorrenciaStatus, PaginatedResponse, Prioridade, UpdateOcorrenciaInput } from '@versix/shared';
+import type {
+    Anexo,
+    CreateOcorrenciaInput,
+    OcorrenciaComJoins,
+    OcorrenciaFilters,
+    OcorrenciaStats,
+    PaginatedResponse,
+    UpdateOcorrenciaInput
+} from '@versix/shared';
 import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
+type OcorrenciaRow = Database['public']['Tables']['ocorrencias']['Row'];
+type OcorrenciaHistoricoRow = Database['public']['Tables']['ocorrencias_historico']['Row'];
+
+interface OcorrenciaQueryResult extends OcorrenciaRow {
+  reportado_por_usuario?: { nome: string; avatar_url: string | null } | null;
+  responsavel?: { nome: string } | null;
+  unidade?: { identificador: string; bloco?: { nome: string } | null } | null;
+}
+
+interface OcorrenciaHistoricoQueryResult extends OcorrenciaHistoricoRow {
+  usuario?: { nome: string } | null;
+}
+
+const toOcorrencia = (data: OcorrenciaQueryResult): OcorrenciaComJoins => ({
+  ...data,
+  anexos: (data.anexos as Anexo[] | null) ?? [],
+  reportado_por_info: data.reportado_por_usuario,
+  responsavel: data.responsavel,
+  unidade_relacionada: data.unidade ? { numero: data.unidade.identificador } : undefined,
+});
+
 export function useOcorrencias() {
   const supabase = getSupabaseClient();
-  const [ocorrencias, setOcorrencias] = useState<Ocorrencia[]>([]);
+  const [ocorrencias, setOcorrencias] = useState<OcorrenciaComJoins[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false });
 
-  const fetchOcorrencias = useCallback(async (condominioId: string, filters?: OcorrenciaFilters): Promise<PaginatedResponse<Ocorrencia>> => {
+  const fetchOcorrencias = useCallback(async (condominioId: string, filters?: OcorrenciaFilters): Promise<PaginatedResponse<OcorrenciaComJoins>> => {
     setLoading(true);
     setError(null);
     try {
@@ -23,13 +52,14 @@ export function useOcorrencias() {
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      let query = supabase.from('ocorrencias').select(`*, reportado_por_usuario:reportado_por (nome, avatar_url), responsavel:responsavel_id (nome), unidade:unidade_relacionada_id (identificador, bloco:bloco_id (nome))`, { count: 'exact' })
+      let query = supabase.from('ocorrencias').select(`*, reportado_por_usuario:usuarios!ocorrencias_reportado_por_fkey (nome, avatar_url), responsavel:usuarios!ocorrencias_responsavel_id_fkey (nome), unidade:unidades_habitacionais!ocorrencias_unidade_relacionada_id_fkey (identificador, bloco:blocos!unidades_habitacionais_bloco_id_fkey (nome))`, { count: 'exact' })
         .eq('condominio_id', condominioId).is('deleted_at', null).order(filters?.orderBy || 'created_at', { ascending: filters?.orderDir === 'asc' }).range(from, to);
 
       if (filters?.status) query = query.eq('status', filters.status);
       if (filters?.categoria) query = query.eq('categoria', filters.categoria);
       if (filters?.prioridade) query = query.eq('prioridade', filters.prioridade);
       if (filters?.responsavel_id) query = query.eq('responsavel_id', filters.responsavel_id);
+      if (filters?.reportado_por) query = query.eq('reportado_por', filters.reportado_por);
       if (filters?.busca) {
         const buscaSanitizada = sanitizeSearchQuery(filters.busca);
         if (buscaSanitizada)
@@ -39,9 +69,11 @@ export function useOcorrencias() {
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;
 
+      const transformedData = (data || []).map(item => toOcorrencia(item as OcorrenciaQueryResult));
+
       const total = count || 0;
-      const result: PaginatedResponse<Ocorrencia> = {
-        data: data || [],
+      const result: PaginatedResponse<OcorrenciaComJoins> = {
+        data: transformedData,
         pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize), hasMore: to < total - 1 }
       };
       setOcorrencias(result.data);
@@ -55,26 +87,31 @@ export function useOcorrencias() {
     }
   }, [supabase]);
 
-  const getOcorrencia = useCallback(async (id: string): Promise<Ocorrencia | null> => {
+  const getOcorrencia = useCallback(async (id: string): Promise<OcorrenciaComJoins | null> => {
     try {
-      const { data, error: fetchError } = await supabase.from('ocorrencias').select(`*, reportado_por_usuario:reportado_por (nome, avatar_url), responsavel:responsavel_id (nome), unidade:unidade_relacionada_id (identificador, bloco:bloco_id (nome))`).eq('id', id).single();
+      const { data, error: fetchError } = await supabase.from('ocorrencias').select(`*, reportado_por_usuario:usuarios!ocorrencias_reportado_por_fkey (nome, avatar_url), responsavel:usuarios!ocorrencias_responsavel_id_fkey (nome), unidade:unidades_habitacionais!ocorrencias_unidade_relacionada_id_fkey (identificador, bloco:blocos!unidades_habitacionais_bloco_id_fkey (nome))`).eq('id', id).single();
       if (fetchError) throw fetchError;
       // Buscar histórico
-      const { data: historico } = await supabase.from('ocorrencias_historico').select(`*, usuario:usuario_id (nome)`).eq('ocorrencia_id', id).order('created_at', { ascending: true });
-      return { ...data, historico: historico || [] };
+      const { data: historico } = await supabase.from('ocorrencias_historico').select(`*, usuario:usuarios!ocorrencias_historico_usuario_id_fkey (nome)`).eq('ocorrencia_id', id).order('created_at', { ascending: true });
+
+      return {
+        ...toOcorrencia(data as OcorrenciaQueryResult),
+        historico: (historico || []) as unknown as any[],
+      };
     } catch (err) {
       setError(getErrorMessage(err));
       return null;
     }
   }, [supabase]);
 
-  const createOcorrencia = useCallback(async (condominioId: string, reportadoPor: string, input: CreateOcorrenciaInput): Promise<Ocorrencia | null> => {
+  const createOcorrencia = useCallback(async (condominioId: string, reportadoPor: string, input: CreateOcorrenciaInput): Promise<OcorrenciaComJoins | null> => {
     setLoading(true);
     try {
       const { data, error: insertError } = await supabase.from('ocorrencias').insert({ condominio_id: condominioId, reportado_por: reportadoPor, ...input }).select().single();
       if (insertError) throw insertError;
-      setOcorrencias(prev => [data, ...prev]);
-      return data;
+      const ocorrencia = toOcorrencia(data as OcorrenciaQueryResult);
+      setOcorrencias(prev => [ocorrencia, ...prev]);
+      return ocorrencia;
     } catch (err) {
       setError(getErrorMessage(err) || 'Erro ao criar ocorrência');
       return null;
@@ -83,7 +120,7 @@ export function useOcorrencias() {
     }
   }, [supabase]);
 
-  const updateOcorrencia = useCallback(async (input: UpdateOcorrenciaInput, userId?: string): Promise<Ocorrencia | null> => {
+  const updateOcorrencia = useCallback(async (input: UpdateOcorrenciaInput, userId?: string): Promise<OcorrenciaComJoins | null> => {
     setLoading(true);
     try {
       // Setar user_id para o trigger de histórico
@@ -100,8 +137,9 @@ export function useOcorrencias() {
       }
       const { data, error: updateError } = await supabase.from('ocorrencias').update(updateData).eq('id', id).select().single();
       if (updateError) throw updateError;
-      setOcorrencias(prev => prev.map(o => o.id === id ? data : o));
-      return data;
+      const ocorrencia = toOcorrencia(data as OcorrenciaQueryResult);
+      setOcorrencias(prev => prev.map(o => o.id === id ? ocorrencia : o));
+      return ocorrencia;
     } catch (err) {
       setError(getErrorMessage(err) || 'Erro ao atualizar ocorrência');
       return null;
@@ -160,5 +198,5 @@ export function useOcorrencias() {
   return { ocorrencias, loading, error, pagination, fetchOcorrencias, getOcorrencia, createOcorrencia, updateOcorrencia, deleteOcorrencia, getStats };
 }
 
-export type { CreateOcorrenciaInput, Ocorrencia, OcorrenciaCategoria, OcorrenciaFilters, OcorrenciaHistorico, OcorrenciaStatus, Prioridade, UpdateOcorrenciaInput };
+export type { CreateOcorrenciaInput, OcorrenciaFilters, UpdateOcorrenciaInput };
 

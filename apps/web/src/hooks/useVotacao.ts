@@ -1,7 +1,7 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Comentario, CreateComentarioInput, PautaStatus, Presenca, VotarInput, Voto } from '@versix/shared/types/assembleias';
+import type { Comentario, CreateComentarioInput, PautaStatus, Presenca, VotarInput, Voto } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 export function useVotacao() {

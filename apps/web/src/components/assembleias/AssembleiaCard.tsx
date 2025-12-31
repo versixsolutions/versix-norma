@@ -1,10 +1,10 @@
 'use client';
 
-import type { Assembleia } from '@/hooks/useAssembleias';
+import type { AssembleiaComJoins } from '@versix/shared';
 import Link from 'next/link';
 
 interface AssembleiaCardProps {
-  assembleia: Assembleia;
+  assembleia: AssembleiaComJoins;
   isSindico?: boolean;
 }
 

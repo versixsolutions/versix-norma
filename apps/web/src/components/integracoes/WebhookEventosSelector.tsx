@@ -23,16 +23,21 @@ const EVENTOS_GRUPOS: { grupo: string; icon: string; eventos: { value: WebhookEv
       { value: 'assembleia.criada', label: 'Assembleia criada' },
       { value: 'assembleia.convocada', label: 'Assembleia convocada' },
       { value: 'assembleia.iniciada', label: 'Assembleia iniciada' },
-      { value: 'assembleia.encerrada', label: 'Assembleia encerrada' }
+      { value: 'assembleia.encerrada', label: 'Assembleia encerrada' },
+      { value: 'assembleia.voto_registrado', label: 'Voto registrado' }
     ]
   },
   {
     grupo: 'Financeiro',
     icon: 'payments',
     eventos: [
-      { value: 'pagamento.criado', label: 'Pagamento criado' },
+      { value: 'cobranca.gerada', label: 'Cobrança gerada' },
+      { value: 'cobranca.vencendo', label: 'Cobrança vencendo' },
       { value: 'pagamento.confirmado', label: 'Pagamento confirmado' },
-      { value: 'pagamento.vencido', label: 'Pagamento vencido' }
+      { value: 'pagamento.atrasado', label: 'Pagamento atrasado' },
+      { value: 'lancamento.criado', label: 'Lançamento criado' },
+      { value: 'lancamento.atualizado', label: 'Lançamento atualizado' },
+      { value: 'prestacao.publicada', label: 'Prestação publicada' }
     ]
   },
   {
@@ -40,6 +45,7 @@ const EVENTOS_GRUPOS: { grupo: string; icon: string; eventos: { value: WebhookEv
     icon: 'report',
     eventos: [
       { value: 'ocorrencia.criada', label: 'Ocorrência criada' },
+      { value: 'ocorrencia.atualizada', label: 'Ocorrência atualizada' },
       { value: 'ocorrencia.resolvida', label: 'Ocorrência resolvida' }
     ]
   },
@@ -48,7 +54,8 @@ const EVENTOS_GRUPOS: { grupo: string; icon: string; eventos: { value: WebhookEv
     icon: 'support_agent',
     eventos: [
       { value: 'chamado.criado', label: 'Chamado criado' },
-      { value: 'chamado.atualizado', label: 'Chamado atualizado' }
+      { value: 'chamado.atualizado', label: 'Chamado atualizado' },
+      { value: 'chamado.fechado', label: 'Chamado fechado' }
     ]
   },
   {
@@ -57,7 +64,8 @@ const EVENTOS_GRUPOS: { grupo: string; icon: string; eventos: { value: WebhookEv
     eventos: [
       { value: 'morador.cadastrado', label: 'Morador cadastrado' },
       { value: 'morador.aprovado', label: 'Morador aprovado' },
-      { value: 'morador.removido', label: 'Morador removido' }
+      { value: 'morador.removido', label: 'Morador removido' },
+      { value: 'morador.atualizado', label: 'Morador atualizado' }
     ]
   },
   {

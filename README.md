@@ -139,6 +139,57 @@ Assistente de IA que responde perguntas sobre:
 
 ---
 
+## 🔧 Gerenciamento de Tipos
+
+### 📖 Princípio Fundamental
+
+**NUNCA crie tipos manualmente para tabelas do banco.**
+A fonte única da verdade é o schema do Supabase → `packages/shared/database.types.ts`
+
+📚 **Guia completo:** [TIPOS_GUIA.md](./TIPOS_GUIA.md)
+
+### Comandos
+
+```bash
+# Regenerar tipos do Supabase
+pnpm types:generate
+
+# Verificar tipos
+pnpm types:check
+
+# Build com validação de tipos
+pnpm build
+```
+
+### Uso Correto
+
+```typescript
+// ✅ CORRETO - Use tipos derivados
+import { ChamadoComJoins, ChamadoStatus } from '@versix/shared';
+
+// ❌ ERRADO - Não crie tipos manuais
+interface Chamado { ... }
+```
+
+### FK Hints em Queries
+
+Queries com múltiplas FKs para a mesma tabela **requerem hints**:
+
+```typescript
+// ✅ Com hint da FK
+.select(`
+  *,
+  solicitante:usuarios!chamados_solicitante_id_fkey (nome),
+  atendente:usuarios!chamados_atendente_id_fkey (nome)
+`)
+```
+
+### Pre-commit Hook
+
+O hook `.husky/pre-commit` valida tipos automaticamente antes de cada commit.
+
+---
+
 ## 🧪 Testes
 
 ### Rodar Testes Unitários
@@ -216,6 +267,7 @@ supabase functions deploy
 ## 📖 Documentação Técnica
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md) - Guia de contribuição
+- [TIPOS_GUIA.md](./TIPOS_GUIA.md) - **Gerenciamento de Tipos TypeScript**
 - [EDGE_FUNCTIONS_API.yaml](./EDGE_FUNCTIONS_API.yaml) - Especificação OpenAPI
 - [CODE_SPLITTING_STRATEGY.md](./CODE_SPLITTING_STRATEGY.md) - Otimização de bundle
 - [SENTRY_METRICS_GUIDE.md](./SENTRY_METRICS_GUIDE.md) - Instrumentação de metrics
@@ -267,6 +319,6 @@ Proprietary © 2024-2025 Versix Solutions. Todos os direitos reservados.
 | Documentation | ✅ Complete |
 | Monitoring | ✅ Sentry Active |
 
-**Versão:** 1.0.1  
-**Data:** Dezembro 2025  
+**Versão:** 1.0.1
+**Data:** Dezembro 2025
 **Time:** Versix Solutions

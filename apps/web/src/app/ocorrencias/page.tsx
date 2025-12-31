@@ -3,8 +3,8 @@
 import { OcorrenciaCard } from '@/components/ocorrencias/OcorrenciaCard';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useAnexos } from '@/hooks/useAnexos';
-import { useOcorrencias, type CreateOcorrenciaInput, type OcorrenciaCategoria } from '@/hooks/useOcorrencias';
-import type { OcorrenciaHistorico } from '@versix/shared/types/operational';
+import { useOcorrencias, type CreateOcorrenciaInput } from '@/hooks/useOcorrencias';
+import type { OcorrenciaCategoria, OcorrenciaHistorico } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';

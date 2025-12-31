@@ -1,10 +1,10 @@
 'use client';
 
-import type { Pauta } from '@versix/shared/types/assembleias';
+import type { PautaComJoins } from '@versix/shared';
 import { useState } from 'react';
 
 interface VotacaoCardProps {
-  pauta: Pauta;
+  pauta: PautaComJoins;
   onVotar: (voto: "sim" | "nao" | "abstencao" | "opcao", opcaoId?: string) => Promise<void>;
   jaVotou: boolean;
 }

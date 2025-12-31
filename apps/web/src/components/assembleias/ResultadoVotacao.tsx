@@ -1,10 +1,10 @@
 'use client';
 
-import type { Pauta, PautaResultado } from '@versix/shared/types/assembleias';
+import type { PautaComJoins, ResultadoPauta } from '@versix/shared';
 
 interface ResultadoVotacaoProps {
-  pauta: Pauta;
-  resultado?: PautaResultado;
+  pauta: PautaComJoins;
+  resultado?: ResultadoPauta | null;
 }
 
 export function ResultadoVotacao({ pauta, resultado }: ResultadoVotacaoProps) {
@@ -55,7 +55,7 @@ export function ResultadoVotacao({ pauta, resultado }: ResultadoVotacaoProps) {
             <p className="text-xs opacity-75">Contra</p>
           </div>
           <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
-            <p className="text-2xl font-bold text-gray-500">{res.abstencoes || 0}</p>
+            <p className="text-2xl font-bold text-gray-500">{res.votos_abstencao || 0}</p>
             <p className="text-xs opacity-75">Abstenções</p>
           </div>
         </div>

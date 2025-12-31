@@ -134,6 +134,12 @@ export type WebhookConfig = Tables['webhooks_config']['Row'];
 export type WebhookEntrega = Tables['webhooks_entregas']['Row'];
 export type Conector = Tables['conectores']['Row'];
 export type SyncLog = Tables['sync_logs']['Row'];
+export interface CreateWebhookInput {
+  nome: string;
+  url_destino: string;
+  eventos: WebhookEvento[];
+  headers_custom?: Record<string, string>;
+}
 
 // ============================================
 // TIPOS DE INSERT - Para criar novos registros
@@ -181,16 +187,17 @@ export interface AssembleiaComJoins extends Assembleia {
   pautas?: PautaComJoins[];
   presencas?: PresencaComJoins[];
   assinaturas?: AssembleiaAssinatura[];
+  quorum?: QuorumInfo | null; // Compatibilidade com useAssembleias
   quorum_info?: QuorumInfo;
 }
 
 /**
  * Pauta com opções e votos
  */
-export interface PautaComJoins extends Pauta {
+export interface PautaComJoins extends Omit<Pauta, 'resultado'> {
   opcoes?: PautaOpcao[];
   votos?: Voto[];
-  resultado?: ResultadoPauta;
+  resultado?: ResultadoPauta | null;
 }
 
 /**
@@ -259,14 +266,25 @@ export interface Anexo {
 }
 
 /**
- * Informações de quorum da assembleia
+ * Informações de quorum da assembleia (view v_assembleia_quorum)
  */
 export interface QuorumInfo {
-  total_unidades: number;
-  unidades_presentes: number;
-  fracao_presente: number;
-  quorum_percentual: number;
-  quorum_atingido: boolean;
+  assembleia_id: string | null;
+  condominio_id: string | null;
+  status: AssembleiaStatus | null;
+  total_fracoes: number | null;
+  fracoes_presentes: number | null;
+  fracao_presente: number | null;
+  quorum_percentual: number | null;
+  quorum_minimo_primeira: number | null;
+  quorum_minimo_segunda: number | null;
+  unidades_presentes: number | null;
+  total_unidades: number | null;
+  presenciais: number | null;
+  online: number | null;
+  procuracoes: number | null;
+  votos_antecipados: number | null;
+  quorum_atingido?: boolean; // Computed field
 }
 
 /**
@@ -282,6 +300,7 @@ export interface ResultadoPauta {
   fracao_abstencao: number;
   percentual_aprovacao: number;
   aprovada: boolean;
+  eleitos?: { opcao_id: string; titulo: string; votos: number; fracoes?: number }[];
 }
 
 /**
@@ -351,6 +370,7 @@ export interface OcorrenciaFilters extends BaseFilters {
   categoria?: OcorrenciaCategoria;
   prioridade?: Prioridade;
   responsavel_id?: string;
+  reportado_por?: string;
 }
 
 /**
