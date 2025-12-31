@@ -44,7 +44,7 @@ export function AssembleiaCard({ assembleia, isSindico }: AssembleiaCardProps) {
       </div>
 
       <h3 className="font-semibold text-gray-800 dark:text-white mb-2 line-clamp-2">{assembleia.titulo}</h3>
-      
+
       {assembleia.descricao && <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">{assembleia.descricao}</p>}
 
       <div className="flex items-center gap-4 text-xs text-gray-400">
@@ -60,10 +60,10 @@ export function AssembleiaCard({ assembleia, isSindico }: AssembleiaCardProps) {
             {assembleia.pautas.length} pauta(s)
           </span>
         )}
-        {assembleia.quorum_atingido > 0 && (
+        {(assembleia.quorum_atingido ?? 0) > 0 && (
           <span className="flex items-center gap-1">
             <span className="material-symbols-outlined text-sm">groups</span>
-            {assembleia.quorum_atingido.toFixed(1)}% quórum
+            {assembleia.quorum_atingido?.toFixed(1)}% quórum
           </span>
         )}
       </div>
