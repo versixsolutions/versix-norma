@@ -104,13 +104,13 @@ export function useAuditLogs() {
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
 
+      type ExportLog = Pick<Database['public']['Tables']['audit_logs']['Row'], 'id' | 'usuario_id' | 'condominio_id' | 'acao' | 'tabela' | 'registro_id' | 'created_at'> & {
+        usuarios: { nome: string; email: string } | null;
+      };
+
       const headers = ['ID', 'Data/Hora', 'Usuário', 'Email', 'Ação', 'Tabela', 'Registro'];
-      const rows = (data || []).map((log: AuditLog) => {
-        interface LogUser {
-          nome?: string;
-          email?: string;
-        }
-        const usuario = 'usuarios' in log && log.usuarios ? (log.usuarios as LogUser) : null;
+      const rows = (data || []).map((log: ExportLog) => {
+        const usuario = log.usuarios;
         return [
           log.id,
           new Date(log.created_at).toLocaleString('pt-BR'),
