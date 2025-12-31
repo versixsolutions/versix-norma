@@ -7,7 +7,11 @@
 // Database Types
 export * from './database.types';
 
-// Types
+// Derived Types (FONTE DA VERDADE - derivados do schema do banco)
+export * from './src/types/derived';
+
+// Legacy Types (DEPRECATED - mantenha apenas para compatibilidade)
+// TODO: Migrar todos os usos para derived.ts
 export * from './src/types/assembleias';
 export * from './src/types/comunicacao';
 export * from './src/types/financial';

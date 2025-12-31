@@ -3,12 +3,27 @@
 import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Comunicado, ComunicadoCategoria, ComunicadoFilters, ComunicadoStatus, CreateComunicadoInput, PaginatedResponse, UpdateComunicadoInput } from '@versix/shared';
+import type {
+    Anexo,
+    ComunicadoCategoria,
+    ComunicadoComJoins,
+    ComunicadoFilters,
+    CreateComunicadoInput,
+    PaginatedResponse,
+    UpdateComunicadoInput
+} from '@versix/shared';
 import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 // Tipos aceitos pelo banco
 type CategoriaDb = 'urgente' | 'geral' | 'manutencao' | 'financeiro' | 'seguranca' | 'evento' | 'obras' | 'assembleia';
+type ComunicadoRow = Database['public']['Tables']['comunicados']['Row'];
+
+interface ComunicadoQueryResult extends ComunicadoRow {
+  autor?: { nome: string; avatar_url: string | null } | null;
+  lido?: boolean;
+  total_leituras?: number;
+}
 
 // Mapeia categoria do front para o enum do banco
 function mapCategoriaToDb(categoria?: ComunicadoCategoria): CategoriaDb | undefined {
@@ -23,15 +38,23 @@ function mapCategoriaToDb(categoria?: ComunicadoCategoria): CategoriaDb | undefi
   return 'geral';
 }
 
+const toComunicado = (data: ComunicadoQueryResult): ComunicadoComJoins => ({
+  ...data,
+  anexos: (data.anexos as Anexo[] | null) ?? [],
+  autor: data.autor ?? undefined,
+  lido: data.lido,
+  total_leituras: data.total_leituras,
+});
+
 export function useComunicados(_options?: { condominioId?: string | null; userId?: string | null }) {
   const supabase = getSupabaseClient();
-  const [comunicados, setComunicados] = useState<Comunicado[]>([]);
+  const [comunicados, setComunicados] = useState<ComunicadoComJoins[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 0, hasMore: false });
   const [naoLidos, setNaoLidos] = useState(0);
 
-  const fetchComunicados = useCallback(async (condominioId: string, filters?: ComunicadoFilters): Promise<PaginatedResponse<Comunicado>> => {
+  const fetchComunicados = useCallback(async (condominioId: string, filters?: ComunicadoFilters): Promise<PaginatedResponse<ComunicadoComJoins>> => {
     setLoading(true);
     setError(null);
     try {
@@ -55,9 +78,11 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;
 
+      const transformedData = (data || []).map(item => toComunicado(item as ComunicadoQueryResult));
+
       const total = count || 0;
-      const result: PaginatedResponse<Comunicado> = {
-        data: data || [],
+      const result: PaginatedResponse<ComunicadoComJoins> = {
+        data: transformedData,
         pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize), hasMore: to < total - 1 }
       };
       setComunicados(result.data);
@@ -71,20 +96,20 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
     }
   }, [supabase]);
 
-  const getComunicado = useCallback(async (id: string): Promise<Comunicado | null> => {
+  const getComunicado = useCallback(async (id: string): Promise<ComunicadoComJoins | null> => {
     try {
-      const { data, error: fetchError } = await supabase.from('comunicados').select(`*, autor:autor_id (nome, avatar_url)`).eq('id', id).single();
+      const { data, error: fetchError } = await supabase.from('comunicados').select(`*, autor:usuarios!comunicados_autor_id_fkey (nome, avatar_url)`).eq('id', id).single();
       if (fetchError) throw fetchError;
       // Incrementar visualização
       await supabase.rpc('increment_comunicado_views', { p_comunicado_id: id });
-      return data;
+      return toComunicado(data as ComunicadoQueryResult);
     } catch (err) {
       setError(getErrorMessage(err));
       return null;
     }
   }, [supabase]);
 
-  const createComunicado = useCallback(async (condominioId: string, autorId: string, input: CreateComunicadoInput): Promise<Comunicado | null> => {
+  const createComunicado = useCallback(async (condominioId: string, autorId: string, input: CreateComunicadoInput): Promise<ComunicadoComJoins | null> => {
     setLoading(true);
     try {
       const { data, error: insertError } = await supabase.from('comunicados').insert({

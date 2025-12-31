@@ -2,7 +2,8 @@
 
 import { ChamadoCard } from '@/components/chamados/ChamadoCard';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
-import { useChamados, type ChamadoCategoria, type CreateChamadoInput } from '@/hooks/useChamados';
+import { useChamados, type CreateChamadoInput } from '@/hooks/useChamados';
+import { ChamadoCategoria } from '@versix/shared';
 import type { ChamadoMensagem } from '@versix/shared/types/operational';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -32,7 +33,12 @@ export default function ChamadosPage() {
 
   const condominioId = profile?.condominio_atual?.id;
 
-  useEffect(() => { if (condominioId) fetchChamados(condominioId, { meus: true }); }, [condominioId, fetchChamados]);
+  useEffect(() => {
+    if (condominioId) {
+      // Usar solicitante_id em vez de 'meus'
+      fetchChamados(condominioId, profile?.id ? { solicitante_id: profile.id } : undefined);
+    }
+  }, [condominioId, fetchChamados, profile?.id]);
 
   const handleCardClick = async (id: string) => { setSelectedId(id); const detail = await getChamado(id); setDetailedChamado(detail); };
 

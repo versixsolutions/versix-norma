@@ -35,8 +35,11 @@ export default function OcorrenciasPage() {
   const condominioId = profile?.condominio_atual?.id;
 
   useEffect(() => {
-    if (condominioId) fetchOcorrencias(condominioId, { minhas: true });
-  }, [condominioId, fetchOcorrencias]);
+    if (condominioId) {
+      // Usar reportado_por em vez de 'minhas'
+      fetchOcorrencias(condominioId, profile?.id ? { reportado_por: profile.id } : undefined);
+    }
+  }, [condominioId, fetchOcorrencias, profile?.id]);
 
   const handleCardClick = async (id: string) => {
     setSelectedId(id);

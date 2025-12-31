@@ -76,11 +76,11 @@ export default function ComunicadosPage() {
                   {selectedComunicado.autor && <span className="flex items-center gap-1"><span className="material-symbols-outlined text-lg">person</span>{selectedComunicado.autor.nome}</span>}
                 </div>
                 <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">{selectedComunicado.conteudo}</div>
-                {selectedComunicado.anexos.length > 0 && (
+                {Array.isArray(selectedComunicado.anexos) && selectedComunicado.anexos.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <h4 className="font-medium text-gray-800 dark:text-white mb-3">Anexos</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {selectedComunicado.anexos.map((anexo, i) => (
+                      {selectedComunicado.anexos.map((anexo: any, i: number) => (
                         <a key={i} href={anexo.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
                           <span className="material-symbols-outlined text-primary">{anexo.tipo.includes('pdf') ? 'picture_as_pdf' : 'image'}</span>
                           <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{anexo.nome}</span>
