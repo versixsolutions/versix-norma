@@ -4,12 +4,11 @@ import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type { RoleType, StatusType } from '@/types/database';
-import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 export interface AdminUser {
   id: string;
-    auth_id: string | null;
+  auth_id: string;
   nome: string;
   email: string;
   telefone: string | null;
@@ -17,13 +16,20 @@ export interface AdminUser {
   status: StatusType;
   created_at: string;
   updated_at: string;
-  condominios: { condominio_id: string; condominio_nome: string; role: RoleType; unidade_id: string | null; unidade_identificador: string | null; }[];
+  condominios: Array<{
+    condominio_id: string;
+    condominio_nome: string;
+    role: RoleType;
+    unidade_id: string | null;
+    unidade_identificador: string | null;
+  }>;
 }
 
 export interface AdminCondominio {
   id: string;
   nome: string;
-  endereco: Database['public']['Tables']['condominios']['Row']['endereco'];
+  slug: string;
+  endereco: string;
   status: StatusType;
   created_at: string;
   total_usuarios: number;
@@ -47,89 +53,120 @@ export function useAdmin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Tipo do enum de status no banco de dados
-  type DbStatus = 'pending' | 'active' | 'inactive' | 'suspended' | 'removed';
-
-  // Mapeamento de status português para inglês (DB usa enum em inglês)
-  const mapStatusToDb = useCallback((status: StatusType): DbStatus => {
-    const statusMap: Record<StatusType, DbStatus> = {
-      'ativo': 'active',
-      'inativo': 'inactive',
-      'pendente': 'pending',
-      'suspenso': 'suspended',
-      'bloqueado': 'removed'
-    };
-    return statusMap[status] ?? 'active';
-  }, []);
-
-  const mapDbStatusToApp = useCallback((status: DbStatus): StatusType => {
-    const statusMap: Record<DbStatus, StatusType> = {
-      'active': 'ativo',
-      'inactive': 'inativo',
-      'pending': 'pendente',
-      'suspended': 'suspenso',
-      'removed': 'bloqueado',
-    };
-    return statusMap[status] ?? 'ativo';
-  }, []);
-
-  const fetchUsers = useCallback(async (filters?: { status?: StatusType; role?: string; condominio_id?: string }) => {
+  // ============================================
+  // FETCH USERS
+  // ============================================
+  const fetchUsers = useCallback(async (filters?: { 
+    status?: string; 
+    role?: string; 
+    condominio_id?: string 
+  }) => {
     setLoading(true);
     setError(null);
     try {
-      let query = supabase.from('usuarios').select(`id, auth_id, nome, email, telefone, avatar_url, status, created_at, updated_at, usuario_condominios (condominio_id, role, unidade_id, condominios:condominio_id (nome), unidades:unidade_id (identificador))`).order('created_at', { ascending: false });
-      if (filters?.status) query = query.eq('status', mapStatusToDb(filters.status));
+      let query = supabase
+        .from('usuarios')
+        .select(`
+          id, 
+          auth_id, 
+          nome, 
+          email, 
+          telefone, 
+          avatar_url, 
+          status, 
+          created_at, 
+          updated_at,
+          role,
+          condominio_id,
+          unidade_id,
+          condominios:condominio_id (nome),
+          unidades_habitacionais:unidade_id (identificador)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (filters?.status) {
+        query = query.eq('status', filters.status);
+      }
+      if (filters?.condominio_id) {
+        query = query.eq('condominio_id', filters.condominio_id);
+      }
+      if (filters?.role) {
+        query = query.eq('role', filters.role);
+      }
+
       const { data, error: fetchError } = await query;
       if (fetchError) throw fetchError;
 
-      if (!data || !Array.isArray(data)) {
-        console.error('Invalid data format in fetchCondominios:', data);
-        throw new Error('Failed to load condomínios');
-      }
-
-
-      type UsuarioRow = Database['public']['Tables']['usuarios']['Row'];
-      type UsuarioQueryResult = Pick<UsuarioRow, 'id' | 'auth_id' | 'nome' | 'email' | 'telefone' | 'avatar_url' | 'status' | 'created_at' | 'updated_at'> & {
-        usuario_condominios?: Array<{
-          condominio_id: string;
-          role: RoleType;
-          unidade_id: string | null;
-          unidade_identificador?: string | null;
-          condominio_nome?: string | null;
-        }>;
+      type UsuarioWithRelations = {
+        id: string;
+        auth_id: string | null;
+        nome: string;
+        email: string;
+        telefone: string | null;
+        avatar_url: string | null;
+        status: StatusType;
+        created_at: string;
+        updated_at: string;
+        role: RoleType;
+        condominio_id: string | null;
+        unidade_id: string | null;
+        condominios: { nome: string } | null;
+        unidades_habitacionais: { identificador: string } | null;
       };
 
-      const rows: UsuarioQueryResult[] = (data || []).map((user) => ({
-        ...user,
-        usuario_condominios: Array.isArray(user.usuario_condominios) ? user.usuario_condominios : [],
+      const formattedUsers: AdminUser[] = (data || []).map((user: UsuarioWithRelations) => ({
+        id: user.id,
+        auth_id: user.auth_id || '',
+        nome: user.nome,
+        email: user.email,
+        telefone: user.telefone,
+        avatar_url: user.avatar_url,
+        status: user.status,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        condominios: user.condominio_id ? [{
+          condominio_id: user.condominio_id,
+          condominio_nome: user.condominios?.nome || '',
+          role: user.role,
+          unidade_id: user.unidade_id,
+          unidade_identificador: user.unidades_habitacionais?.identificador || null,
+        }] : [],
       }));
 
-      let formattedUsers: AdminUser[] = rows.map((user) => ({
-        id: user.id, auth_id: user.auth_id, nome: user.nome, email: user.email, telefone: user.telefone,
-        avatar_url: user.avatar_url, status: mapDbStatusToApp(user.status as DbStatus), created_at: user.created_at, updated_at: user.updated_at,
-        condominios: (user.usuario_condominios || []).map((uc) => ({
-          condominio_id: uc.condominio_id,
-          condominio_nome: '',
-          role: uc.role,
-          unidade_id: uc.unidade_id,
-          unidade_identificador: uc.unidade_identificador || null,
-        })),
-      }));
-      if (filters?.role) formattedUsers = formattedUsers.filter(u => u.condominios.some(c => c.role === filters.role));
-      if (filters?.condominio_id) formattedUsers = formattedUsers.filter(u => u.condominios.some(c => c.condominio_id === filters.condominio_id));
       setUsers(formattedUsers);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
-  }, [supabase, mapStatusToDb, mapDbStatusToApp]);
+  }, [supabase]);
 
+  // ============================================
+  // FETCH CONDOMINIOS
+  // ============================================
   const fetchCondominios = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: fetchError } = await supabase.from('condominios').select(`id, nome,  endereco, created_at, blocos (unidades_habitacionais (id)), usuario_condominios (role, usuarios:usuario_id (nome))`).order('nome');
+      const { data, error: fetchError } = await supabase
+        .from('condominios')
+        .select(`
+          id, 
+          nome, 
+          cnpj,
+          endereco, 
+          created_at, 
+          blocos (
+            unidades_habitacionais (id)
+          ),
+          usuarios!usuarios_condominio_id_fkey (
+            id,
+            nome,
+            role
+          )
+        `)
+        .order('nome');
+
       if (fetchError) throw fetchError;
 
       if (!data || !Array.isArray(data)) {
@@ -140,96 +177,205 @@ export function useAdmin() {
       type CondominioWithRelations = {
         id: string;
         nome: string;
+        cnpj: string | null;
         endereco: string;
         created_at: string;
-        blocos: Array<{ unidades_habitacionais: Array<{ id: string }> }>;
-        usuario_condominios: Array<{ role: RoleType; usuarios: { nome: string } }>;
+        blocos: Array<{ unidades_habitacionais: Array<{ id: string }> }> | null;
+        usuarios: Array<{ id: string; nome: string; role: string }> | null;
       };
+
       const formattedCondominios: AdminCondominio[] = (data || []).map((condo: CondominioWithRelations) => {
         const totalUnidades = condo.blocos?.reduce(
           (acc: number, bloco) => acc + (bloco.unidades_habitacionais?.length || 0),
           0
         ) || 0;
-        const sindico = condo.usuario_condominios?.find((uc) => uc.role === 'sindico');
+
+        const sindico = condo.usuarios?.find((u) => u.role === 'sindico');
+
         return {
           id: condo.id,
           nome: condo.nome,
+          slug: condo.cnpj || condo.id,
           endereco: condo.endereco,
           status: 'ativo' as StatusType,
           created_at: condo.created_at,
-          total_usuarios: condo.usuario_condominios?.length || 0,
+          total_usuarios: condo.usuarios?.length || 0,
           total_unidades: totalUnidades,
-          sindico_nome: sindico?.usuarios?.nome || null,
+          sindico_nome: sindico?.nome || null,
         };
       });
+
       setCondominios(formattedCondominios);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
   }, [supabase]);
 
+  // ============================================
+  // FETCH STATS
+  // ============================================
   const fetchStats = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [{ count: totalCondominios }, { count: totalUsuarios }, { count: usuariosAtivos }, { count: usuariosPendentes }, { count: totalUnidades }] = await Promise.all([
+      const [
+        { count: totalCondominios },
+        { count: totalUsuarios },
+        { count: usuariosAtivos },
+        { count: usuariosPendentes },
+        { count: totalUnidades },
+      ] = await Promise.all([
         supabase.from('condominios').select('*', { count: 'exact', head: true }),
         supabase.from('usuarios').select('*', { count: 'exact', head: true }),
-        supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('status', 'ativo'),
-        supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('status', 'pendente'),
-        supabase.from('unidades').select('*', { count: 'exact', head: true }),
+        supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('unidades_habitacionais').select('*', { count: 'exact', head: true }),
       ]);
-      setStats({ total_condominios: totalCondominios || 0, total_usuarios: totalUsuarios || 0, usuarios_ativos: usuariosAtivos || 0, usuarios_pendentes: usuariosPendentes || 0, total_unidades: totalUnidades || 0 });
+
+      setStats({
+        total_condominios: totalCondominios || 0,
+        total_usuarios: totalUsuarios || 0,
+        usuarios_ativos: usuariosAtivos || 0,
+        usuarios_pendentes: usuariosPendentes || 0,
+        total_unidades: totalUnidades || 0,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
   }, [supabase]);
 
+  // ============================================
+  // UPDATE USER STATUS
+  // ============================================
   const updateUserStatus = useCallback(async (userId: string, status: StatusType): Promise<boolean> => {
     setLoading(true);
     try {
-      const { error: updateError } = await supabase.from('usuarios').update({ status, updated_at: new Date().toISOString() }).eq('id', userId);
+      // Map StatusType to DbStatus
+      const dbStatusMap: Record<StatusType, string> = {
+        'ativo': 'active',
+        'inativo': 'inactive',
+        'pendente': 'pending',
+        'suspenso': 'suspended',
+        'bloqueado': 'removed',
+        'removido': 'removed'
+      };
+      const dbStatus = dbStatusMap[status] || 'active';
+
+      const { error: updateError } = await supabase
+        .from('usuarios')
+        .update({ status: dbStatus, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+
       if (updateError) throw updateError;
+
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, status } : u));
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(getErrorMessage(err));
       return false;
     } finally {
       setLoading(false);
     }
   }, [supabase]);
 
-  const updateUserRole = useCallback(async (userId: string, condominioId: string, role: RoleType): Promise<boolean> => {
+  // ============================================
+  // UPDATE USER ROLE
+  // ============================================
+  const updateUserRole = useCallback(async (
+    userId: string, 
+    condominioId: string, 
+    role: RoleType
+  ): Promise<boolean> => {
     setLoading(true);
     try {
-      const { error: updateError } = await supabase.from('usuario_condominios').update({ role }).eq('usuario_id', userId).eq('condominio_id', condominioId);
+      // Atualiza diretamente na tabela usuarios (relação 1:1)
+      const { error: updateError } = await supabase
+        .from('usuarios')
+        .update({ role })
+        .eq('id', userId)
+        .eq('condominio_id', condominioId);
+
       if (updateError) throw updateError;
-      setUsers(prev => prev.map(u => u.id === userId ? { ...u, condominios: u.condominios.map(c => c.condominio_id === condominioId ? { ...c, role } : c) } : u));
+
+      setUsers(prev => prev.map(u => {
+        if (u.id === userId) {
+          return {
+            ...u,
+            condominios: u.condominios.map(c => 
+              c.condominio_id === condominioId ? { ...c, role } : c
+            ),
+          };
+        }
+        return u;
+      }));
+
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(getErrorMessage(err));
       return false;
     } finally {
       setLoading(false);
     }
   }, [supabase]);
 
+  // ============================================
+  // SEARCH USERS
+  // ============================================
   const searchUsers = useCallback(async (query: string): Promise<AdminUser[]> => {
     if (!query || query.length < 2) return [];
     try {
       const buscaSanitizada = sanitizeSearchQuery(query);
-      const { data } = await supabase.from('usuarios').select(`id, auth_id, nome, email, telefone, avatar_url, status, created_at, updated_at`).or(`nome.ilike.%${buscaSanitizada}%,email.ilike.%${buscaSanitizada}%`).limit(20);
-      return (data || []).map((user: AdminUser) => ({ ...user, condominios: [] }));
+      const { data } = await supabase
+        .from('usuarios')
+        .select(`
+          id, 
+          auth_id, 
+          nome, 
+          email, 
+          telefone, 
+          avatar_url, 
+          status, 
+          created_at, 
+          updated_at,
+          role,
+          condominio_id
+        `)
+        .or(`nome.ilike.%${buscaSanitizada}%,email.ilike.%${buscaSanitizada}%`)
+        .limit(20);
+
+      return (data || []).map((user) => ({
+        id: user.id,
+        auth_id: user.auth_id || '',
+        nome: user.nome,
+        email: user.email,
+        telefone: user.telefone,
+        avatar_url: user.avatar_url,
+        status: user.status as StatusType,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        condominios: [],
+      }));
     } catch (err) {
       setError(getErrorMessage(err));
       return [];
     }
   }, [supabase]);
 
-  return { users, condominios, stats, loading, error, fetchUsers, fetchCondominios, fetchStats, updateUserStatus, updateUserRole, searchUsers };
+  return {
+    users,
+    condominios,
+    stats,
+    loading,
+    error,
+    fetchUsers,
+    fetchCondominios,
+    fetchStats,
+    updateUserStatus,
+    updateUserRole,
+    searchUsers,
+  };
 }
