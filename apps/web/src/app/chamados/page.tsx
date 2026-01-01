@@ -37,29 +37,26 @@ export default function ChamadosPage() {
   const [detailedChamado, setDetailedChamado] = useState<any>(null);
   const [newMessage, setNewMessage] = useState('');
   const [rating, setRating] = useState(0);
-  const [form, setForm] = useState<CreateChamadoInput>({
+
+  const condominioId = profile?.condominio_atual?.id;
+  const solicitanteId = profile?.id;
+
+  const [form, setForm] = useState<CreateChamadoInput>(() => ({
     titulo: '',
     descricao: '',
     categoria: 'duvida',
     prioridade: 'media',
     anexos: [],
-    condominio_id: '',
-    solicitante_id: '',
-  });
-
-  const condominioId = profile?.condominio_atual?.id;
+    condominio_id: condominioId || '',
+    solicitante_id: solicitanteId || '',
+  }));
 
   useEffect(() => {
-    if (condominioId && profile?.id) {
-      setForm((prev) => ({
-        ...prev,
-        condominio_id: condominioId,
-        solicitante_id: profile.id,
-      }));
+    if (condominioId && solicitanteId) {
       // Usar solicitante_id em vez de 'meus'
-      fetchChamados(condominioId, { solicitante_id: profile.id });
+      fetchChamados(condominioId, { solicitante_id: solicitanteId });
     }
-  }, [condominioId, fetchChamados, profile?.id]);
+  }, [condominioId, fetchChamados, solicitanteId]);
 
   const handleCardClick = async (id: string) => {
     setSelectedId(id);
@@ -69,8 +66,8 @@ export default function ChamadosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!condominioId || !profile?.id) return;
-    const result = await createChamado(condominioId, profile.id, form);
+    if (!condominioId || !solicitanteId) return;
+    const result = await createChamado(condominioId, solicitanteId, form);
     if (result) {
       toast.success('Chamado criado!');
       setShowForm(false);
@@ -81,7 +78,7 @@ export default function ChamadosPage() {
         prioridade: 'media',
         anexos: [],
         condominio_id: condominioId,
-        solicitante_id: profile.id,
+        solicitante_id: solicitanteId,
       });
     }
   };
