@@ -2,10 +2,19 @@
 // VERSIX NORMA - TIPOS MÓDULO FINANCEIRO
 // Sprint 4: Transparência Financeira
 // ============================================
+// PADRÃO: Todos os tipos base vêm de database.types.ts
+// Extensões adicionadas apenas para campos computados/joins
+// ============================================
 
-import type { Json } from '../../database.types';
+import type { Database } from '../../database.types';
 
-// ENUMs
+type Tables = Database['public']['Tables'];
+
+// ============================================
+// TIPOS BASE DO BANCO (Sem duplicação)
+// ============================================
+
+// ENUMs - Valores que vêm do banco
 export type CategoriaTipo = 'receita' | 'despesa';
 export type LancamentoTipo = 'receita' | 'despesa' | 'transferencia';
 export type LancamentoStatus = 'pendente' | 'confirmado' | 'cancelado';
@@ -13,39 +22,28 @@ export type PrestacaoStatus = 'rascunho' | 'em_revisao' | 'aprovado' | 'rejeitad
 export type TaxaTipo = 'ordinaria' | 'extra' | 'fundo_reserva' | 'multa' | 'juros' | 'outros';
 export type CobrancaStatus = 'pendente' | 'pago' | 'atrasado' | 'negociado' | 'cancelado';
 
+// Aliases para tipos base
+export type CategoriaFinanceiraRow = Tables['categorias_financeiras']['Row'];
+export type LancamentoFinanceiroRow = Tables['lancamentos_financeiros']['Row'];
+export type ContaBancariaRow = Tables['contas_bancarias']['Row'];
+// export type ConfiguracaoFinanceiraRow = Tables['configuracao_financeira']['Row']; // Tabela não existe no banco
+export type PrestacaoConta = Tables['prestacao_contas']['Row'];
+// export type CobrancaRow = Tables['cobrancas']['Row']; // Tabela não existe no banco
+// export type TaxaRow = Tables['taxas']['Row']; // Tabela não existe no banco (existe taxas_unidades)
+
 // ============================================
 // CATEGORIAS FINANCEIRAS
 // ============================================
-export interface CategoriaFinanceira {
-  id: string;
-  condominio_id: string;
-  parent_id: string | null;
-  codigo: string;
-  nome: string;
-  tipo: CategoriaTipo;
-  orcamento_anual: number | null;
-  ativo: boolean;
-  ordem: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+export interface CategoriaFinanceira extends CategoriaFinanceiraRow {
   // Computed
   children?: CategoriaFinanceira[];
   total_orcado?: number;
   total_realizado?: number;
 }
 
-export interface CreateCategoriaInput {
-  codigo: string;
-  nome: string;
-  descricao?: string;
-  tipo: CategoriaTipo;
-  parent_id?: string;
-  orcamento_mensal?: number;
-  ordem?: number;
-}
+export type CreateCategoriaInput = Tables['categorias_financeiras']['Insert'];
 
-export interface UpdateCategoriaInput extends Partial<CreateCategoriaInput> {
+export interface UpdateCategoriaInput extends Partial<CategoriaFinanceiraRow> {
   id: string;
   ativo?: boolean;
 }
@@ -53,37 +51,13 @@ export interface UpdateCategoriaInput extends Partial<CreateCategoriaInput> {
 // ============================================
 // CONTAS BANCÁRIAS
 // ============================================
-export interface ContaBancaria {
-  id: string;
-  condominio_id: string;
-  banco_codigo: string;
-  banco_nome: string;
-  agencia: string;
-  conta: string;
-  tipo_conta: string; // 'corrente' | 'poupanca' - VARCHAR(20) no banco
-  nome_exibicao: string;
-  saldo_inicial: number;
-  saldo_atual: number;
-  data_saldo: string;
-  principal: boolean;
-  ativo: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+export interface ContaBancaria extends ContaBancariaRow {
+  // Tipo estendido com dados do banco
 }
 
-export interface CreateContaBancariaInput {
-  banco_codigo: string;
-  banco_nome: string;
-  agencia: string;
-  conta: string;
-  tipo_conta?: string; // 'corrente' | 'poupanca' - VARCHAR(20) no banco
-  nome_exibicao: string;
-  saldo_inicial?: number;
-  principal?: boolean;
-}
+export type CreateContaBancariaInput = Tables['contas_bancarias']['Insert'];
 
-export interface UpdateContaBancariaInput extends Partial<CreateContaBancariaInput> {
+export interface UpdateContaBancariaInput extends Partial<ContaBancariaRow> {
   id: string;
   ativo?: boolean;
 }
@@ -98,54 +72,17 @@ export interface Comprovante {
   tamanho: number;
 }
 
-export interface LancamentoFinanceiro {
-  id: string;
-  condominio_id: string;
-  tipo: LancamentoTipo;
-  categoria_id: string | null;
-  conta_bancaria_id: string | null;
-  valor: number;
-  descricao: string;
-  data_lancamento: string;
-  data_competencia: string;
-  data_pagamento: string | null;
-  numero_documento: string | null;
-  fornecedor: string | null;
-  comprovantes: Json | null;
-  observacoes: string | null;
-  conta_destino_id: string | null;
-  taxa_unidade_id: string | null;
-  periodo_bloqueado: boolean;
-  status: LancamentoStatus;
-  criado_por: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  // Joins
+export interface LancamentoFinanceiro extends LancamentoFinanceiroRow {
+  // Joins adicionados como campos opcionais
   categoria?: { codigo: string; nome: string };
   categorias?: { nome: string };
   conta_bancaria?: { nome_exibicao: string };
   criador?: { nome: string };
 }
 
-export interface CreateLancamentoInput {
-  tipo: LancamentoTipo;
-  categoria_id: string;
-  conta_bancaria_id?: string;
-  valor: number;
-  data_competencia: string;
-  data_vencimento?: string;
-  data_pagamento?: string;
-  descricao: string;
-  observacoes?: string;
-  fornecedor_nome?: string;
-  fornecedor_documento?: string;
-  numero_documento?: string;
-  comprovantes?: Comprovante[];
-  status?: LancamentoStatus;
-}
+export type CreateLancamentoInput = Tables['lancamentos_financeiros']['Insert'];
 
-export interface UpdateLancamentoInput extends Partial<CreateLancamentoInput> {
+export interface UpdateLancamentoInput extends Partial<LancamentoFinanceiroRow> {
   id: string;
 }
 
