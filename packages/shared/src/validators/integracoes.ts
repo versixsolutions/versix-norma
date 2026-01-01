@@ -144,4 +144,11 @@ export interface IntegracaoDashboard {
   total_erros: number;
   ultimo_uso: string | null;
   created_at: string;
+  // Campos adicionais para webhooks e conectores
+  eventos?: string[];
+  conector?: {
+    tipo: string;
+    nome: string;
+    icone?: string;
+  } | null;
 }

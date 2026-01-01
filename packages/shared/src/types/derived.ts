@@ -381,3 +381,28 @@ export interface AssembleiaFilters extends BaseFilters {
   status?: AssembleiaStatus;
   ano_referencia?: number;
 }
+
+/**
+ * FAQ Input/Filter Types
+ */
+export interface CreateFAQInput {
+  pergunta: string;
+  resposta: string;
+  categoria?: string;
+  ordem?: number;
+  ativo?: boolean;
+  destaque?: boolean;
+}
+
+export interface UpdateFAQInput extends Partial<CreateFAQInput> {}
+
+export interface FAQFilters extends BaseFilters {
+  categoria?: string;
+  ativo?: boolean;
+  destaque?: boolean;
+}
+
+/**
+ * Feature Flags
+ */
+export type FeatureFlag = Tables['feature_flags']['Row'];
