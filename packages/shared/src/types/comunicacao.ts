@@ -55,32 +55,68 @@ export interface UpdateNotificacoesConfigInput {
 export interface UsuarioCanaisPreferencias {
   id: string;
   usuario_id: string;
+  // Canais
   push_habilitado: boolean;
   email_habilitado: boolean;
+  in_app_habilitado: boolean;
   whatsapp_habilitado: boolean;
   sms_habilitado: boolean;
-  voz_emergencia_habilitado: boolean;
-  receber_digest: boolean;
-  digest_frequencia: DigestFrequencia;
-  digest_horario: string;
-  fcm_tokens: string[];
-  email_alternativo: string | null;
-  telefone_alternativo: string | null;
+  voz_habilitado: boolean;
+  // Tipos de notificação
+  receber_comunicados: boolean;
+  receber_avisos: boolean;
+  receber_alertas: boolean;
+  receber_emergencias: boolean;
+  receber_lembretes: boolean;
+  receber_cobrancas: boolean;
+  receber_assembleias: boolean;
+  receber_ocorrencias: boolean;
+  receber_chamados: boolean;
+  // Horários
+  horario_inicio_preferido: string | null;
+  horario_fim_preferido: string | null;
+  // Dispositivos
+  push_tokens: Array<{
+    token: string;
+    device_type?: string;
+    device_name?: string;
+    last_used?: string;
+  }> | null;
+  // Contatos
+  whatsapp_numero: string | null;
+  whatsapp_verificado: boolean;
+  sms_numero: string | null;
+  voz_numero: string | null;
+  // Metadados
   created_at: string;
   updated_at: string;
 }
 
 export interface UpdatePreferenciasInput {
+  // Canais
   push_habilitado?: boolean;
   email_habilitado?: boolean;
+  in_app_habilitado?: boolean;
   whatsapp_habilitado?: boolean;
   sms_habilitado?: boolean;
-  voz_emergencia_habilitado?: boolean;
-  receber_digest?: boolean;
-  digest_frequencia?: DigestFrequencia;
-  digest_horario?: string;
-  email_alternativo?: string;
-  telefone_alternativo?: string;
+  voz_habilitado?: boolean;
+  // Tipos de notificação
+  receber_comunicados?: boolean;
+  receber_avisos?: boolean;
+  receber_alertas?: boolean;
+  receber_emergencias?: boolean;
+  receber_lembretes?: boolean;
+  receber_cobrancas?: boolean;
+  receber_assembleias?: boolean;
+  receber_ocorrencias?: boolean;
+  receber_chamados?: boolean;
+  // Horários
+  horario_inicio_preferido?: string | null;
+  horario_fim_preferido?: string | null;
+  // Contatos
+  whatsapp_numero?: string | null;
+  sms_numero?: string | null;
+  voz_numero?: string | null;
 }
 
 // ============================================

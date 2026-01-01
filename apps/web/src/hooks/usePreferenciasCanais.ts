@@ -3,37 +3,31 @@
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
 import { Database } from '@versix/shared';
+import type {
+  UpdateNotificacoesConfigInput,
+  UpdatePreferenciasInput,
+  UsuarioCanaisPreferencias,
+} from '@versix/shared/types/comunicacao';
 import { useCallback, useState } from 'react';
 
 // Tipos do banco
-type UsuarioCanaisPreferencias =
-  Database['public']['Tables']['usuarios_canais_preferencias']['Row'];
 type NotificacoesConfig = Database['public']['Tables']['notificacoes_config']['Row'];
 
-interface UpdatePreferenciasInput {
-  push_habilitado?: boolean;
-  email_habilitado?: boolean;
-  whatsapp_habilitado?: boolean;
-  sms_habilitado?: boolean;
-  voz_habilitado?: boolean;
-  in_app_habilitado?: boolean;
-  receber_comunicados?: boolean;
-  receber_avisos?: boolean;
-  receber_cobrancas?: boolean;
-  receber_chamados?: boolean;
-  receber_ocorrencias?: boolean;
-  receber_assembleias?: boolean;
-  receber_alertas?: boolean;
-  receber_emergencias?: boolean;
-  receber_lembretes?: boolean;
-  horario_inicio_preferido?: string;
-  horario_fim_preferido?: string;
-}
-
-interface UpdateNotificacoesConfigInput {
-  prioridade_minima?: 'baixa' | 'media' | 'alta';
-  agrupar_notificacoes?: boolean;
-  silencioso_ate?: string;
+/**
+ * Normaliza dados do banco para o tipo UsuarioCanaisPreferencias
+ * Trata conversão de tipos JSON do Supabase
+ */
+function normalizePreferencias(
+  data: Database['public']['Tables']['usuarios_canais_preferencias']['Row']
+): UsuarioCanaisPreferencias {
+  return {
+    ...data,
+    push_tokens: Array.isArray(data.push_tokens)
+      ? (data.push_tokens as any)
+      : data.push_tokens
+        ? JSON.parse(data.push_tokens as string)
+        : null,
+  };
 }
 
 export function usePreferenciasCanais() {
@@ -65,12 +59,14 @@ export function usePreferenciasCanais() {
             .select()
             .single();
           if (insertError) throw insertError;
-          setPreferencias(newData);
-          return newData;
+          const normalizedData = normalizePreferencias(newData);
+          setPreferencias(normalizedData);
+          return normalizedData;
         }
         if (fetchError) throw fetchError;
-        setPreferencias(data);
-        return data;
+        const normalizedData = normalizePreferencias(data);
+        setPreferencias(normalizedData);
+        return normalizedData;
       } catch (err) {
         setError(getErrorMessage(err));
         return null;
@@ -85,6 +81,8 @@ export function usePreferenciasCanais() {
       setLoading(true);
       try {
         const userId = (await supabase.auth.getUser()).data.user?.id;
+        if (!userId) throw new Error('Usuário não autenticado');
+
         const { data, error: updateError } = await supabase
           .from('usuarios_canais_preferencias')
           .update(input)
@@ -92,7 +90,8 @@ export function usePreferenciasCanais() {
           .select()
           .single();
         if (updateError) throw updateError;
-        setPreferencias(data);
+        const normalizedData = normalizePreferencias(data);
+        setPreferencias(normalizedData);
         return true;
       } catch (err) {
         setError(getErrorMessage(err));
@@ -104,17 +103,42 @@ export function usePreferenciasCanais() {
     [supabase]
   );
 
-  // Registrar FCM token
-  const registrarFcmToken = useCallback(
-    async (token: string): Promise<boolean> => {
+  // Registrar push token
+  const registrarPushToken = useCallback(
+    async (token: string, deviceInfo?: { type?: string; name?: string }): Promise<boolean> => {
       try {
         const userId = (await supabase.auth.getUser()).data.user?.id;
-        const { data, error: rpcError } = await supabase.rpc('registrar_fcm_token', {
-          p_usuario_id: userId,
-          p_token: token,
-        });
-        if (rpcError) throw rpcError;
-        return data;
+        if (!userId) return false;
+
+        // Buscar preferências atuais
+        const { data: current } = await supabase
+          .from('usuarios_canais_preferencias')
+          .select('push_tokens')
+          .eq('usuario_id', userId)
+          .single();
+
+        if (!current) return false;
+
+        // Adicionar novo token (evitar duplicatas)
+        const currentTokens = (current.push_tokens as any) || [];
+        const tokenExists = currentTokens.some((t: any) => t.token === token);
+
+        if (tokenExists) return true;
+
+        const newToken = {
+          token,
+          device_type: deviceInfo?.type,
+          device_name: deviceInfo?.name,
+          last_used: new Date().toISOString(),
+        };
+
+        const { error: updateError } = await supabase
+          .from('usuarios_canais_preferencias')
+          .update({ push_tokens: [...currentTokens, newToken] })
+          .eq('usuario_id', userId);
+
+        if (updateError) throw updateError;
+        return true;
       } catch (err) {
         setError(getErrorMessage(err));
         return false;
@@ -123,17 +147,32 @@ export function usePreferenciasCanais() {
     [supabase]
   );
 
-  // Remover FCM token
-  const removerFcmToken = useCallback(
+  // Remover push token
+  const removerPushToken = useCallback(
     async (token: string): Promise<boolean> => {
       try {
         const userId = (await supabase.auth.getUser()).data.user?.id;
-        const { data, error: rpcError } = await supabase.rpc('remover_fcm_token', {
-          p_usuario_id: userId,
-          p_token: token,
-        });
-        if (rpcError) throw rpcError;
-        return data;
+        if (!userId) return false;
+
+        const { data: current } = await supabase
+          .from('usuarios_canais_preferencias')
+          .select('push_tokens')
+          .eq('usuario_id', userId)
+          .single();
+
+        if (!current) return false;
+
+        const updatedTokens = ((current.push_tokens as any) || []).filter(
+          (t: any) => t.token !== token
+        );
+
+        const { error: updateError } = await supabase
+          .from('usuarios_canais_preferencias')
+          .update({ push_tokens: updatedTokens })
+          .eq('usuario_id', userId);
+
+        if (updateError) throw updateError;
+        return true;
       } catch (err) {
         setError(getErrorMessage(err));
         return false;
@@ -193,8 +232,8 @@ export function usePreferenciasCanais() {
     error,
     fetchMinhasPreferencias,
     updatePreferencias,
-    registrarFcmToken,
-    removerFcmToken,
+    registrarPushToken,
+    removerPushToken,
     fetchConfigCondominio,
     updateConfig,
   };
