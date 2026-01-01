@@ -44,10 +44,10 @@ export function useFinanceiro() {
         const { data, error: fetchError } = await query;
         if (fetchError) throw fetchError;
         // Montar hierarquia
-        const rootCats = (data || []).filter((c) => !c.parent_id);
-        return rootCats.map((cat) => ({
+        const rootCats = (data || []).filter((c: CategoriaFinanceira) => !c.parent_id);
+        return rootCats.map((cat: CategoriaFinanceira) => ({
           ...cat,
-          children: (data || []).filter((c) => c.parent_id === cat.id),
+          children: (data || []).filter((c: CategoriaFinanceira) => c.parent_id === cat.id),
         }));
       } catch (err: unknown) {
         const errorMessage =
@@ -297,7 +297,8 @@ export function useFinanceiro() {
           .eq('condominio_id', condominioId)
           .in('status', ['pendente', 'atrasado']);
 
-        const inadimplentes = taxas?.filter((t) => t.status === 'atrasado') || [];
+        const inadimplentes =
+          taxas?.filter((t: { status: string }) => t.status === 'atrasado') || [];
         const { count: totalUnidades } = await supabase
           .from('unidades_habitacionais')
           .select('*', { count: 'exact', head: true })
@@ -337,7 +338,10 @@ export function useFinanceiro() {
           inadimplencia: {
             total_unidades: totalUnidades || 0,
             unidades_inadimplentes: inadimplentes.length,
-            valor_em_aberto: inadimplentes.reduce((sum, t) => sum + t.valor_final, 0),
+            valor_em_aberto: inadimplentes.reduce(
+              (sum: number, t: { valor_final: number | null }) => sum + (t.valor_final ?? 0),
+              0
+            ),
             percentual: totalUnidades ? (inadimplentes.length / totalUnidades) * 100 : 0,
           },
           contas,
