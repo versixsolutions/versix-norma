@@ -41,7 +41,7 @@ export function useOfflineSync() {
         // 1. Info do condomínio
         const { data: condo } = await supabase
           .from('condominios')
-          .select('id, nome, endereco_completo, telefone_portaria, telefone_sindico')
+          .select('id, nome, endereco, telefone')
           .eq('id', condominioId)
           .single();
 
@@ -49,9 +49,9 @@ export function useOfflineSync() {
           await saveCondominioInfo({
             id: condo.id,
             nome: condo.nome,
-            endereco: condo.endereco_completo || '',
-            telefone_portaria: condo.telefone_portaria || '',
-            telefone_sindico: condo.telefone_sindico || '',
+            endereco: condo.endereco || '',
+            telefone_portaria: condo.telefone || '',
+            telefone_sindico: condo.telefone || '',
             cached_at: Date.now(),
           });
         }
@@ -73,7 +73,7 @@ export function useOfflineSync() {
               tipo: n.tipo,
               prioridade: n.prioridade || 'media',
               created_at: new Date(n.created_at).getTime(),
-              lido: n.status === 'lida',
+              lido: n.status === 'enviado',
             }))
           );
         }
@@ -98,22 +98,22 @@ export function useOfflineSync() {
       try {
         const { data } = await supabase
           .from('usuarios')
-          .select('id, nome, email, telefone, role, avatar_url, unidade_principal_id')
+          .select('id, nome, email, telefone, role, avatar_url, unidade_id')
           .eq('id', userId)
           .single();
 
         if (data) {
           // Buscar info da unidade se houver
           let unidadeInfo = { identificador: '', bloco: '' };
-          if (data.unidade_principal_id) {
+          if (data.unidade_id) {
             const { data: unidade } = await supabase
               .from('unidades_habitacionais')
-              .select('identificador, bloco_id')
-              .eq('id', data.unidade_principal_id)
+              .select('numero, bloco_id')
+              .eq('id', data.unidade_id)
               .single();
 
             if (unidade) {
-              unidadeInfo.identificador = unidade.identificador;
+              unidadeInfo.identificador = unidade.numero || '';
               // Buscar nome do bloco se houver
               if (unidade.bloco_id) {
                 const { data: bloco } = await supabase
