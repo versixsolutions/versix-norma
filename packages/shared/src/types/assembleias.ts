@@ -5,13 +5,32 @@
 
 // ENUMs
 export type AssembleiaTipo = 'AGO' | 'AGE' | 'permanente';
-export type AssembleiaStatus = 'rascunho' | 'convocada' | 'em_andamento' | 'votacao' | 'encerrada' | 'arquivada';
-export type PautaTipoVotacao = 'aprovacao' | 'escolha_unica' | 'escolha_multipla' | 'eleicao' | 'informativo';
-export type PautaStatus = 'pendente' | 'em_votacao' | 'encerrada' | 'aprovada' | 'rejeitada' | 'sem_quorum';
+export type AssembleiaStatus =
+  | 'rascunho'
+  | 'convocada'
+  | 'em_andamento'
+  | 'votacao'
+  | 'encerrada'
+  | 'arquivada';
+export type PautaTipoVotacao =
+  | 'aprovacao'
+  | 'escolha_unica'
+  | 'escolha_multipla'
+  | 'eleicao'
+  | 'informativo';
+export type PautaStatus =
+  | 'pendente'
+  | 'em_votacao'
+  | 'encerrada'
+  | 'aprovada'
+  | 'rejeitada'
+  | 'sem_quorum';
 export type QuorumEspecial = 'maioria_simples' | 'maioria_absoluta' | 'dois_tercos' | 'unanimidade';
 export type PresencaTipo = 'presencial' | 'online' | 'procuracao' | 'voto_antecipado';
-export type AssinaturaTipo = 'presidente' | 'secretario' | 'sindico' | 'testemunha';
-export type ComentarioTipo = 'comentario' | 'pergunta' | 'resposta' | 'moderacao';
+// Tipos sem ENUM no banco - campo papel é VARCHAR(50)
+export type AssinaturaTipo = string; // 'presidente' | 'secretario' | 'sindico' | 'testemunha'
+// ComentarioTipo não tem tabela correspondente no banco
+export type ComentarioTipo = string; // 'comentario' | 'pergunta' | 'resposta' | 'moderacao'
 
 // ============================================
 // ASSEMBLEIA

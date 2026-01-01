@@ -75,7 +75,7 @@ export interface CreateContaBancariaInput {
   banco_nome: string;
   agencia: string;
   conta: string;
-  tipo_conta?: 'corrente' | 'poupanca';
+  tipo_conta?: string; // 'corrente' | 'poupanca' - VARCHAR(20) no banco
   nome_exibicao: string;
   saldo_inicial?: number;
   principal?: boolean;

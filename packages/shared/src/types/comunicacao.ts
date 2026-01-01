@@ -7,8 +7,10 @@
 export type CanalNotificacao = 'push' | 'email' | 'whatsapp' | 'sms' | 'voz' | 'mural';
 export type PrioridadeComunicado = 'baixa' | 'normal' | 'alta' | 'critica';
 export type StatusEntrega = 'pendente' | 'enviado' | 'entregue' | 'lido' | 'falhou';
-export type DigestFrequencia = 'diario' | 'semanal';
-export type TipoEmergencia = 'incendio' | 'gas' | 'seguranca' | 'medica' | 'outro';
+// DigestFrequencia não tem ENUM no banco
+export type DigestFrequencia = string; // 'diario' | 'semanal'
+// TipoEmergencia não tem ENUM no banco
+export type TipoEmergencia = string; // 'incendio' | 'gas' | 'seguranca' | 'medica' | 'outro'
 
 // ============================================
 // CONFIG

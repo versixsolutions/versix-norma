@@ -7,18 +7,31 @@
 export type IntegracaoTipo = 'api' | 'webhook' | 'conector';
 export type IntegracaoStatus = 'ativa' | 'pausada' | 'erro' | 'desativada';
 
-export type WebhookEvento = 
+export type WebhookEvento =
   | 'comunicado.publicado'
-  | 'assembleia.criada' | 'assembleia.convocada' | 'assembleia.iniciada' | 'assembleia.encerrada'
-  | 'pagamento.criado' | 'pagamento.confirmado' | 'pagamento.vencido'
-  | 'ocorrencia.criada' | 'ocorrencia.resolvida'
-  | 'chamado.criado' | 'chamado.atualizado'
-  | 'morador.cadastrado' | 'morador.aprovado' | 'morador.removido'
-  | 'reserva.criada' | 'reserva.aprovada' | 'reserva.cancelada';
+  | 'assembleia.criada'
+  | 'assembleia.convocada'
+  | 'assembleia.iniciada'
+  | 'assembleia.encerrada'
+  | 'pagamento.criado'
+  | 'pagamento.confirmado'
+  | 'pagamento.vencido'
+  | 'ocorrencia.criada'
+  | 'ocorrencia.resolvida'
+  | 'chamado.criado'
+  | 'chamado.atualizado'
+  | 'morador.cadastrado'
+  | 'morador.aprovado'
+  | 'morador.removido'
+  | 'reserva.criada'
+  | 'reserva.aprovada'
+  | 'reserva.cancelada';
 
 export type ConectorTipo = 'google_calendar' | 'asaas' | 's3_backup' | 'zapier' | 'ical';
-export type ExportacaoFormato = 'csv' | 'ofx' | 'pdf' | 'xlsx';
-export type ExportacaoTipo = 'financeiro' | 'moradores' | 'ocorrencias' | 'reservas' | 'completo';
+// ExportacaoFormato não tem ENUM no banco
+export type ExportacaoFormato = string; // 'csv' | 'ofx' | 'pdf' | 'xlsx'
+// ExportacaoTipo não tem ENUM no banco
+export type ExportacaoTipo = string; // 'financeiro' | 'moradores' | 'ocorrencias' | 'reservas' | 'completo'
 
 // ============================================
 // INTEGRAÇÃO
