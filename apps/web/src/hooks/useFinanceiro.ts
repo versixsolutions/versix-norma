@@ -121,7 +121,7 @@ export function useFinanceiro() {
           const buscaSanitizada = sanitizeSearchQuery(filters.busca);
           if (buscaSanitizada)
             query = query.or(
-              `descricao.ilike.%${buscaSanitizada}%,fornecedor_nome.ilike.%${buscaSanitizada}%`
+              `descricao.ilike.%${buscaSanitizada}%,fornecedor.ilike.%${buscaSanitizada}%`
             );
         }
 

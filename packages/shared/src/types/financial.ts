@@ -3,6 +3,8 @@
 // Sprint 4: Transparência Financeira
 // ============================================
 
+import type { Json } from '../../database.types';
+
 // ENUMs
 export type CategoriaTipo = 'receita' | 'despesa';
 export type LancamentoTipo = 'receita' | 'despesa' | 'transferencia';
@@ -100,35 +102,30 @@ export interface LancamentoFinanceiro {
   id: string;
   condominio_id: string;
   tipo: LancamentoTipo;
-  categoria_id: string;
+  categoria_id: string | null;
   conta_bancaria_id: string | null;
   valor: number;
-  data_competencia: string;
-  data_vencimento: string | null;
-  data_pagamento: string | null;
   descricao: string;
-  observacoes: string | null;
-  fornecedor_nome: string | null;
-  fornecedor_documento: string | null;
+  data_lancamento: string;
+  data_competencia: string;
+  data_pagamento: string | null;
   numero_documento: string | null;
-  comprovantes: Comprovante[];
+  fornecedor: string | null;
+  comprovantes: Json | null;
+  observacoes: string | null;
+  conta_destino_id: string | null;
+  taxa_unidade_id: string | null;
+  periodo_bloqueado: boolean;
   status: LancamentoStatus;
-  conciliado: boolean;
-  conciliado_em: string | null;
-  conciliado_por: string | null;
-  criado_por: string;
-  aprovado_por: string | null;
-  aprovado_em: string | null;
+  criado_por: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
   // Joins
   categoria?: { codigo: string; nome: string };
+  categorias?: { nome: string };
   conta_bancaria?: { nome_exibicao: string };
   criador?: { nome: string };
-  categorias?: { nome: string };
-  unidades?: { identificador: string | null };
-  unidade_id?: string;
 }
 
 export interface CreateLancamentoInput {
