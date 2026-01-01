@@ -14,7 +14,7 @@ import type {
   LancamentoTipo,
   SaldoPeriodo,
   UpdateLancamentoInput,
-} from '@versix/shared/types/financial';
+} from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 /**

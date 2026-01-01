@@ -1,7 +1,21 @@
 'use client';
 
+/**
+ * @deprecated Este hook está deprecated e será removido em versão futura.
+ * Use `useFinanceiro` de './useFinanceiro.ts' em vez deste.
+ *
+ * Migração necessária:
+ * - apps/web/src/app/home/page.tsx
+ * - apps/web/src/components/pages/TransparencyPage.tsx
+ */
+
 import { getSupabaseClient } from '@/lib/supabase';
-import type { ContaBancaria, LancamentoFinanceiro, LancamentoStatus, LancamentoTipo } from '@versix/shared';
+import type {
+  ContaBancaria,
+  LancamentoFinanceiro,
+  LancamentoStatus,
+  LancamentoTipo,
+} from '@versix/shared';
 import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
@@ -54,8 +68,14 @@ interface UseFinancialReturn {
   // Methods
   refresh: () => Promise<void>;
   createLancamento: (data: CreateLancamentoInput) => Promise<{ success: boolean; error?: Error }>;
-  updateLancamento: (id: string, data: Partial<LancamentoFinanceiro>) => Promise<{ success: boolean; error?: Error }>;
-  registrarPagamento: (lancamentoId: string, dataPagamento?: Date) => Promise<{ success: boolean; error?: Error }>;
+  updateLancamento: (
+    id: string,
+    data: Partial<LancamentoFinanceiro>
+  ) => Promise<{ success: boolean; error?: Error }>;
+  registrarPagamento: (
+    lancamentoId: string,
+    dataPagamento?: Date
+  ) => Promise<{ success: boolean; error?: Error }>;
 }
 
 interface CreateLancamentoInput {
@@ -73,7 +93,10 @@ interface CreateLancamentoInput {
 // ============================================
 // HOOK
 // ============================================
-export function useFinancial({ condominioId, mesReferencia }: UseFinancialOptions): UseFinancialReturn {
+export function useFinancial({
+  condominioId,
+  mesReferencia,
+}: UseFinancialOptions): UseFinancialReturn {
   const supabase = getSupabaseClient();
 
   const [dashboard, setDashboard] = useState<DashboardFinanceiro | null>(null);
@@ -164,11 +187,13 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
     const { data, error } = await supabase
       .from('lancamentos_financeiros')
-      .select(`
+      .select(
+        `
         *,
         categoria:categorias_financeiras!lancamentos_financeiros_categoria_id_fkey (nome, codigo),
         conta:contas_bancarias!lancamentos_financeiros_conta_bancaria_id_fkey (nome_exibicao)
-      `)
+      `
+      )
       .eq('condominio_id', condominioId)
       .gte('data_competencia', inicioMes)
       .lte('data_competencia', fimMes)
@@ -177,7 +202,12 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
     if (!error && data) {
       setLancamentos(
-        (data as (LancamentoFinanceiro & { categoria?: { nome?: string }; conta?: { nome_exibicao?: string } })[]).map(l => ({
+        (
+          data as (LancamentoFinanceiro & {
+            categoria?: { nome?: string };
+            conta?: { nome_exibicao?: string };
+          })[]
+        ).map((l) => ({
           ...l,
           categoria_nome: l.categoria?.nome,
           conta_nome: l.conta?.nome_exibicao,
@@ -224,7 +254,9 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
       // Verificar se há sessão válida
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session?.user) {
           setLoading(false);
           return;
@@ -249,15 +281,13 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
     try {
       const userId = (await supabase.auth.getUser()).data.user?.id || null;
-      const { error } = await supabase
-        .from('lancamentos_financeiros')
-        .insert({
-          condominio_id: condominioId,
-          ...data,
-          data_lancamento: data.data_lancamento || new Date().toISOString(),
-          status: data.status || 'pendente',
-          criado_por: userId,
-        });
+      const { error } = await supabase.from('lancamentos_financeiros').insert({
+        condominio_id: condominioId,
+        ...data,
+        data_lancamento: data.data_lancamento || new Date().toISOString(),
+        status: data.status || 'pendente',
+        criado_por: userId,
+      });
 
       if (error) throw error;
 
@@ -270,10 +300,7 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
   const updateLancamento = async (id: string, data: Partial<LancamentoFinanceiro>) => {
     try {
-      const { error } = await supabase
-        .from('lancamentos_financeiros')
-        .update(data)
-        .eq('id', id);
+      const { error } = await supabase.from('lancamentos_financeiros').update(data).eq('id', id);
 
       if (error) throw error;
 

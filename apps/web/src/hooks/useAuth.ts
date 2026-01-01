@@ -19,7 +19,7 @@ const getActiveCondominioId = async (): Promise<string | null> => {
   try {
     // Try to get from cookies first (more secure)
     const cookies = document.cookie.split(';');
-    const condominioCookie = cookies.find(cookie =>
+    const condominioCookie = cookies.find((cookie) =>
       cookie.trim().startsWith('condominio_atual=')
     );
 
@@ -27,8 +27,8 @@ const getActiveCondominioId = async (): Promise<string | null> => {
       return condominioCookie.split('=')[1].trim();
     }
 
-    // Fallback to localStorage for backward compatibility (will be removed later)
-    return localStorage.getItem('condominio_atual');
+    // No fallback - cookies only for security
+    return null;
   } catch (error) {
     console.warn('Error reading active condominio:', error);
     return null;
@@ -44,16 +44,10 @@ const setActiveCondominioId = (condominioId: string | null): void => {
       // Set secure cookie (7 days expiration)
       const expires = new Date();
       expires.setDate(expires.getDate() + 7);
-      document.cookie = `condominio_atual=${condominioId}; expires=${expires.toUTCString()}; path=/; SameSite=Strict`;
-
-      // Also set in localStorage for backward compatibility (temporary)
-      localStorage.setItem('condominio_atual', condominioId);
+      document.cookie = `condominio_atual=${condominioId}; expires=${expires.toUTCString()}; path=/; SameSite=Strict; Secure`;
     } else {
       // Clear cookie
-      document.cookie = 'condominio_atual=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-      // Clear localStorage
-      localStorage.removeItem('condominio_atual');
+      document.cookie = 'condominio_atual=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; Secure';
     }
   } catch (error) {
     console.warn('Error setting active condominio:', error);
@@ -81,7 +75,12 @@ interface UsuarioWithCondominios {
   created_at: string;
   updated_at: string;
   condominio_atual?: { id: string; nome: string; role: string } | null;
-  condominios?: { condominio_id: string; role: string; unidade_identificador?: string; condominio: { nome: string } }[];
+  condominios?: {
+    condominio_id: string;
+    role: string;
+    unidade_identificador?: string;
+    condominio: { nome: string };
+  }[];
   usuario_condominios: UsuarioCondominioJoin[];
 }
 
@@ -126,12 +125,14 @@ export function useAuth() {
   });
 
   // Fetch user profile with condominios (simplified)
-  const fetchProfile = useCallback(async (userId: string): Promise<UsuarioWithCondominios | null> => {
-    try {
-      // Buscar usuário e condomínios em uma única consulta otimizada
-      const { data: profileData, error } = await supabase
-        .from('usuarios')
-        .select(`
+  const fetchProfile = useCallback(
+    async (userId: string): Promise<UsuarioWithCondominios | null> => {
+      try {
+        // Buscar usuário e condomínios em uma única consulta otimizada
+        const { data: profileData, error } = await supabase
+          .from('usuarios')
+          .select(
+            `
           *,
           usuario_condominios!inner (
             condominio_id,
@@ -145,67 +146,77 @@ export function useAuth() {
               identificador
             )
           )
-        `)
-        .eq('auth_id', userId)
-        .eq('usuario_condominios.status', 'ativo');
+        `
+          )
+          .eq('auth_id', userId)
+          .eq('usuario_condominios.status', 'ativo');
 
-      if (error || !profileData || profileData.length === 0) {
-        console.error('Erro ao buscar perfil:', error);
+        if (error || !profileData || profileData.length === 0) {
+          console.error('Erro ao buscar perfil:', error);
+          return null;
+        }
+
+        const rawUser = profileData[0];
+
+        // Validar que usuario_condominios é array antes de fazer cast
+        if (!rawUser.usuario_condominios || !Array.isArray(rawUser.usuario_condominios)) {
+          console.error('usuario_condominios não é um array válido:', rawUser.usuario_condominios);
+          return null;
+        }
+
+        const usuario = rawUser as unknown as UsuarioWithCondominios;
+
+        // Transformar dados dos condomínios
+        const userCondominios = usuario.usuario_condominios.map((uc: UsuarioCondominioJoin) => ({
+          condominio_id: uc.condominio_id,
+          nome: uc.condominios?.nome || 'Condomínio',
+          role: uc.role as RoleType,
+          unidade_id: uc.unidade_id,
+          unidade_identificador: uc.unidades?.identificador || null,
+        }));
+
+        // Obter condomínio ativo de forma segura (cookies em vez de localStorage)
+        const activeCondominioId = await getActiveCondominioId();
+        const condominioAtual =
+          userCondominios.find((c) => c.condominio_id === activeCondominioId) ||
+          userCondominios[0] ||
+          null;
+
+        return {
+          ...usuario,
+          condominios: userCondominios.map((cond) => ({
+            condominio_id: cond.condominio_id,
+            role: cond.role,
+            unidade_identificador: cond.unidade_identificador || undefined,
+            condominio: { nome: cond.nome },
+          })),
+          condominio_atual: condominioAtual
+            ? {
+                id: condominioAtual.condominio_id,
+                nome: condominioAtual.nome,
+                role: condominioAtual.role,
+              }
+            : null,
+        };
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Erro desconhecido ao buscar perfil';
+        console.error('Erro ao buscar perfil:', errorMessage);
         return null;
       }
-
-      const rawUser = profileData[0];
-
-      // Validar que usuario_condominios é array antes de fazer cast
-      if (!rawUser.usuario_condominios || !Array.isArray(rawUser.usuario_condominios)) {
-        console.error('usuario_condominios não é um array válido:', rawUser.usuario_condominios);
-        return null;
-      }
-
-      const usuario = rawUser as unknown as UsuarioWithCondominios;
-
-      // Transformar dados dos condomínios
-      const userCondominios = usuario.usuario_condominios.map((uc: UsuarioCondominioJoin) => ({
-        condominio_id: uc.condominio_id,
-        nome: uc.condominios?.nome || 'Condomínio',
-        role: uc.role as RoleType,
-        unidade_id: uc.unidade_id,
-        unidade_identificador: uc.unidades?.identificador || null,
-      }));
-
-      // Obter condomínio ativo de forma segura (cookies em vez de localStorage)
-      const activeCondominioId = await getActiveCondominioId();
-      const condominioAtual = userCondominios.find(
-        (c) => c.condominio_id === activeCondominioId
-      ) || userCondominios[0] || null;
-
-      return {
-        ...usuario,
-        condominios: userCondominios.map(cond => ({
-          condominio_id: cond.condominio_id,
-          role: cond.role,
-          unidade_identificador: cond.unidade_identificador || undefined,
-          condominio: { nome: cond.nome }
-        })),
-        condominio_atual: condominioAtual ? {
-          id: condominioAtual.condominio_id,
-          nome: condominioAtual.nome,
-          role: condominioAtual.role,
-        } : null,
-      };
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao buscar perfil';
-      console.error('Erro ao buscar perfil:', errorMessage);
-      return null;
-    }
-  }, [supabase]);
+    },
+    [supabase]
+  );
 
   // Initialize auth state
   useEffect(() => {
     const initAuth = async () => {
       try {
         // Obter sessão uma vez (removido loop para PWA)
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
         if (error) throw error;
 
         if (session?.user) {
@@ -239,41 +250,41 @@ export function useAuth() {
     initAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: string, session: Session | null) => {
-        logger.log('Auth event:', event);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event: string, session: Session | null) => {
+      logger.log('Auth event:', event);
 
-        // Evitar processamento desnecessário para eventos que não alteram o estado
-        if (event === 'TOKEN_REFRESHED' && session && session.user) {
-          // Apenas atualizar a sessão, manter o resto do estado
-          setState((prev) => ({
-            ...prev,
-            session,
-          }));
-          return;
-        }
-
-        if (event === 'SIGNED_IN' && session?.user) {
-          const profile = await fetchProfile(session.user.id);
-          setState({
-            user: session.user,
-            profile,
-            session,
-            loading: false,
-            error: null,
-          });
-        } else if (event === 'SIGNED_OUT') {
-          setState({
-            user: null,
-            profile: null,
-            session: null,
-            loading: false,
-            error: null,
-          });
-          router.push('/login');
-        }
+      // Evitar processamento desnecessário para eventos que não alteram o estado
+      if (event === 'TOKEN_REFRESHED' && session && session.user) {
+        // Apenas atualizar a sessão, manter o resto do estado
+        setState((prev) => ({
+          ...prev,
+          session,
+        }));
+        return;
       }
-    );
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        setState({
+          user: session.user,
+          profile,
+          session,
+          loading: false,
+          error: null,
+        });
+      } else if (event === 'SIGNED_OUT') {
+        setState({
+          user: null,
+          profile: null,
+          session: null,
+          loading: false,
+          error: null,
+        });
+        router.push('/login');
+      }
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -327,16 +338,14 @@ export function useAuth() {
 
       // 2. Criar perfil na tabela usuarios (trigger pode fazer isso automaticamente)
       if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('usuarios')
-          .insert({
-            auth_id: authData.user.id,
-            nome,
-            email,
-            telefone: telefone || null,
-            status: 'pending',
-            config: {},
-          });
+        const { error: profileError } = await supabase.from('usuarios').insert({
+          auth_id: authData.user.id,
+          nome,
+          email,
+          telefone: telefone || null,
+          status: 'pending',
+          config: {},
+        });
 
         if (profileError) {
           console.error('Erro ao criar perfil:', profileError);
@@ -405,9 +414,7 @@ export function useAuth() {
   const switchCondominio = (condominioId: string) => {
     if (!state.profile || !state.profile.condominios) return;
 
-    const novoCondominio = state.profile.condominios.find(
-      (c) => c.condominio_id === condominioId
-    );
+    const novoCondominio = state.profile.condominios.find((c) => c.condominio_id === condominioId);
 
     if (novoCondominio) {
       // Usar abordagem segura para armazenar condomínio ativo
@@ -415,14 +422,16 @@ export function useAuth() {
 
       setState((prev) => ({
         ...prev,
-        profile: prev.profile ? {
-          ...prev.profile,
-          condominio_atual: {
-            id: novoCondominio.condominio_id,
-            nome: novoCondominio.condominio.nome,
-            role: novoCondominio.role,
-          },
-        } : null,
+        profile: prev.profile
+          ? {
+              ...prev.profile,
+              condominio_atual: {
+                id: novoCondominio.condominio_id,
+                nome: novoCondominio.condominio.nome,
+                role: novoCondominio.role,
+              },
+            }
+          : null,
       }));
     }
   };
@@ -438,10 +447,12 @@ export function useAuth() {
   // COMPUTED VALUES
   // ============================================
   const isAuthenticated = !!state.user && !!state.session;
-  const isAdmin = state.profile?.condominio_atual?.role === 'admin_master' ||
-                  state.profile?.condominio_atual?.role === 'superadmin';
-  const isSindico = state.profile?.condominio_atual?.role === 'sindico' ||
-                   state.profile?.condominio_atual?.role === 'subsindico';
+  const isAdmin =
+    state.profile?.condominio_atual?.role === 'admin_master' ||
+    state.profile?.condominio_atual?.role === 'superadmin';
+  const isSindico =
+    state.profile?.condominio_atual?.role === 'sindico' ||
+    state.profile?.condominio_atual?.role === 'subsindico';
   const hasMultipleCondominios = (state.profile?.condominios?.length || 0) > 1;
 
   return {

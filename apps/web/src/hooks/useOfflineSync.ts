@@ -18,6 +18,37 @@ import { useCallback, useEffect, useState } from 'react';
 
 const MAX_RETRIES = 5;
 
+// Whitelist de URLs permitidas para prevenir SSRF
+const ALLOWED_URL_ORIGINS = [
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_APP_URL || '',
+  'https://*.supabase.co',
+];
+
+/**
+ * Valida se uma URL está na whitelist permitida
+ * Previne ataques SSRF (Server-Side Request Forgery)
+ */
+function isAllowedUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+
+    // Verificar se a origem está na whitelist
+    return ALLOWED_URL_ORIGINS.some((allowed) => {
+      if (allowed.includes('*')) {
+        // Suporte para wildcards simples
+        const pattern = allowed.replace(/\*/g, '.*');
+        const regex = new RegExp(`^${pattern}$`);
+        return regex.test(urlObj.origin);
+      }
+      return urlObj.origin === allowed || urlObj.href.startsWith(allowed);
+    });
+  } catch {
+    // URL inválida
+    return false;
+  }
+}
+
 export function useOfflineSync() {
   const supabase = getSupabaseClient();
   const isOnline = useOnlineStatus();
@@ -158,6 +189,14 @@ export function useOfflineSync() {
 
     for (const action of actions) {
       if (action.retries >= MAX_RETRIES) {
+        await removePendingAction(action.id);
+        failed++;
+        continue;
+      }
+
+      // Validar URL para prevenir SSRF
+      if (!isAllowedUrl(action.url)) {
+        console.warn('URL não permitida:', action.url);
         await removePendingAction(action.id);
         failed++;
         continue;
