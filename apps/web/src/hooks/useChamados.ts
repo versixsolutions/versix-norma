@@ -3,9 +3,8 @@
 import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
-import { parseAnexos } from '@/lib/type-helpers';
+import { parseAnexos, serializeAnexos } from '@/lib/type-helpers';
 import type {
-  Anexo,
   // Input types dos validators
   AvaliarChamadoInput,
   ChamadoComJoins,
@@ -42,7 +41,7 @@ export function useChamados(options?: {
 
   interface ChamadoQueryResult extends ChamadoRow {
     solicitante?: { nome: string; avatar_url: string | null; email: string } | null;
-    atendente?: { nome: string } | null;
+    atendente?: { nome: string; avatar_url: string | null } | null;
   }
 
   interface ChamadoMensagemQueryResult extends ChamadoMensagemRow {
@@ -55,13 +54,6 @@ export function useChamados(options?: {
     solicitante: data.solicitante ?? undefined,
     atendente: data.atendente ?? undefined,
   });
-
-  const serializeAnexos = (anexos: Anexo[] | undefined) => {
-    if (!anexos || anexos.length === 0) return [];
-    return JSON.stringify(
-      anexos
-    ) as unknown as Database['public']['Tables']['chamados']['Row']['anexos'];
-  };
 
   const fetchChamados = useCallback(
     async (
@@ -79,7 +71,7 @@ export function useChamados(options?: {
         let query = supabase
           .from('chamados')
           .select(
-            `*, solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email), atendente:usuarios!chamados_atendente_id_fkey (nome)`,
+            `*, solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email), atendente:usuarios!chamados_atendente_id_fkey (nome, avatar_url)`,
             { count: 'exact' }
           )
           .eq('condominio_id', condominioId)
@@ -104,8 +96,8 @@ export function useChamados(options?: {
         if (fetchError) throw fetchError;
 
         // Transformar dados para garantir tipos corretos
-        const transformedData = (data || []).map((chamado) =>
-          toChamado(chamado as ChamadoQueryResult)
+        const transformedData = (data || []).map((chamado: ChamadoQueryResult) =>
+          toChamado(chamado)
         );
 
         const total = count || 0;
@@ -153,7 +145,7 @@ export function useChamados(options?: {
         const { data, error: fetchError } = await supabase
           .from('chamados')
           .select(
-            `*, solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email), atendente:usuarios!chamados_atendente_id_fkey (nome)`
+            `*, solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email), atendente:usuarios!chamados_atendente_id_fkey (nome, avatar_url)`
           )
           .eq('id', id)
           .single();
@@ -168,15 +160,15 @@ export function useChamados(options?: {
 
         const mensagensComAutor = (mensagens || []).map((msg: ChamadoMensagemQueryResult) => ({
           ...msg,
-          anexos: (msg.anexos as Anexo[] | null) ?? [],
+          anexos: parseAnexos(msg.anexos),
           autor: msg.autor ?? undefined,
         }));
 
         return {
           ...(data as ChamadoRow),
-          anexos: (data.anexos as Anexo[] | null) ?? [],
-          solicitante: (data as ChamadoQueryResult).solicitante,
-          atendente: (data as ChamadoQueryResult).atendente,
+          anexos: parseAnexos(data.anexos),
+          solicitante: (data as ChamadoQueryResult).solicitante ?? undefined,
+          atendente: (data as ChamadoQueryResult).atendente ?? undefined,
           mensagens: mensagensComAutor,
           total_mensagens: mensagens?.length || 0,
         };
@@ -330,27 +322,31 @@ export function useChamados(options?: {
         };
         const stats: EstatisticasChamados = {
           total: data.length,
-          novos: data.filter((c) => c.status === 'novo').length,
-          em_atendimento: data.filter((c) => c.status === 'em_atendimento').length,
-          resolvidos: data.filter((c) => ['resolvido', 'fechado'].includes(c.status)).length,
+          novos: data.filter((c: ChamadoComJoins) => c.status === 'novo').length,
+          em_atendimento: data.filter((c: ChamadoComJoins) => c.status === 'em_atendimento').length,
+          resolvidos: data.filter((c: ChamadoComJoins) =>
+            ['resolvido', 'fechado'].includes(c.status)
+          ).length,
           por_categoria: {},
           avaliacao_media: null,
           tempo_medio_resolucao_horas: null,
         };
-        data.forEach((c) => {
+        data.forEach((c: ChamadoComJoins) => {
           stats.por_categoria[c.categoria] = (stats.por_categoria[c.categoria] || 0) + 1;
         });
-        const comNota = data.filter((c) => c.avaliacao_nota);
+        const comNota = data.filter((c: ChamadoComJoins) => c.avaliacao_nota);
         if (comNota.length > 0)
           stats.avaliacao_media =
-            comNota.reduce((a, c) => a + c.avaliacao_nota!, 0) / comNota.length;
-        const resolvidos = data.filter((c) => c.resolvido_em);
+            comNota.reduce((a: number, c: ChamadoComJoins) => a + c.avaliacao_nota!, 0) /
+            comNota.length;
+        const resolvidos = data.filter((c: ChamadoComJoins) => c.resolvido_em);
         if (resolvidos.length > 0) {
           const tempos = resolvidos.map(
-            (c) =>
+            (c: ChamadoComJoins) =>
               (new Date(c.resolvido_em!).getTime() - new Date(c.created_at).getTime()) / 3600000
           );
-          stats.tempo_medio_resolucao_horas = tempos.reduce((a, b) => a + b, 0) / tempos.length;
+          stats.tempo_medio_resolucao_horas =
+            tempos.reduce((a: number, b: number) => a + b, 0) / tempos.length;
         }
         return stats;
       } catch {
