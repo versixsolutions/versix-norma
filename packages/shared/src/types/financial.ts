@@ -20,9 +20,8 @@ export interface CategoriaFinanceira {
   parent_id: string | null;
   codigo: string;
   nome: string;
-  descricao: string | null;
   tipo: CategoriaTipo;
-  orcamento_mensal: number;
+  orcamento_anual: number | null;
   ativo: boolean;
   ordem: number;
   created_at: string;
