@@ -1,20 +1,16 @@
 'use client';
 
 import {
-    cacheNotifications,
-    getLastSyncTime,
-    getPendingActions,
-    incrementActionRetry,
-    removePendingAction,
-    saveCondominioInfo,
-    saveEmergencyContacts,
-    saveUserProfile,
-    saveVulnerableResidents,
-    type CachedCondominioInfo,
-    type CachedUserProfile,
-    type EmergencyContact,
-    type PendingAction,
-    type VulnerableResident
+  cacheNotifications,
+  getLastSyncTime,
+  getPendingActions,
+  incrementActionRetry,
+  removePendingAction,
+  saveCondominioInfo,
+  saveUserProfile,
+  type CachedCondominioInfo,
+  type CachedUserProfile,
+  type PendingAction,
 } from '@/lib/offline-db';
 import { requestBackgroundSync, useOnlineStatus } from '@/lib/pwa';
 import { getSupabaseClient } from '@/lib/supabase';
@@ -36,123 +32,121 @@ export function useOfflineSync() {
   }, []);
 
   // Sincronizar dados críticos do servidor
-  const syncCriticalData = useCallback(async (condominioId: string) => {
-    if (!isOnline) return false;
-    setSyncing(true);
+  const syncCriticalData = useCallback(
+    async (condominioId: string) => {
+      if (!isOnline) return false;
+      setSyncing(true);
 
-    try {
-      // 1. Buscar telefones de emergência
-      const { data: contacts } = await supabase
-        .from('telefones_emergencia')
-        .select('*')
-        .eq('condominio_id', condominioId)
-        .order('ordem');
+      try {
+        // 1. Info do condomínio
+        const { data: condo } = await supabase
+          .from('condominios')
+          .select('id, nome, endereco_completo, telefone_portaria, telefone_sindico')
+          .eq('id', condominioId)
+          .single();
 
-      if (contacts) {
-        await saveEmergencyContacts(contacts.map(c => ({
-          id: c.id,
-          tipo: c.tipo,
-          nome: c.nome,
-          telefone: c.telefone,
-          ordem: c.ordem
-        })));
+        if (condo) {
+          await saveCondominioInfo({
+            id: condo.id,
+            nome: condo.nome,
+            endereco: condo.endereco_completo || '',
+            telefone_portaria: condo.telefone_portaria || '',
+            telefone_sindico: condo.telefone_sindico || '',
+            cached_at: Date.now(),
+          });
+        }
+
+        // 2. Últimas notificações
+        const { data: notifs } = await supabase
+          .from('notificacoes')
+          .select('id, titulo, corpo, tipo, prioridade, created_at, status')
+          .eq('condominio_id', condominioId)
+          .order('created_at', { ascending: false })
+          .limit(30);
+
+        if (notifs) {
+          await cacheNotifications(
+            notifs.map((n) => ({
+              id: n.id,
+              titulo: n.titulo || '',
+              corpo: n.corpo || '',
+              tipo: n.tipo,
+              prioridade: n.prioridade || 'media',
+              created_at: new Date(n.created_at).getTime(),
+              lido: n.status === 'lida',
+            }))
+          );
+        }
+
+        setLastSync(new Date());
+        return true;
+      } catch (error) {
+        console.error('Erro ao sincronizar dados críticos:', error);
+        return false;
+      } finally {
+        setSyncing(false);
       }
-
-      // 2. Buscar moradores vulneráveis (síndico only)
-      const { data: vulnerable } = await supabase
-        .from('moradores_vulneraveis')
-        .select('*, unidade:unidades_habitacionais(identificador, bloco)')
-        .eq('condominio_id', condominioId);
-
-      if (vulnerable) {
-        await saveVulnerableResidents(vulnerable.map((v) => ({
-          id: v.id,
-          nome: v.nome,
-          unidade: v.unidade?.identificador || '',
-          bloco: v.unidade?.bloco || '',
-          tipo: v.tipo,
-          observacoes: v.observacoes || '',
-          contato_emergencia: v.contato_emergencia
-        })));
-      }
-
-      // 3. Info do condomínio
-      const { data: condo } = await supabase
-        .from('condominios')
-        .select('id, nome, endereco_completo, telefone_portaria, telefone_sindico')
-        .eq('id', condominioId)
-        .single();
-
-      if (condo) {
-        await saveCondominioInfo({
-          id: condo.id,
-          nome: condo.nome,
-          endereco: condo.endereco_completo || '',
-          telefone_portaria: condo.telefone_portaria,
-          telefone_sindico: condo.telefone_sindico,
-          cached_at: Date.now()
-        });
-      }
-
-      // 4. Últimas notificações
-      const { data: notifs } = await supabase
-        .from('v_usuario_notificacoes')
-        .select('*')
-        .limit(30);
-
-      if (notifs) {
-        await cacheNotifications(notifs.map((n) => ({
-          id: n.notificacao_id,
-          titulo: n.titulo,
-          corpo: n.corpo,
-          tipo: n.tipo,
-          prioridade: n.prioridade,
-          created_at: new Date(n.created_at).getTime(),
-          lido: n.status === 'lido'
-        })));
-      }
-
-      setLastSync(new Date());
-      return true;
-    } catch (error) {
-      console.error('Erro ao sincronizar dados críticos:', error);
-      return false;
-    } finally {
-      setSyncing(false);
-    }
-  }, [supabase, isOnline]);
+    },
+    [supabase, isOnline]
+  );
 
   // Sincronizar perfil do usuário
-  const syncUserProfile = useCallback(async (userId: string) => {
-    if (!isOnline) return false;
+  const syncUserProfile = useCallback(
+    async (userId: string) => {
+      if (!isOnline) return false;
 
-    try {
-      const { data } = await supabase
-        .from('usuarios')
-        .select('*, unidade:unidades_habitacionais(identificador, bloco)')
-        .eq('id', userId)
-        .single();
+      try {
+        const { data } = await supabase
+          .from('usuarios')
+          .select('id, nome, email, telefone, role, avatar_url, unidade_principal_id')
+          .eq('id', userId)
+          .single();
 
-      if (data) {
-        await saveUserProfile({
-          id: data.id,
-          nome: data.nome,
-          email: data.email,
-          telefone: data.telefone || '',
-          unidade: data.unidade?.identificador || '',
-          bloco: data.unidade?.bloco || '',
-          role: data.role,
-          avatar_url: data.avatar_url,
-          cached_at: Date.now()
-        });
+        if (data) {
+          // Buscar info da unidade se houver
+          let unidadeInfo = { identificador: '', bloco: '' };
+          if (data.unidade_principal_id) {
+            const { data: unidade } = await supabase
+              .from('unidades_habitacionais')
+              .select('identificador, bloco_id')
+              .eq('id', data.unidade_principal_id)
+              .single();
+
+            if (unidade) {
+              unidadeInfo.identificador = unidade.identificador;
+              // Buscar nome do bloco se houver
+              if (unidade.bloco_id) {
+                const { data: bloco } = await supabase
+                  .from('blocos')
+                  .select('nome')
+                  .eq('id', unidade.bloco_id)
+                  .single();
+                if (bloco) unidadeInfo.bloco = bloco.nome;
+              }
+            }
+          }
+
+          await saveUserProfile({
+            id: data.id,
+            nome: data.nome,
+            email: data.email,
+            telefone: data.telefone || '',
+            unidade: unidadeInfo.identificador,
+            bloco: unidadeInfo.bloco,
+            role: data.role,
+            avatar_url: data.avatar_url || '',
+            cached_at: Date.now(),
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Erro ao sincronizar perfil:', error);
+        return false;
       }
-
-      return true;
-    } catch (error) {
-      console.error('Erro ao sincronizar perfil:', error);
-      return false;
-    }
-  }, [supabase, isOnline]);
+    },
+    [supabase, isOnline]
+  );
 
   // Processar ações pendentes (offline queue)
   const processPendingActions = useCallback(async () => {
@@ -173,7 +167,7 @@ export function useOfflineSync() {
         const response = await fetch(action.url, {
           method: action.method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(action.body)
+          body: JSON.stringify(action.body),
         });
 
         if (response.ok) {
@@ -205,7 +199,7 @@ export function useOfflineSync() {
 
   // Verificar última sincronização
   useEffect(() => {
-    getLastSyncTime('emergency-contacts').then(setLastSync);
+    getLastSyncTime('critical-data').then(setLastSync);
     updatePendingCount();
   }, [updatePendingCount]);
 
@@ -225,9 +219,8 @@ export function useOfflineSync() {
     syncUserProfile,
     processPendingActions,
     requestSync,
-    updatePendingCount
+    updatePendingCount,
   };
 }
 
-export type { CachedCondominioInfo, CachedUserProfile, EmergencyContact, PendingAction, VulnerableResident };
-
+export type { CachedCondominioInfo, CachedUserProfile, PendingAction };
