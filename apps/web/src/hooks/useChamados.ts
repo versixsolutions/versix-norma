@@ -3,6 +3,7 @@
 import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
+import { parseAnexos } from '@/lib/type-helpers';
 import type {
     Anexo,
     // Input types dos validators

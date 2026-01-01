@@ -36,18 +36,9 @@ export function useFAQ() {
       const { data, error: fetchError, count } = await query;
       if (fetchError) throw fetchError;
 
-      // Calcular percentual de utilidade
-      const faqsComUtilidade = (data || []).map(faq => {
-        const totalVotos = (faq.votos_util ?? 0) + (faq.votos_inutil ?? 0);
-        return {
-          ...faq,
-          utilidade_percentual: totalVotos > 0 ? ((faq.votos_util ?? 0) / totalVotos) * 100 : null
-        };
-      });
-
       const total = count || 0;
       const result: PaginatedResponse<FAQ> = {
-        data: faqsComUtilidade,
+        data: data || [],
         pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize), hasMore: to < total - 1 }
       };
       setFaqs(result.data);
@@ -67,11 +58,7 @@ export function useFAQ() {
       if (fetchError) throw fetchError;
       // Incrementar visualização
       await supabase.from('faq').update({ visualizacoes: data.visualizacoes + 1 }).eq('id', id);
-      const totalVotos = (data.votos_util ?? 0) + (data.votos_inutil ?? 0);
-      return {
-        ...data,
-        utilidade_percentual: totalVotos > 0 ? ((data.votos_util ?? 0) / totalVotos) * 100 : null
-      };
+      return data;
     } catch (err) {
       console.error('Erro ao buscar FAQ:', err);
       return null;
@@ -126,7 +113,7 @@ export function useFAQ() {
 
   const voteUseful = useCallback(async (faqId: string, useful: boolean): Promise<boolean> => {
     try {
-      await supabase.rpc('vote_faq_useful', { p_faq_id: faqId, p_useful: useful });
+      await supabase.rpc('vote_faq_useful', { p_faq_id: faqId, p_util: useful });
       // Atualizar localmente
       setFaqs(prev => prev.map(f => {
         if (f.id !== faqId) return f;
@@ -135,8 +122,7 @@ export function useFAQ() {
         return {
           ...f,
           votos_util: newSim,
-          votos_inutil: newNao,
-          utilidade_percentual: (newSim / (newSim + newNao)) * 100
+          votos_inutil: newNao
         };
       }));
       return true;

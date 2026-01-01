@@ -4,7 +4,7 @@ import { IntegracaoCard } from '@/components/integracoes/IntegracaoCard';
 import { WebhookEventosSelector } from '@/components/integracoes/WebhookEventosSelector';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useIntegracoes } from '@/hooks/useIntegracoes';
-import type { CreateIntegracaoApiInput, CreateWebhookInput } from '@versix/shared/src/validators/integracoes';
+import type { CreateIntegracaoApiInput, CreateWebhookInput } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
