@@ -547,6 +547,9 @@ export interface AssembleiaStats {
   quorum_medio: number;
   participacao_media: number;
 }
+// ============================================
+// TIPOS FALTANTES - ADICIONAR AO FINAL DO derived.ts
+// ============================================
 
 // ============================================
 // FINANCEIRO - TIPOS ADICIONAIS
@@ -557,6 +560,8 @@ export interface SaldoPeriodo {
   data_fim: string;
   saldo_inicial: number;
   saldo_final: number;
+  saldo_anterior: number;
+  saldo_atual: number;
   total_receitas: number;
   total_despesas: number;
   variacao: number;
@@ -582,6 +587,10 @@ export interface RelatorioMensal {
 // ============================================
 
 export interface NotificacaoDashboard {
+  id: string;
+  titulo: string;
+  tipo: TipoNotificacao;
+  created_at: string;
   notificacao: Notificacao;
   stats: {
     total_enviadas: number;
@@ -590,9 +599,11 @@ export interface NotificacaoDashboard {
     taxa_abertura: number;
   };
   entregas?: NotificacaoEntrega[];
+  percentual_leitura?: number;
 }
 
 export interface NotificacaoUsuario extends Notificacao {
+  notificacao_id: string;
   lida: boolean;
   lida_em?: string;
   entrega_status?: StatusEntrega;
@@ -630,9 +641,9 @@ export interface EmergenciaLogComDetalhes extends EmergenciaLog {
 
 export interface VotarInput {
   pauta_id: string;
-  presenca_id: string;
-  voto: 'sim' | 'nao' | 'abstencao' | 'opcao';
+  presenca_id?: string;
   opcao_id?: string;
+  voto_tipo: 'sim' | 'nao' | 'abstencao';
 }
 
 export interface Comentario {
@@ -661,67 +672,79 @@ export interface ApiLogsFilters extends BaseFilters {
 }
 
 // ============================================
-// TIPOS DE FORMULÁRIO - Para estados em componentes
+// INTEGRAÇÕES - CORREÇÕES
 // ============================================
 
-/**
- * Para formulários, usamos tipos parciais e opcionais
- * Evitamos requerer campos obrigatórios como condominio_id, criado_por, etc.
- * que são preenchidos automaticamente pelo backend
- */
-
-export interface NotificacaoFormData {
-  tipo?: TipoNotificacao;
-  titulo?: string;
-  corpo?: string;
-  prioridade?: PrioridadeComunicado;
-  destinatarios_tipo?: string;
-  gerar_mural?: boolean;
-  anexos?: Anexo[];
-}
-
-export interface OcorrenciaFormData {
-  categoria?: OcorrenciaCategoria;
-  titulo?: string;
+// Corrigir CreateIntegracaoApiInput para incluir descricao
+export interface CreateIntegracaoApiInputFull {
+  nome: string;
   descricao?: string;
-  prioridade?: Prioridade;
-  localizacao?: string;
-  unidade_id?: string;
-  anexos?: Anexo[];
-}
-
-export interface ChamadoFormData {
-  categoria?: ChamadoCategoria;
-  titulo?: string;
-  descricao?: string;
-  prioridade?: Prioridade;
-  unidade_id?: string;
-  anexos?: Anexo[];
-}
-
-export interface AssembleiaFormData {
-  tipo?: AssembleiaTipo;
-  titulo?: string;
-  data_inicio?: string;
-  data_fim?: string;
-  descricao?: string;
-  local?: string;
-  quorum_percentual?: number;
-}
-
-export interface WebhookFormData {
-  nome?: string;
-  url?: string;
-  eventos?: WebhookEvento[];
-  ativo?: boolean;
-  descricao?: string;
-}
-
-export interface IntegracaoFormData {
-  nome?: string;
-  descricao?: string;
-  tipo?: IntegracaoTipo;
-  chave_api?: string;
-  ativo?: boolean;
+  tipo: IntegracaoTipo;
   ambiente?: IntegracaoAmbiente;
+  scopes?: string[];
+  ip_whitelist?: string[];
+  rate_limit_minuto?: number;
+}
+
+// Corrigir IntegracaoDashboard para incluir id
+export interface IntegracaoDashboardFull {
+  id: string;
+  integracao: Integracao;
+  stats: {
+    total_requests: number;
+    success_rate: number;
+    last_request: string | null;
+  };
+  eventos?: WebhookEvento[];
+  conector?: Conector | null;
+}
+
+// Webhook com nome
+export interface CreateWebhookInputFull {
+  nome: string;
+  url_destino: string;
+  eventos: WebhookEvento[];
+  headers_custom?: Record<string, string>;
+  ativo?: boolean;
+}
+
+// ============================================
+// OBSERVABILIDADE - TIPOS ADICIONAIS
+// ============================================
+
+export interface MetricaSistema {
+  id: string;
+  tipo: string;
+  valor: number;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AlertaObservabilidade {
+  id: string;
+  tipo: 'error' | 'warning' | 'info';
+  mensagem: string;
+  severidade: 'baixa' | 'media' | 'alta' | 'critica';
+  resolvido: boolean;
+  created_at: string;
+}
+
+// ============================================
+// PWA - TIPOS ADICIONAIS
+// ============================================
+
+export interface PushSubscriptionData {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+}
+
+export interface SyncQueueItem {
+  id: string;
+  action: string;
+  payload: unknown;
+  timestamp: string;
+  retries: number;
 }

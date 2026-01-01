@@ -3,7 +3,8 @@
 import { ChamadoCard } from '@/components/chamados/ChamadoCard';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useChamados, type CreateChamadoInput } from '@/hooks/useChamados';
-import type { ChamadoMensagem } from '@versix/shared';
+import { serializeAnexos } from '@/lib/type-helpers';
+import type { ChamadoFormData } from '@versix/shared';
 import { ChamadoCategoria } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -41,14 +42,12 @@ export default function ChamadosPage() {
   const condominioId = profile?.condominio_atual?.id;
   const solicitanteId = profile?.id;
 
-  const [form, setForm] = useState<CreateChamadoInput>(() => ({
+  const [form, setForm] = useState<ChamadoFormData>(() => ({
     titulo: '',
     descricao: '',
     categoria: 'duvida',
     prioridade: 'media',
     anexos: [],
-    condominio_id: condominioId || '',
-    solicitante_id: solicitanteId || '',
   }));
 
   useEffect(() => {
@@ -67,7 +66,19 @@ export default function ChamadosPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!condominioId || !solicitanteId) return;
-    const result = await createChamado(condominioId, solicitanteId, form);
+
+    // Converter ChamadoFormData para CreateChamadoInput
+    const submitData: CreateChamadoInput = {
+      titulo: form.titulo || '',
+      descricao: form.descricao || '',
+      categoria: form.categoria || 'duvida',
+      prioridade: form.prioridade || 'media',
+      anexos: serializeAnexos(form.anexos),
+      condominio_id: condominioId,
+      solicitante_id: solicitanteId,
+    };
+
+    const result = await createChamado(condominioId, solicitanteId, submitData);
     if (result) {
       toast.success('Chamado criado!');
       setShowForm(false);
@@ -77,8 +88,6 @@ export default function ChamadosPage() {
         categoria: 'duvida',
         prioridade: 'media',
         anexos: [],
-        condominio_id: condominioId,
-        solicitante_id: solicitanteId,
       });
     }
   };
@@ -253,7 +262,7 @@ export default function ChamadosPage() {
                   {new Date(detailedChamado.created_at).toLocaleString('pt-BR')}
                 </p>
               </div>
-              {detailedChamado.mensagens?.map((m: ChamadoMensagem) => (
+              {detailedChamado.mensagens?.map((m: ChamadoMensagemComJoins) => (
                 <div
                   key={m.id}
                   className={`max-w-[80%] rounded-2xl p-4 ${m.autor_id === profile?.id ? 'ml-auto bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800'}`}

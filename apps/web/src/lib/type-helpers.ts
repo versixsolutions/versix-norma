@@ -33,7 +33,7 @@ export function safeJoin<T>(value: T | null | undefined): T | undefined {
 // Converter Anexo[] para Json (para enviar ao banco)
 export function serializeAnexos(anexos: Anexo[] | undefined): Json {
   if (!anexos || anexos.length === 0) return [];
-  return JSON.stringify(anexos) as unknown as Json;
+  return anexos as unknown as Json;
 }
 
 // Converter string | null para string | undefined

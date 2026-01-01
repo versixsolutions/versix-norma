@@ -8,6 +8,7 @@ import { usePreferenciasCanais } from '@/hooks/usePreferenciasCanais';
 import type {
   CreateNotificacaoInput,
   NotificacaoDashboard,
+  NotificacaoFormData,
   PrioridadeComunicado,
   TipoEmergencia,
 } from '@versix/shared';
@@ -27,14 +28,13 @@ export default function SindicoComunicacaoPage() {
 
   const condominioId = profile?.condominio_atual?.id;
 
-  const [form, setForm] = useState<CreateNotificacaoInput>(() => ({
+  const [form, setForm] = useState<NotificacaoFormData>(() => ({
     tipo: 'comunicado',
     titulo: '',
     corpo: '',
     prioridade: 'normal',
     destinatarios_tipo: 'todos',
     gerar_mural: false,
-    condominio_id: condominioId || '',
   }));
 
   useEffect(() => {
@@ -48,17 +48,30 @@ export default function SindicoComunicacaoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!condominioId) return;
-    if (form.titulo.length < 3) {
+    if (!form.titulo || form.titulo.length < 3) {
       toast.error('Título muito curto');
       return;
     }
-    if (form.corpo.length < 10) {
+    if (!form.corpo || form.corpo.length < 10) {
       toast.error('Corpo muito curto');
       return;
     }
 
     setSubmitting(true);
-    const id = await enviarNotificacao(condominioId, form);
+
+    // Converter NotificacaoFormData para CreateNotificacaoInput
+    const submitData: CreateNotificacaoInput = {
+      tipo: form.tipo || 'comunicado',
+      titulo: form.titulo || '',
+      corpo: form.corpo || '',
+      prioridade: form.prioridade,
+      destinatarios_tipo: form.destinatarios_tipo,
+      gerar_mural: form.gerar_mural || false,
+      anexos: serializeAnexos(form.anexos),
+      condominio_id: condominioId,
+    };
+
+    const id = await enviarNotificacao(condominioId, submitData);
     if (id) {
       toast.success('Notificação enviada com sucesso!');
       setForm({

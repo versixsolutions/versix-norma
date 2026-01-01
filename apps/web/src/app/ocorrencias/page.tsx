@@ -4,7 +4,8 @@ import { OcorrenciaCard } from '@/components/ocorrencias/OcorrenciaCard';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useAnexos } from '@/hooks/useAnexos';
 import { useOcorrencias, type CreateOcorrenciaInput } from '@/hooks/useOcorrencias';
-import type { OcorrenciaCategoria, OcorrenciaHistorico } from '@versix/shared';
+import { serializeAnexos } from '@/lib/type-helpers';
+import type { OcorrenciaCategoria, OcorrenciaFormData, OcorrenciaHistorico } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -35,16 +36,13 @@ export default function OcorrenciasPage() {
   const condominioId = profile?.condominio_atual?.id;
   const reportadoPor = profile?.id;
 
-  const [form, setForm] = useState<CreateOcorrenciaInput>(() => ({
+  const [form, setForm] = useState<OcorrenciaFormData>(() => ({
     titulo: '',
     descricao: '',
     categoria: 'outros',
     prioridade: 'media',
-    anonimo: false,
-    local_descricao: '',
+    localizacao: '',
     anexos: [],
-    condominio_id: condominioId || '',
-    reportado_por: reportadoPor || '',
   }));
 
   useEffect(() => {
@@ -69,15 +67,28 @@ export default function OcorrenciasPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!condominioId || !profile?.id) return;
-    if (form.titulo.length < 5) {
+    if (!form.titulo || form.titulo.length < 5) {
       toast.error('Título muito curto');
       return;
     }
-    if (form.descricao.length < 20) {
+    if (!form.descricao || form.descricao.length < 20) {
       toast.error('Descrição deve ter pelo menos 20 caracteres');
       return;
     }
-    const result = await createOcorrencia(condominioId, profile.id, form);
+
+    // Converter OcorrenciaFormData para CreateOcorrenciaInput
+    const submitData: CreateOcorrenciaInput = {
+      titulo: form.titulo,
+      descricao: form.descricao,
+      categoria: form.categoria || 'outros',
+      prioridade: form.prioridade || 'media',
+      localizacao: form.localizacao,
+      anexos: serializeAnexos(form.anexos),
+      condominio_id: condominioId,
+      reportado_por: profile.id,
+    };
+
+    const result = await createOcorrencia(condominioId, profile.id, submitData);
     if (result) {
       toast.success('Ocorrência registrada!');
       setShowForm(false);
