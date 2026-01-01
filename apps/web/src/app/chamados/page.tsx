@@ -43,14 +43,21 @@ export default function ChamadosPage() {
     categoria: 'duvida',
     prioridade: 'media',
     anexos: [],
+    condominio_id: '',
+    solicitante_id: '',
   });
 
   const condominioId = profile?.condominio_atual?.id;
 
   useEffect(() => {
-    if (condominioId) {
+    if (condominioId && profile?.id) {
+      setForm((prev) => ({
+        ...prev,
+        condominio_id: condominioId,
+        solicitante_id: profile.id,
+      }));
       // Usar solicitante_id em vez de 'meus'
-      fetchChamados(condominioId, profile?.id ? { solicitante_id: profile.id } : undefined);
+      fetchChamados(condominioId, { solicitante_id: profile.id });
     }
   }, [condominioId, fetchChamados, profile?.id]);
 
@@ -67,7 +74,15 @@ export default function ChamadosPage() {
     if (result) {
       toast.success('Chamado criado!');
       setShowForm(false);
-      setForm({ titulo: '', descricao: '', categoria: 'duvida', prioridade: 'media', anexos: [] });
+      setForm({
+        titulo: '',
+        descricao: '',
+        categoria: 'duvida',
+        prioridade: 'media',
+        anexos: [],
+        condominio_id: condominioId,
+        solicitante_id: profile.id,
+      });
     }
   };
 
