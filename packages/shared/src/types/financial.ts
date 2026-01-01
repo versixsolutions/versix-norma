@@ -8,7 +8,7 @@ export type CategoriaTipo = 'receita' | 'despesa';
 export type LancamentoTipo = 'receita' | 'despesa' | 'transferencia';
 export type LancamentoStatus = 'pendente' | 'confirmado' | 'cancelado';
 export type PrestacaoStatus = 'rascunho' | 'em_revisao' | 'aprovado' | 'rejeitado' | 'publicado';
-export type TaxaTipo = 'ordinaria' | 'extraordinaria' | 'fundo_reserva' | 'multa' | 'juros' | 'outros';
+export type TaxaTipo = 'ordinaria' | 'extra' | 'fundo_reserva' | 'multa' | 'juros' | 'outros';
 export type CobrancaStatus = 'pendente' | 'pago' | 'atrasado' | 'negociado' | 'cancelado';
 
 // ============================================

@@ -1,6 +1,6 @@
 // Sprint 9 - Hooks PWA & Mobile
 export { useOfflineSync } from './useOfflineSync';
-export type { EmergencyContact, VulnerableResident, CachedCondominioInfo, CachedUserProfile, PendingAction } from './useOfflineSync';
+export type { CachedCondominioInfo, CachedUserProfile, PendingAction } from './useOfflineSync';
 
 export { usePushNotifications } from './usePushNotifications';
 
