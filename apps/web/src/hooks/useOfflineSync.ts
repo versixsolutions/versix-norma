@@ -104,7 +104,7 @@ export function useOfflineSync() {
 
         if (data) {
           // Buscar info da unidade se houver
-          let unidadeInfo = { identificador: '', bloco: '' };
+          const unidadeInfo = { identificador: '', bloco: '' };
           if (data.unidade_id) {
             const { data: unidade } = await supabase
               .from('unidades_habitacionais')
