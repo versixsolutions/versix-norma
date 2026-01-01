@@ -32,8 +32,10 @@ export type {
   CreateChamadoInput,
   CreateComunicadoInput,
   CreateMensagemInput,
+  CreateOcorrenciaInput,
   UpdateChamadoInput,
   UpdateComunicadoInput,
+  UpdateOcorrenciaInput,
 } from './src/types/operational';
 
 export type { CreateLancamentoInput, UpdateLancamentoInput } from './src/types/financial';
