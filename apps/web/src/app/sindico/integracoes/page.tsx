@@ -3,9 +3,8 @@
 import { IntegracaoCard } from '@/components/integracoes/IntegracaoCard';
 import { WebhookEventosSelector } from '@/components/integracoes/WebhookEventosSelector';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
-import { useExportacoes } from '@/hooks/useExportacoes';
 import { useIntegracoes } from '@/hooks/useIntegracoes';
-import type { CreateExportacaoInput, CreateIntegracaoApiInput, CreateWebhookInput, Exportacao } from '@versix/shared';
+import type { CreateIntegracaoApiInput, CreateWebhookInput } from '@versix/shared/src/validators/integracoes';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -13,14 +12,12 @@ import { toast } from 'sonner';
 export default function IntegracoesPage() {
   const { profile } = useAuthContext();
   const { integracoes, loading, fetchIntegracoes, criarIntegracaoApi, criarWebhook } = useIntegracoes();
-  const { exportacoes, fetchExportacoes, criarExportacao, baixarExportacao } = useExportacoes();
 
-  const [tab, setTab] = useState<'lista' | 'api' | 'webhook' | 'exportar'>('lista');
+  const [tab, setTab] = useState<'lista' | 'api' | 'webhook'>('lista');
   const [novaChave, setNovaChave] = useState<{ api_key: string; secret_key: string } | null>(null);
 
   const [apiForm, setApiForm] = useState<CreateIntegracaoApiInput>({ nome: '', descricao: '', scopes: [] });
   const [webhookForm, setWebhookForm] = useState<CreateWebhookInput>({ nome: '', url_destino: '', eventos: [], headers_custom: {} });
-  const [exportForm, setExportForm] = useState<CreateExportacaoInput>({ tipo: 'financeiro', formato: 'csv' });
   const [submitting, setSubmitting] = useState(false);
 
   const condominioId = profile?.condominio_atual?.id;
@@ -28,9 +25,8 @@ export default function IntegracoesPage() {
   useEffect(() => {
     if (condominioId) {
       fetchIntegracoes(condominioId);
-      fetchExportacoes(condominioId);
     }
-  }, [condominioId, fetchIntegracoes, fetchExportacoes]);
+  }, [condominioId, fetchIntegracoes]);
 
   const handleCriarApi = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,20 +55,6 @@ export default function IntegracoesPage() {
     setSubmitting(false);
   };
 
-  const handleExportar = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!condominioId) return;
-    setSubmitting(true);
-    const id = await criarExportacao(condominioId, exportForm);
-    if (id) toast.success('Exportação iniciada! Aguarde o processamento.');
-    setSubmitting(false);
-  };
-
-const handleBaixar = async (exp: Exportacao) => {
-    const url = await baixarExportacao(exp);
-    if (url) window.open(url, '_blank');
-  };
-
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copiado!');
@@ -93,10 +75,10 @@ const handleBaixar = async (exp: Exportacao) => {
               </div>
             </div>
             <div className="flex gap-2 overflow-x-auto">
-              {(['lista', 'api', 'webhook', 'exportar'] as const).map(t => (
+              {(['lista', 'api', 'webhook'] as const).map(t => (
                 <button key={t} onClick={() => { setTab(t); setNovaChave(null); }}
                   className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap ${tab === t ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600'}`}>
-                  {t === 'lista' ? '📋 Lista' : t === 'api' ? '🔑 Nova API' : t === 'webhook' ? '🔗 Novo Webhook' : '📤 Exportar'}
+                  {t === 'lista' ? '📋 Lista' : t === 'api' ? '🔑 Nova API' : '🔗 Novo Webhook'}
                 </button>
               ))}
             </div>
@@ -198,78 +180,6 @@ const handleBaixar = async (exp: Exportacao) => {
                       <code className="flex-1 text-sm font-mono">{novaChave.secret_key}</code>
                       <button type="button" onClick={() => copyToClipboard(novaChave.secret_key)} className="p-1 hover:bg-gray-100 rounded"><span className="material-symbols-outlined text-sm">content_copy</span></button>
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {tab === 'exportar' && (
-            <div className="max-w-xl space-y-6">
-              <form onSubmit={handleExportar} className="bg-white dark:bg-card-dark rounded-2xl p-6 border border-gray-200 dark:border-gray-700 space-y-4">
-                <h2 className="text-lg font-bold flex items-center gap-2"><span className="material-symbols-outlined">download</span> Exportar Dados</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Tipo</label>
-                    <select value={exportForm.tipo} onChange={e => setExportForm({ ...exportForm, tipo: e.target.value as 'financeiro' | 'moradores' | 'ocorrencias' | 'reservas' | 'completo' })}
-                      className="w-full mt-1 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 border-none">
-                      <option value="financeiro">Financeiro</option>
-                      <option value="moradores">Moradores</option>
-                      <option value="ocorrencias">Ocorrências</option>
-                      <option value="reservas">Reservas</option>
-                      <option value="completo">Backup Completo</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Formato</label>
-                    <select value={exportForm.formato} onChange={e => setExportForm({ ...exportForm, formato: e.target.value as 'csv' | 'xlsx' | 'ofx' | 'pdf' })}
-                      className="w-full mt-1 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 border-none">
-                      <option value="csv">CSV</option>
-                      <option value="xlsx">Excel (XLSX)</option>
-                      <option value="ofx">OFX (Contábil)</option>
-                      <option value="pdf">PDF</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Data Início</label>
-                    <input type="date" value={exportForm.periodo_inicio || ''} onChange={e => setExportForm({ ...exportForm, periodo_inicio: e.target.value })}
-                      className="w-full mt-1 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 border-none" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Data Fim</label>
-                    <input type="date" value={exportForm.periodo_fim || ''} onChange={e => setExportForm({ ...exportForm, periodo_fim: e.target.value })}
-                      className="w-full mt-1 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 border-none" />
-                  </div>
-                </div>
-                <button type="submit" disabled={submitting} className="w-full py-4 bg-primary text-white rounded-xl font-bold disabled:opacity-50">
-                  {submitting ? 'Processando...' : 'Gerar Exportação'}
-                </button>
-              </form>
-
-              {exportacoes.length > 0 && (
-                <div className="bg-white dark:bg-card-dark rounded-2xl border border-gray-200 dark:border-gray-700">
-                  <div className="p-4 border-b border-gray-100 dark:border-gray-700"><h3 className="font-semibold">Exportações Recentes</h3></div>
-                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {exportacoes.slice(0, 5).map(exp => (
-                      <div key={exp.id} className="p-4 flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{exp.tipo} ({exp.formato.toUpperCase()})</p>
-                          <p className="text-sm text-gray-500">{new Date(exp.created_at).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-1 rounded-full text-xs ${exp.status === 'concluido' ? 'bg-green-100 text-green-700' : exp.status === 'erro' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                            {exp.status}
-                          </span>
-                          {exp.status === 'concluido' && exp.arquivo_path && (
-                            <button onClick={() => handleBaixar(exp)} className="p-2 hover:bg-gray-100 rounded-lg">
-                              <span className="material-symbols-outlined">download</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               )}

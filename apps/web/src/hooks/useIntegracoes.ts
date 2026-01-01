@@ -2,7 +2,8 @@
 
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { CreateIntegracaoApiInput, CreateWebhookInput, Integracao, IntegracaoDashboard, IntegracoesFilters, WebhookEvento } from '@versix/shared';
+import type { Integracao } from '@versix/shared';
+import type { CreateIntegracaoApiInput, CreateWebhookInput, IntegracaoDashboard, IntegracoesFilters, WebhookEvento } from '@versix/shared/src/validators/integracoes';
 import { useCallback, useState } from 'react';
 
 export function useIntegracoes() {
@@ -15,7 +16,7 @@ export function useIntegracoes() {
   const fetchIntegracoes = useCallback(async (condominioId: string, filters?: IntegracoesFilters): Promise<IntegracaoDashboard[]> => {
     setLoading(true);
     try {
-      let query = supabase.from('v_integracoes_dashboard').select('*').eq('condominio_id', condominioId);
+      let query = supabase.from('v_integracoes_resumo').select('*').eq('condominio_id', condominioId);
       if (filters?.tipo) query = query.eq('tipo', filters.tipo);
       if (filters?.status) query = query.eq('status', filters.status);
 
@@ -70,7 +71,7 @@ export function useIntegracoes() {
       const { data, error: rpcError } = await supabase.rpc('criar_webhook', {
         p_condominio_id: condominioId,
         p_nome: input.nome,
-        p_url_destino: input.url_destino,
+        p_url: input.url_destino,
         p_eventos: input.eventos,
         p_headers_custom: input.headers_custom || {}
       });

@@ -32,18 +32,24 @@ export function useEmergencias() {
     setLoading(true);
     try {
       const userId = (await supabase.auth.getUser()).data.user?.id;
-      const { data, error: rpcError } = await supabase.rpc('registrar_emergencia', {
-        p_condominio_id: condominioId,
-        p_tipo: input.tipo,
-        p_descricao: input.descricao,
-        p_disparado_por: userId
-      });
-      if (rpcError) throw rpcError;
+      // Direct INSERT since registrar_emergencia RPC doesn't exist
+      const { data, error: insertError } = await supabase
+        .from('emergencias_log')
+        .insert({
+          condominio_id: condominioId,
+          tipo: input.tipo,
+          descricao: input.descricao,
+          disparado_por: userId,
+          status: 'ativo'
+        })
+        .select('id')
+        .single();
+      if (insertError) throw insertError;
 
       // Recarregar lista
       await fetchEmergencias(condominioId);
 
-      return data;
+      return data?.id || null;
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
       setError(errorMessage);

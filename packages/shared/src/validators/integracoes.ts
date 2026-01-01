@@ -95,3 +95,17 @@ export type CreateExportacaoInput = z.infer<typeof createExportacaoSchema>;
 export type GoogleCalendarConfig = z.infer<typeof googleCalendarConfigSchema>;
 export type AsaasConfig = z.infer<typeof asaasConfigSchema>;
 export type S3BackupConfig = z.infer<typeof s3BackupConfigSchema>;
+export type IntegracoesFilters = z.infer<typeof integracoesFiltersSchema>;
+export type ApiLogsFilters = z.infer<typeof apiLogsFiltersSchema>;
+
+// Dashboard types (derived from view)
+export interface IntegracaoDashboard {
+  id: string;
+  nome: string;
+  tipo: 'api' | 'webhook' | 'conector';
+  status: 'ativa' | 'pausada' | 'erro' | 'desativada';
+  total_requests: number;
+  total_erros: number;
+  ultimo_uso: string | null;
+  created_at: string;
+}

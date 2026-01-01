@@ -1,6 +1,6 @@
 'use client';
 
-import type { IntegracaoDashboard } from '@versix/shared';
+import type { IntegracaoDashboard } from '@versix/shared/src/validators/integracoes';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 

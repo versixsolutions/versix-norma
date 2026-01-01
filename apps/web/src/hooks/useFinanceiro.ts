@@ -163,7 +163,7 @@ export function useFinanceiro() {
   // ============================================
   const calcularSaldoPeriodo = useCallback(async (condominioId: string, mesReferencia: string): Promise<SaldoPeriodo | null> => {
     try {
-      const { data, error: rpcError } = await supabase.rpc('calcular_saldo_periodo_otimizado', { p_condominio_id: condominioId, p_mes_referencia: mesReferencia });
+      const { data, error: rpcError } = await supabase.rpc('calcular_saldo_periodo', { p_condominio_id: condominioId, p_mes_referencia: mesReferencia });
       if (rpcError) throw rpcError;
       return data?.[0] || null;
     } catch (err: unknown) {

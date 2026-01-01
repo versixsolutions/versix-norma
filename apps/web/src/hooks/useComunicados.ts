@@ -4,7 +4,6 @@ import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
 import type {
-    Anexo,
     ComunicadoCategoria,
     ComunicadoComJoins,
     ComunicadoFilters,
@@ -40,7 +39,7 @@ function mapCategoriaToDb(categoria?: ComunicadoCategoria): CategoriaDb | undefi
 
 const toComunicado = (data: ComunicadoQueryResult): ComunicadoComJoins => ({
   ...data,
-  anexos: (data.anexos as Anexo[] | null) ?? [],
+  anexos: parseAnexos(data.anexos),
   autor: data.autor ?? undefined,
   lido: data.lido,
   total_leituras: data.total_leituras,
@@ -100,8 +99,8 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
     try {
       const { data, error: fetchError } = await supabase.from('comunicados').select(`*, autor:usuarios!comunicados_autor_id_fkey (nome, avatar_url)`).eq('id', id).single();
       if (fetchError) throw fetchError;
-      // Incrementar visualização
-      await supabase.rpc('increment_comunicado_views', { p_comunicado_id: id });
+      // Incrementar visualização (direct UPDATE since increment_comunicado_views RPC doesn't exist)
+      await supabase.from('comunicados').update({ visualizacoes: (data.visualizacoes || 0) + 1 }).eq('id', id);
       return toComunicado(data as ComunicadoQueryResult);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -112,10 +111,12 @@ export function useComunicados(_options?: { condominioId?: string | null; userId
   const createComunicado = useCallback(async (condominioId: string, autorId: string, input: CreateComunicadoInput): Promise<ComunicadoComJoins | null> => {
     setLoading(true);
     try {
+      const insertData = { ...input, anexos: input.anexos ? JSON.stringify(input.anexos) : null };
       const { data, error: insertError } = await supabase.from('comunicados').insert({
         condominio_id: condominioId,
         autor_id: autorId,
         ...input,
+        anexos: input.anexos ? JSON.stringify(input.anexos) : null,
         categoria: mapCategoriaToDb(input.categoria),
         published_at: input.status === 'publicado' ? new Date().toISOString() : null
       }).select().single();

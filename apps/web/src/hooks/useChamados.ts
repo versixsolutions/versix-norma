@@ -40,7 +40,7 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
 
   const toChamado = (data: ChamadoQueryResult): ChamadoComJoins => ({
     ...data,
-    anexos: (data.anexos as Anexo[] | null) ?? [],
+    anexos: parseAnexos(data.anexos),
     solicitante: data.solicitante ?? undefined,
     atendente: data.atendente ?? undefined,
   });
@@ -133,7 +133,8 @@ export function useChamados(options?: { condominioId?: string | null; userId?: s
   const createChamado = useCallback(async (condominioId: string, solicitanteId: string, input: CreateChamadoInput): Promise<ChamadoComJoins | null> => {
     setLoading(true);
     try {
-      const { data, error: insertError } = await supabase.from('chamados').insert({ condominio_id: condominioId, solicitante_id: solicitanteId, ...input }).select().single();
+      const insertData = { ...input, anexos: input.anexos ? JSON.stringify(input.anexos) : null };
+      const { data, error: insertError } = await supabase.from('chamados').insert({ condominio_id: condominioId, solicitante_id: solicitanteId, ...insertData }).select().single();
       if (insertError) throw insertError;
       const chamado = toChamado(data as ChamadoQueryResult);
       setChamados(prev => [chamado, ...prev]);

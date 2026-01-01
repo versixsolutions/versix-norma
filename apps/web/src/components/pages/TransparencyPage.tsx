@@ -148,7 +148,7 @@ export function TransparencyPage({ onScroll, dashboard: propDashboard }: Transpa
                       {lancamento.descricao}
                     </h4>
                     <p className="text-xs text-text-sub">
-                      {formatDate(lancamento.data_vencimento)}
+                      {formatDate(lancamento.data_lancamento)}
                       {lancamento.unidade_identificador && ` • ${lancamento.unidade_identificador}`}
                     </p>
                   </div>

@@ -134,8 +134,8 @@ export function usePrestacaoContas() {
 
   const getRelatorioMensal = useCallback(async (condominioId: string, mesReferencia: string): Promise<RelatorioMensal | null> => {
     try {
-      // Calcular saldo
-      const { data: saldoData } = await supabase.rpc('calcular_saldo_periodo_otimizado', { p_condominio_id: condominioId, p_mes_referencia: mesReferencia });
+      // Calcular saldo (use calcular_saldo_periodo instead of _otimizado version)
+      const { data: saldoData } = await supabase.rpc('calcular_saldo_periodo', { p_condominio_id: condominioId, p_mes_referencia: mesReferencia });
       const saldo = saldoData?.[0];
 
       const mesFim = new Date(mesReferencia);

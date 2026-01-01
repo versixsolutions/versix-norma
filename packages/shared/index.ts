@@ -1,25 +1,42 @@
 /**
  * VERSIX NORMA - Shared Package
  *
- * Exporta constantes, utilitários e validadores compartilhados
+ * Exporta tipos derivados do schema do banco (fonte da verdade).
  */
 
-// Derived Types (FONTE DA VERDADE - derivados do schema do banco)
+// Derived Types (fonte da verdade - derivados do schema do banco)
 export * from './src/types/derived';
 
 // Database Types (raw exports do Supabase - use apenas se necessário)
 export type { Database, Json } from './database.types';
 
-// Constants
-export * from './constants';
+// Input/Output types for operations (from validators)
+export type {
+    CreateIntegracaoApiInput,
+    CreateWebhookInput,
+    IntegracaoDashboard,
+    IntegracoesFilters,
+    UpdateWebhookConfigInput
+} from './src/validators/integracoes';
 
-// Utilities
-export * from './utils';
+// Operational input types (only those not in derived)
+export type {
+    CreateAssembleiaInput,
+    CreatePautaInput,
+    UpdateAssembleiaInput,
+    UpdatePautaInput
+} from './src/types/assembleias';
 
-// Input types from validators
-export { type AvaliarChamadoInput, type CreateChamadoInput, type CreateComunicadoInput, type CreateFAQInput, type CreateMensagemInput, type CreateOcorrenciaInput, type UpdateChamadoInput, type UpdateComunicadoInput, type UpdateFAQInput, type UpdateOcorrenciaInput } from './src/validators/operational';
+export type {
+    AvaliarChamadoInput,
+    CreateChamadoInput,
+    CreateComunicadoInput,
+    CreateMensagemInput,
+    UpdateChamadoInput,
+    UpdateComunicadoInput
+} from './src/types/operational';
 
-// Legacy integration inputs (ainda não migrados para o schema)
-export { type CreateExportacaoInput, type CreateIntegracaoApiInput, type Exportacao, type IntegracaoDashboard } from './src/types/integracoes';
-
-
+export type {
+    CreateLancamentoInput,
+    UpdateLancamentoInput
+} from './src/types/financial';

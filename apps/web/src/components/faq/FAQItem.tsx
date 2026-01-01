@@ -14,9 +14,6 @@ interface FAQItemProps {
 export function FAQItem({ faq, onVote, editable = false, onEdit, onDelete }: FAQItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [voted, setVoted] = useState<boolean | null>(null);
-  const tags: string[] = Array.isArray((faq as { tags?: unknown }).tags)
-    ? ((faq as { tags?: string[] }).tags as string[])
-    : [];
 
   const handleVote = (useful: boolean) => {
     if (voted !== null) return;
@@ -42,14 +39,6 @@ export function FAQItem({ faq, onVote, editable = false, onEdit, onDelete }: FAQ
       {expanded && (
         <div className="px-5 pb-5 border-t border-gray-100 dark:border-gray-700">
           <div className="pt-4 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{faq.resposta}</div>
-
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {tags.map((tag, i) => (
-                <span key={i} className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">#{tag}</span>
-              ))}
-            </div>
-          )}
 
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
             {!editable && onVote && (

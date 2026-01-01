@@ -1,8 +1,7 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Lancamento, StatusLancamento, TipoLancamento } from '@/types/database';
-import type { LancamentoFinanceiro } from '@versix/shared/types/financial';
+import type { ContaBancaria, LancamentoFinanceiro, LancamentoStatus, LancamentoTipo } from '@versix/shared';
 import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
@@ -16,17 +15,19 @@ export interface DashboardFinanceiro {
   fundo_reserva: number;
 }
 
-export interface ContaBancaria {
+export interface ContaBancariaResumo {
   id: string;
   nome: string;
   banco: string;
   saldo_atual: number;
-  is_principal: boolean;
+  principal: boolean;
 }
 
-export interface LancamentoComDetalhes extends Lancamento {
+export interface LancamentoComDetalhes extends LancamentoFinanceiro {
   categoria_nome?: string;
+  conta_nome?: string;
   unidade_identificador?: string;
+  data_exibicao?: string;
 }
 
 interface UseFinancialOptions {
@@ -37,7 +38,7 @@ interface UseFinancialOptions {
 interface UseFinancialReturn {
   // Data
   dashboard: DashboardFinanceiro | null;
-  contas: ContaBancaria[];
+  contas: ContaBancariaResumo[];
   lancamentos: LancamentoComDetalhes[];
   inadimplentes: {
     unidade_id: string;
@@ -53,19 +54,20 @@ interface UseFinancialReturn {
   // Methods
   refresh: () => Promise<void>;
   createLancamento: (data: CreateLancamentoInput) => Promise<{ success: boolean; error?: Error }>;
-  updateLancamento: (id: string, data: Partial<Lancamento>) => Promise<{ success: boolean; error?: Error }>;
+  updateLancamento: (id: string, data: Partial<LancamentoFinanceiro>) => Promise<{ success: boolean; error?: Error }>;
   registrarPagamento: (lancamentoId: string, dataPagamento?: Date) => Promise<{ success: boolean; error?: Error }>;
 }
 
 interface CreateLancamentoInput {
-  tipo: TipoLancamento;
+  tipo: LancamentoTipo;
   descricao: string;
   valor: number;
   data_competencia: string;
-  data_vencimento: string;
-  categoria_id?: string;
-  unidade_id?: string;
-  conta_id: string;
+  data_lancamento?: string;
+  data_pagamento?: string;
+  categoria_id?: string | null;
+  conta_bancaria_id?: string | null;
+  status?: LancamentoStatus;
 }
 
 // ============================================
@@ -75,7 +77,7 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
   const supabase = getSupabaseClient();
 
   const [dashboard, setDashboard] = useState<DashboardFinanceiro | null>(null);
-  const [contas, setContas] = useState<ContaBancaria[]>([]);
+  const [contas, setContas] = useState<ContaBancariaResumo[]>([]);
   const [lancamentos, setLancamentos] = useState<LancamentoComDetalhes[]>([]);
   const [inadimplentes, setInadimplentes] = useState<UseFinancialReturn['inadimplentes']>([]);
   const [loading, setLoading] = useState(true);
@@ -92,82 +94,43 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
     if (!condominioId) return;
 
     try {
-      // Buscar view de dashboard ou calcular
-      const { data, error } = await supabase
-        .from('vw_dashboard_financeiro')
-        .select('*')
+      const { data: contasData } = await supabase
+        .from('contas_bancarias')
+        .select('saldo_atual')
         .eq('condominio_id', condominioId)
-        .single();
+        .is('deleted_at', null);
 
-      if (error) {
-        // Fallback: calcular manualmente
-        const { data: contasData } = await supabase
-          .from('contas_bancarias')
-          .select('saldo_atual')
-          .eq('condominio_id', condominioId)
-          .eq('status', 'ativo');
+      const saldoTotal = contasData?.reduce((sum, c) => sum + (c.saldo_atual || 0), 0) || 0;
 
-        const saldoTotal = contasData?.reduce((sum, c) => sum + (c.saldo_atual || 0), 0) || 0;
+      const { data: receitas } = await supabase
+        .from('lancamentos_financeiros')
+        .select('valor')
+        .eq('condominio_id', condominioId)
+        .eq('tipo', 'receita')
+        .eq('status', 'confirmado')
+        .gte('data_competencia', inicioMes)
+        .lte('data_competencia', fimMes);
 
-        // Receitas do mês
-        const { data: receitas } = await supabase
-          .from('lancamentos')
-          .select('valor')
-          .eq('condominio_id', condominioId)
-          .eq('tipo', 'receita')
-          .eq('status', 'pago')
-          .gte('data_competencia', inicioMes)
-          .lte('data_competencia', fimMes);
+      const receitasMes = receitas?.reduce((sum, l) => sum + (l.valor || 0), 0) || 0;
 
-        const receitasMes = receitas?.reduce((sum, l) => sum + (l.valor || 0), 0) || 0;
+      const { data: despesas } = await supabase
+        .from('lancamentos_financeiros')
+        .select('valor')
+        .eq('condominio_id', condominioId)
+        .eq('tipo', 'despesa')
+        .eq('status', 'confirmado')
+        .gte('data_competencia', inicioMes)
+        .lte('data_competencia', fimMes);
 
-        // Despesas do mês
-        const { data: despesas } = await supabase
-          .from('lancamentos')
-          .select('valor')
-          .eq('condominio_id', condominioId)
-          .eq('tipo', 'despesa')
-          .eq('status', 'pago')
-          .gte('data_competencia', inicioMes)
-          .lte('data_competencia', fimMes);
+      const despesasMes = despesas?.reduce((sum, l) => sum + Math.abs(l.valor || 0), 0) || 0;
 
-        const despesasMes = despesas?.reduce((sum, l) => sum + Math.abs(l.valor || 0), 0) || 0;
-
-        // Calcular inadimplência real
-        const { data: boletosVencidos } = await supabase
-          .from('boletos')
-          .select('valor')
-          .eq('condominio_id', condominioId)
-          .eq('status', 'pendente')
-          .lt('vencimento', new Date().toISOString());
-
-        const { data: boletosTotal } = await supabase
-          .from('boletos')
-          .select('valor')
-          .eq('condominio_id', condominioId);
-
-        const valorVencido = boletosVencidos?.reduce((sum, b) => sum + (b.valor || 0), 0) || 0;
-        const valorTotalBoletos = boletosTotal?.reduce((sum, b) => sum + (b.valor || 0), 0) || 1;
-        const inadimplenciaPercent = valorTotalBoletos > 0 ? Math.round((valorVencido / valorTotalBoletos) * 100) : 0;
-
-        // Buscar saldo do fundo de reserva
-        const { data: fundoReserva } = await supabase
-          .from('contas_bancarias')
-          .select('saldo')
-          .eq('condominio_id', condominioId)
-          .eq('tipo', 'fundo_reserva')
-          .single();
-
-        setDashboard({
-          saldo_total: saldoTotal,
-          receitas_mes: receitasMes,
-          despesas_mes: despesasMes,
-          inadimplencia_percent: inadimplenciaPercent,
-          fundo_reserva: fundoReserva?.saldo || 0,
-        });
-      } else {
-        setDashboard(data);
-      }
+      setDashboard({
+        saldo_total: saldoTotal,
+        receitas_mes: receitasMes,
+        despesas_mes: despesasMes,
+        inadimplencia_percent: 0,
+        fundo_reserva: 0,
+      });
     } catch (err) {
       console.error('Erro ao buscar dashboard:', err);
     }
@@ -178,13 +141,21 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
 
     const { data, error } = await supabase
       .from('contas_bancarias')
-      .select('id, nome, banco, saldo_atual, is_principal')
+      .select('id, nome_exibicao, banco_nome, saldo_atual, principal')
       .eq('condominio_id', condominioId)
-      .eq('status', 'ativo')
-      .order('is_principal', { ascending: false });
+      .is('deleted_at', null)
+      .order('principal', { ascending: false });
 
     if (!error && data) {
-      setContas(data);
+      setContas(
+        data.map((c: ContaBancaria) => ({
+          id: c.id,
+          nome: c.nome_exibicao,
+          banco: c.banco_nome,
+          saldo_atual: c.saldo_atual,
+          principal: c.principal,
+        }))
+      );
     }
   }, [condominioId, supabase]);
 
@@ -192,63 +163,35 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
     if (!condominioId) return;
 
     const { data, error } = await supabase
-      .from('lancamentos')
+      .from('lancamentos_financeiros')
       .select(`
         *,
-        categorias:categoria_id (nome),
-        unidades:unidade_id (identificador)
+        categoria:categorias_financeiras!lancamentos_financeiros_categoria_id_fkey (nome, codigo),
+        conta:contas_bancarias!lancamentos_financeiros_conta_bancaria_id_fkey (nome_exibicao)
       `)
       .eq('condominio_id', condominioId)
       .gte('data_competencia', inicioMes)
       .lte('data_competencia', fimMes)
-      .order('data_vencimento', { ascending: false })
+      .order('data_competencia', { ascending: false })
       .limit(50);
 
     if (!error && data) {
-      setLancamentos(data.map((l: LancamentoFinanceiro) => ({
-        ...l,
-        categoria_nome: l.categorias?.nome,
-        unidade_identificador: l.unidades?.identificador,
-      })));
+      setLancamentos(
+        (data as (LancamentoFinanceiro & { categoria?: { nome?: string }; conta?: { nome_exibicao?: string } })[]).map(l => ({
+          ...l,
+          categoria_nome: l.categoria?.nome,
+          conta_nome: l.conta?.nome_exibicao,
+          unidade_identificador: undefined,
+          data_exibicao: l.data_competencia || l.data_lancamento,
+        }))
+      );
     }
   }, [condominioId, supabase, inicioMes, fimMes]);
 
   const fetchInadimplentes = useCallback(async () => {
-    if (!condominioId) return;
-
-    const { data, error } = await supabase
-      .from('lancamentos')
-      .select(`
-        unidade_id,
-        valor,
-        data_vencimento,
-        unidades:unidade_id (identificador)
-      `)
-      .eq('condominio_id', condominioId)
-      .eq('tipo', 'receita')
-      .eq('status', 'atrasado')
-      .not('unidade_id', 'is', null);
-
-    if (!error && data) {
-      // Agrupar por unidade
-      const grouped = data.reduce((acc: Record<string, { unidade_id: string; identificador: string; valor_devido: number; meses_atraso: number }>, l: LancamentoFinanceiro) => {
-        const key = l.unidade_id!;
-        if (!acc[key]) {
-          acc[key] = {
-            unidade_id: key,
-            identificador: l.unidades?.identificador || '',
-            valor_devido: 0,
-            meses_atraso: 0,
-          };
-        }
-        acc[key].valor_devido += l.valor;
-        acc[key].meses_atraso += 1;
-        return acc;
-      }, {});
-
-      setInadimplentes(Object.values(grouped));
-    }
-  }, [condominioId, supabase]);
+    // Sem base de boletos/lancamentos atrasados no schema atual
+    setInadimplentes([]);
+  }, []);
 
   // ============================================
   // REFRESH ALL
@@ -305,13 +248,15 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
     if (!condominioId) return { success: false, error: new Error('Condomínio não selecionado') };
 
     try {
+      const userId = (await supabase.auth.getUser()).data.user?.id || null;
       const { error } = await supabase
-        .from('lancamentos')
+        .from('lancamentos_financeiros')
         .insert({
           condominio_id: condominioId,
           ...data,
-          status: 'pendente',
-          created_by: (await supabase.auth.getUser()).data.user?.id || '',
+          data_lancamento: data.data_lancamento || new Date().toISOString(),
+          status: data.status || 'pendente',
+          criado_por: userId,
         });
 
       if (error) throw error;
@@ -323,10 +268,10 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
     }
   };
 
-  const updateLancamento = async (id: string, data: Partial<Lancamento>) => {
+  const updateLancamento = async (id: string, data: Partial<LancamentoFinanceiro>) => {
     try {
       const { error } = await supabase
-        .from('lancamentos')
+        .from('lancamentos_financeiros')
         .update(data)
         .eq('id', id);
 
@@ -342,9 +287,9 @@ export function useFinancial({ condominioId, mesReferencia }: UseFinancialOption
   const registrarPagamento = async (lancamentoId: string, dataPagamento?: Date) => {
     try {
       const { error } = await supabase
-        .from('lancamentos')
+        .from('lancamentos_financeiros')
         .update({
-          status: 'pago' as StatusLancamento,
+          status: 'confirmado' as LancamentoStatus,
           data_pagamento: (dataPagamento || new Date()).toISOString(),
         })
         .eq('id', lancamentoId);

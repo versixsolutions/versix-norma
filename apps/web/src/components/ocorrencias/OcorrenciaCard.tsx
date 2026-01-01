@@ -64,10 +64,10 @@ export function OcorrenciaCard({ ocorrencia, onClick, showReporter = false }: Oc
                 {ocorrencia.local_descricao}
               </span>
             )}
-            {showReporter && !ocorrencia.anonimo && ocorrencia.reportado_por_usuario && (
+            {showReporter && !ocorrencia.anonimo && ocorrencia.reportado_por_info && (
               <span className="flex items-center gap-1">
                 <span className="material-symbols-outlined text-sm">person</span>
-                {ocorrencia.reportado_por_usuario.nome}
+                {ocorrencia.reportado_por_info.nome}
               </span>
             )}
             {ocorrencia.anonimo && (
