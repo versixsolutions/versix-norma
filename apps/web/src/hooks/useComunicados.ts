@@ -111,8 +111,8 @@ export function useComunicados(_options?: {
         const { data, error: fetchError, count } = await query;
         if (fetchError) throw fetchError;
 
-        const transformedData = (data || []).map((item) =>
-          toComunicado(item as ComunicadoQueryResult)
+        const transformedData = (data || []).map((item: ComunicadoQueryResult) =>
+          toComunicado(item)
         );
 
         const total = count || 0;
