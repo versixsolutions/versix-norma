@@ -89,6 +89,7 @@ export default function ChamadosPage() {
       chamado_id: selectedId,
       mensagem: newMessage,
       anexos: [],
+      autor_id: profile.id,
     });
     if (result) {
       setNewMessage('');
