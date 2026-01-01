@@ -59,7 +59,7 @@ export function useAssembleias() {
 
         const { data, error: fetchError } = await query;
         if (fetchError) throw fetchError;
-        const transformedData = (data || []).map((item) =>
+        const transformedData = (data || []).map((item: any) =>
           toAssembleia(item as AssembleiaQueryResult)
         );
         setAssembleias(transformedData);

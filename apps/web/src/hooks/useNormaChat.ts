@@ -66,7 +66,7 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
       if (data && data.length > 0) {
         const historyMessages: Message[] = [];
 
-        data.reverse().forEach((log, index) => {
+        data.reverse().forEach((log: any, index: number) => {
           // Add user message
           historyMessages.push({
             id: `hist-user-${index}`,
@@ -108,188 +108,192 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
   // ============================================
   // SEND MESSAGE WITH STREAMING
   // ============================================
-  const sendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || !condominioId || !userId) return;
+  const sendMessage = useCallback(
+    async (text: string) => {
+      if (!text.trim() || !condominioId || !userId) return;
 
-    // Cancel any ongoing request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      text: text.trim(),
-      sender: 'user',
-      timestamp: new Date(),
-      status: 'sent',
-    };
-
-    // Add streaming bot message placeholder
-    const botMessageId = `bot-${Date.now()}`;
-    const botMessage: Message = {
-      id: botMessageId,
-      text: '',
-      sender: 'bot',
-      timestamp: new Date(),
-      status: 'streaming',
-    };
-
-    setMessages((prev) => [...prev, userMessage, botMessage]);
-    setIsTyping(true);
-    setError(null);
-
-    try {
-      // Prepare conversation history for context
-      const conversationHistory = messages.slice(-10).map((m) => ({
-        role: m.sender === 'user' ? 'user' : 'assistant',
-        content: m.text,
-        timestamp: m.timestamp.toISOString(),
-      }));
-
-      // Get Supabase session for auth
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        throw new Error('Usuário não autenticado');
+      // Cancel any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
 
-      // Call Edge Function with streaming
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ask-norma`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: text.trim(),
-          condominioId,
-          userId,
-          conversationHistory,
-        }),
-        signal: abortController.signal,
-      });
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const userMessage: Message = {
+        id: `user-${Date.now()}`,
+        text: text.trim(),
+        sender: 'user',
+        timestamp: new Date(),
+        status: 'sent',
+      };
 
-      if (!response.body) {
-        throw new Error('Response body is null');
-      }
+      // Add streaming bot message placeholder
+      const botMessageId = `bot-${Date.now()}`;
+      const botMessage: Message = {
+        id: botMessageId,
+        text: '',
+        sender: 'bot',
+        timestamp: new Date(),
+        status: 'streaming',
+      };
 
-      // Handle SSE streaming
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullResponse = '';
-      const sources: Array<{ type: string; name: string; content: string }> = [];
-      let suggestions: string[] = [];
+      setMessages((prev) => [...prev, userMessage, botMessage]);
+      setIsTyping(true);
+      setError(null);
 
       try {
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        // Prepare conversation history for context
+        const conversationHistory = messages.slice(-10).map((m) => ({
+          role: m.sender === 'user' ? 'user' : 'assistant',
+          content: m.text,
+          timestamp: m.timestamp.toISOString(),
+        }));
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
+        // Get Supabase session for auth
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('Usuário não autenticado');
+        }
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') {
-                // Stream finished, generate suggestions and log
-                suggestions = generateSuggestions(fullResponse, sources);
+        // Call Edge Function with streaming
+        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ask-norma`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: text.trim(),
+            condominioId,
+            userId,
+            conversationHistory,
+          }),
+          signal: abortController.signal,
+        });
 
-                // Log the interaction
-                await supabase.from('norma_chat_logs').insert({
-                  condominio_id: condominioId,
-                  user_id: userId,
-                  message: text.trim(),
-                  response: fullResponse,
-                  sources,
-                  created_at: new Date().toISOString(),
-                });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-                break;
-              }
+        if (!response.body) {
+          throw new Error('Response body is null');
+        }
 
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.content) {
-                  fullResponse += parsed.content;
+        // Handle SSE streaming
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        const sources: Array<{ type: string; name: string; content: string }> = [];
+        let suggestions: string[] = [];
 
-                  // Update message with streaming content
-                  setMessages((prev) =>
-                    prev.map((msg) =>
-                      msg.id === botMessageId
-                        ? {
-                            ...msg,
-                            text: fullResponse,
-                            status: 'streaming' as const,
-                          }
-                        : msg
-                    )
-                  );
+        try {
+          // eslint-disable-next-line no-constant-condition
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+                if (data === '[DONE]') {
+                  // Stream finished, generate suggestions and log
+                  suggestions = generateSuggestions(fullResponse, sources);
+
+                  // Log the interaction
+                  await supabase.from('norma_chat_logs').insert({
+                    condominio_id: condominioId,
+                    user_id: userId,
+                    message: text.trim(),
+                    response: fullResponse,
+                    sources,
+                    created_at: new Date().toISOString(),
+                  });
+
+                  break;
                 }
-              } catch (e) {
-                // Ignore parsing errors for incomplete chunks
+
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.content) {
+                    fullResponse += parsed.content;
+
+                    // Update message with streaming content
+                    setMessages((prev) =>
+                      prev.map((msg) =>
+                        msg.id === botMessageId
+                          ? {
+                              ...msg,
+                              text: fullResponse,
+                              status: 'streaming' as const,
+                            }
+                          : msg
+                      )
+                    );
+                  }
+                } catch (e) {
+                  // Ignore parsing errors for incomplete chunks
+                }
               }
             }
           }
+        } finally {
+          reader.releaseLock();
         }
+
+        // Check if request was aborted
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        // Update bot message with final status
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === botMessageId
+              ? {
+                  ...msg,
+                  text: fullResponse,
+                  sources,
+                  suggestions,
+                  status: 'sent' as const,
+                }
+              : msg
+          )
+        );
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          // Request was cancelled, remove the streaming message
+          setMessages((prev) => prev.filter((msg) => msg.id !== botMessageId));
+          return;
+        }
+
+        console.error('Erro ao enviar mensagem:', err);
+        setError(err instanceof Error ? err : new Error('Erro desconhecido'));
+
+        // Update message with error status
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === botMessageId
+              ? {
+                  ...msg,
+                  text: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.',
+                  status: 'error' as const,
+                }
+              : msg
+          )
+        );
       } finally {
-        reader.releaseLock();
+        setIsTyping(false);
+        abortControllerRef.current = null;
       }
-
-      // Check if request was aborted
-      if (abortController.signal.aborted) {
-        return;
-      }
-
-      // Update bot message with final status
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === botMessageId
-            ? {
-                ...msg,
-                text: fullResponse,
-                sources,
-                suggestions,
-                status: 'sent' as const,
-              }
-            : msg
-        )
-      );
-
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        // Request was cancelled, remove the streaming message
-        setMessages((prev) => prev.filter((msg) => msg.id !== botMessageId));
-        return;
-      }
-
-      console.error('Erro ao enviar mensagem:', err);
-      setError(err instanceof Error ? err : new Error('Erro desconhecido'));
-
-      // Update message with error status
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === botMessageId
-            ? {
-                ...msg,
-                text: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.',
-                status: 'error' as const,
-              }
-            : msg
-        )
-      );
-    } finally {
-      setIsTyping(false);
-      abortControllerRef.current = null;
-    }
-  }, [condominioId, userId, messages, supabase]);
+    },
+    [condominioId, userId, messages, supabase]
+  );
 
   // ============================================
   // CLEAR MESSAGES
@@ -314,7 +318,10 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
-function generateSuggestions(response: string, sources: Array<{ type: string; name: string; content: string }>): string[] {
+function generateSuggestions(
+  response: string,
+  sources: Array<{ type: string; name: string; content: string }>
+): string[] {
   const suggestions: string[] = [];
 
   // Analyze response content to generate relevant suggestions
@@ -333,11 +340,19 @@ function generateSuggestions(response: string, sources: Array<{ type: string; na
     suggestions.push('Falar com síndico', 'Registrar ocorrência', 'Solicitar manutenção');
   }
 
-  if (lowerResponse.includes('taxa') || lowerResponse.includes('pagamento') || lowerResponse.includes('financeiro')) {
+  if (
+    lowerResponse.includes('taxa') ||
+    lowerResponse.includes('pagamento') ||
+    lowerResponse.includes('financeiro')
+  ) {
     suggestions.push('Verificar taxas pendentes', 'Consultar extrato', 'Formas de pagamento');
   }
 
-  if (lowerResponse.includes('área comum') || lowerResponse.includes('festa') || lowerResponse.includes('reserva')) {
+  if (
+    lowerResponse.includes('área comum') ||
+    lowerResponse.includes('festa') ||
+    lowerResponse.includes('reserva')
+  ) {
     suggestions.push('Reservar salão', 'Verificar disponibilidade', 'Consultar regras');
   }
 
@@ -383,12 +398,20 @@ export function useNormaChatMock(): UseNormaChatReturn {
       },
       {
         text: 'De acordo com o Regimento Interno do seu condomínio, o horário de silêncio é das 22h às 8h. Esta norma visa garantir o bem-estar de todos os moradores.',
-        sources: [{ type: 'regimento', name: 'Regimento Interno', content: 'Art. 15 - Horário de silêncio' }],
+        sources: [
+          {
+            type: 'regimento',
+            name: 'Regimento Interno',
+            content: 'Art. 15 - Horário de silêncio',
+          },
+        ],
         suggestions: ['Registrar ocorrência', 'Falar com vizinho', 'Verificar regras'],
       },
       {
         text: 'Para reservar áreas comuns como salão de festas, é necessário fazer a solicitação com antecedência mínima de 15 dias através do aplicativo.',
-        sources: [{ type: 'regimento', name: 'Regimento Interno', content: 'Cap. VII - Áreas Comuns' }],
+        sources: [
+          { type: 'regimento', name: 'Regimento Interno', content: 'Cap. VII - Áreas Comuns' },
+        ],
         suggestions: ['Fazer reserva', 'Verificar disponibilidade', 'Consultar taxas'],
       },
     ];
