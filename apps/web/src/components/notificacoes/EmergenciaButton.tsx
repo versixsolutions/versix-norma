@@ -1,6 +1,6 @@
 'use client';
 
-import type { TipoEmergencia } from '@versix/shared/types/comunicacao';
+import type { TipoEmergencia } from '@versix/shared';
 import { useState } from 'react';
 
 interface EmergenciaButtonProps {
@@ -12,7 +12,7 @@ const TIPOS_EMERGENCIA: { tipo: TipoEmergencia; label: string; icon: string; col
   { tipo: 'gas', label: 'Vazamento de Gás', icon: 'propane', color: 'bg-amber-600' },
   { tipo: 'seguranca', label: 'Segurança', icon: 'shield', color: 'bg-blue-600' },
   { tipo: 'medica', label: 'Emergência Médica', icon: 'medical_services', color: 'bg-green-600' },
-  { tipo: 'outro', label: 'Outra Emergência', icon: 'warning', color: 'bg-gray-600' }
+  { tipo: 'outro', label: 'Outra Emergência', icon: 'warning', color: 'bg-gray-600' },
 ];
 
 export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {
@@ -53,14 +53,14 @@ export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {
     }, 300);
   };
 
-  const tipoConfig = TIPOS_EMERGENCIA.find(t => t.tipo === tipoSelecionado);
+  const tipoConfig = TIPOS_EMERGENCIA.find((t) => t.tipo === tipoSelecionado);
 
   return (
     <>
       {/* Botão SOS */}
       <button
         onClick={() => setShowModal(true)}
-        className="fixed bottom-20 right-4 w-16 h-16 bg-red-600 text-white rounded-full shadow-2xl flex items-center justify-center z-40 animate-pulse hover:animate-none hover:bg-red-700 transition-colors"
+        className="fixed bottom-20 right-4 z-40 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-red-600 text-white shadow-2xl transition-colors hover:animate-none hover:bg-red-700"
       >
         <span className="material-symbols-outlined text-3xl">sos</span>
       </button>
@@ -68,14 +68,14 @@ export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center">
-          <div className="bg-white dark:bg-card-dark w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[80vh] overflow-hidden">
+          <div className="max-h-[80vh] w-full max-w-md overflow-hidden rounded-t-3xl bg-white dark:bg-card-dark sm:rounded-2xl">
             {/* Header */}
-            <div className="bg-red-600 text-white p-4 flex items-center justify-between">
+            <div className="flex items-center justify-between bg-red-600 p-4 text-white">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined">emergency</span>
-                <h2 className="font-bold text-lg">EMERGÊNCIA</h2>
+                <h2 className="text-lg font-bold">EMERGÊNCIA</h2>
               </div>
-              <button onClick={handleClose} className="p-1 hover:bg-red-700 rounded-full">
+              <button onClick={handleClose} className="rounded-full p-1 hover:bg-red-700">
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
@@ -83,16 +83,18 @@ export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {
             <div className="p-4">
               {step === 'tipo' && (
                 <>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">Selecione o tipo de emergência:</p>
+                  <p className="mb-4 text-gray-600 dark:text-gray-400">
+                    Selecione o tipo de emergência:
+                  </p>
                   <div className="grid grid-cols-2 gap-3">
-                    {TIPOS_EMERGENCIA.map(t => (
+                    {TIPOS_EMERGENCIA.map((t) => (
                       <button
                         key={t.tipo}
                         onClick={() => handleSelectTipo(t.tipo)}
-                        className={`p-4 rounded-xl ${t.color} text-white flex flex-col items-center gap-2 hover:opacity-90 transition-opacity`}
+                        className={`rounded-xl p-4 ${t.color} flex flex-col items-center gap-2 text-white transition-opacity hover:opacity-90`}
                       >
                         <span className="material-symbols-outlined text-3xl">{t.icon}</span>
-                        <span className="font-medium text-sm">{t.label}</span>
+                        <span className="text-sm font-medium">{t.label}</span>
                       </button>
                     ))}
                   </div>
@@ -101,12 +103,17 @@ export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {
 
               {step === 'descricao' && (
                 <>
-                  <button onClick={() => setStep('tipo')} className="flex items-center gap-1 text-gray-500 mb-4">
+                  <button
+                    onClick={() => setStep('tipo')}
+                    className="mb-4 flex items-center gap-1 text-gray-500"
+                  >
                     <span className="material-symbols-outlined text-sm">arrow_back</span>
                     Voltar
                   </button>
 
-                  <div className={`flex items-center gap-2 p-3 rounded-xl ${tipoConfig?.color} text-white mb-4`}>
+                  <div
+                    className={`flex items-center gap-2 rounded-xl p-3 ${tipoConfig?.color} mb-4 text-white`}
+                  >
                     <span className="material-symbols-outlined">{tipoConfig?.icon}</span>
                     <span className="font-medium">{tipoConfig?.label}</span>
                   </div>
@@ -116,17 +123,17 @@ export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {
                   </label>
                   <textarea
                     value={descricao}
-                    onChange={e => setDescricao(e.target.value)}
-                    className="w-full mt-1 px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 border-none resize-none"
+                    onChange={(e) => setDescricao(e.target.value)}
+                    className="mt-1 w-full resize-none rounded-xl border-none bg-gray-100 px-4 py-3 dark:bg-gray-800"
                     rows={4}
                     placeholder="Ex: Fogo no apartamento 302, muito fumaça..."
                   />
-                  <p className="text-xs text-gray-400 mt-1">{descricao.length}/10 mínimo</p>
+                  <p className="mt-1 text-xs text-gray-400">{descricao.length}/10 mínimo</p>
 
                   <button
                     onClick={handleConfirmar}
                     disabled={descricao.length < 10}
-                    className="w-full mt-4 py-4 bg-red-600 text-white rounded-xl font-bold disabled:opacity-50"
+                    className="mt-4 w-full rounded-xl bg-red-600 py-4 font-bold text-white disabled:opacity-50"
                   >
                     Continuar
                   </button>
@@ -135,33 +142,47 @@ export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {
 
               {step === 'confirmar' && (
                 <>
-                  <div className="text-center py-4">
-                    <span className="material-symbols-outlined text-6xl text-red-500 animate-pulse">warning</span>
-                    <h3 className="text-xl font-bold mt-4 text-gray-800 dark:text-white">Confirmar Disparo?</h3>
-                    <p className="text-gray-500 mt-2">
+                  <div className="py-4 text-center">
+                    <span className="material-symbols-outlined animate-pulse text-6xl text-red-500">
+                      warning
+                    </span>
+                    <h3 className="mt-4 text-xl font-bold text-gray-800 dark:text-white">
+                      Confirmar Disparo?
+                    </h3>
+                    <p className="mt-2 text-gray-500">
                       Isso irá notificar <strong>TODOS</strong> os moradores por:
                     </p>
-                    <div className="flex justify-center gap-4 mt-4 text-sm">
-                      <span className="flex items-center gap-1"><span className="material-symbols-outlined text-green-500">call</span>Ligação</span>
-                      <span className="flex items-center gap-1"><span className="material-symbols-outlined text-blue-500">sms</span>SMS</span>
-                      <span className="flex items-center gap-1"><span className="material-symbols-outlined text-purple-500">notifications</span>Push</span>
+                    <div className="mt-4 flex justify-center gap-4 text-sm">
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-green-500">call</span>
+                        Ligação
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-blue-500">sms</span>SMS
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-purple-500">
+                          notifications
+                        </span>
+                        Push
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex gap-3 mt-6">
+                  <div className="mt-6 flex gap-3">
                     <button
                       onClick={() => setStep('descricao')}
-                      className="flex-1 py-4 bg-gray-200 dark:bg-gray-700 rounded-xl font-medium"
+                      className="flex-1 rounded-xl bg-gray-200 py-4 font-medium dark:bg-gray-700"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={handleDisparar}
                       disabled={disparando}
-                      className="flex-1 py-4 bg-red-600 text-white rounded-xl font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-4 font-bold text-white disabled:opacity-50"
                     >
                       {disparando ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                       ) : (
                         <span className="material-symbols-outlined">send</span>
                       )}

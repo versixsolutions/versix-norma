@@ -5,7 +5,7 @@ import type {
   CreateNotificacaoInput,
   NotificacaoDashboard,
   NotificacaoUsuario,
-} from '@versix/shared/types/comunicacao';
+} from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 type SupabaseError = {

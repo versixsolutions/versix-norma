@@ -27,7 +27,7 @@ packages/shared/
 
 ### 1. Importe do `@versix/shared`
 
-```typescript
+````typescript
 // ✅ CORRETO
 import {
   ChamadoComJoins,
@@ -36,9 +36,9 @@ import {
   PaginatedResponse
 } from '@versix/shared';
 
-// ❌ ERRADO - não use imports diretos dos arquivos legados
-import { Chamado } from '@versix/shared/types/operational';
-```
+// ❌ ERRADO - não use imports diretos dos arquivos legados (foram deletados)
+import { Chamado } from '@versix/shared'; // ✅ CORRETO
+
 
 ### 2. Use Tipos de Row para dados do banco
 
@@ -51,7 +51,7 @@ const chamado: Chamado = await supabase
   .select('*')
   .eq('id', id)
   .single();
-```
+````
 
 ### 3. Use Tipos Com Joins para queries com relacionamentos
 
@@ -60,11 +60,13 @@ import { ChamadoComJoins } from '@versix/shared';
 
 const chamado: ChamadoComJoins = await supabase
   .from('chamados')
-  .select(`
+  .select(
+    `
     *,
     solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email),
     atendente:usuarios!chamados_atendente_id_fkey (nome)
-  `)
+  `
+  )
   .eq('id', id)
   .single();
 
@@ -169,12 +171,7 @@ Ao criar um hook que consome dados do Supabase:
 **Template:**
 
 ```typescript
-import {
-  MinhaTabela,
-  MinhaEnum,
-  Anexo,
-  Database
-} from '@versix/shared';
+import { MinhaTabela, MinhaEnum, Anexo, Database } from '@versix/shared';
 
 type MinhaRow = Database['public']['Tables']['minha_tabela']['Row'];
 
@@ -209,14 +206,14 @@ export function useMinha() {
 
 **Solução:** Use o tipo derivado de `database.types.ts`
 
-```typescript
+````typescript
 // ❌ Tipo manual desatualizado
 import { Chamado } from '@versix/shared/types/operational';
 
-// ✅ Tipo correto do banco
-import { Chamado } from '@versix/shared';
-```
+// ✅ Tipo correto do banco (arquivo deletado)
+import { Chamado } from '@versix/shared/types/operational';
 
+// ✅ Tipo correto - agora em @versix/shared
 ### Erro: "More than one relationship was found"
 
 **Causa:** Query sem hint de FK
@@ -229,7 +226,7 @@ import { Chamado } from '@versix/shared';
 
 // ✅ Específico
 .select('*, usuario:usuarios!tabela_usuario_id_fkey (nome)')
-```
+````
 
 ### Erro: "Type 'null' is not assignable to..."
 
@@ -254,14 +251,17 @@ const avatar = usuario.avatar_url ?? undefined;
 
 ```typescript
 // ❌ Usa Json diretamente
-if (chamado.anexos.length > 0) { }
+if (chamado.anexos.length > 0) {
+}
 
 // ✅ Verifica tipo
 const anexos = (chamado.anexos as Anexo[] | null) ?? [];
-if (anexos.length > 0) { }
+if (anexos.length > 0) {
+}
 
 // ✅ Ainda melhor: Array.isArray
-if (Array.isArray(chamado.anexos) && chamado.anexos.length > 0) { }
+if (Array.isArray(chamado.anexos) && chamado.anexos.length > 0) {
+}
 ```
 
 ---

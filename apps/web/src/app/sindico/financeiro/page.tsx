@@ -3,11 +3,7 @@
 import { DashboardFinanceiroCards } from '@/components/financeiro/DashboardFinanceiroCards';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useFinanceiro } from '@/hooks/useFinanceiro';
-import type {
-  CategoriaFinanceira,
-  ContaBancaria,
-  DashboardFinanceiro,
-} from '@versix/shared/types/financial';
+import type { CategoriaFinanceira, ContaBancaria, DashboardFinanceiro } from '@versix/shared';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';

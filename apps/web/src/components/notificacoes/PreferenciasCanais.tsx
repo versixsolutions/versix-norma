@@ -1,9 +1,6 @@
 'use client';
 
-import type {
-  UpdatePreferenciasInput,
-  UsuarioCanaisPreferencias,
-} from '@versix/shared/types/comunicacao';
+import type { UpdatePreferenciasInput, UsuarioCanaisPreferencias } from '@versix/shared';
 import { useState } from 'react';
 
 // ============================================

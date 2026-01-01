@@ -10,7 +10,7 @@ import type {
   NotificacaoDashboard,
   PrioridadeComunicado,
   TipoEmergencia,
-} from '@versix/shared/types/comunicacao';
+} from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
