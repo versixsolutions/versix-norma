@@ -149,7 +149,7 @@ export function useConnectivityCheck() {
         await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/`, {
           method: 'HEAD',
           headers: {
-            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
           },
         });
 
@@ -187,9 +187,9 @@ export function useSystemHealthStatus() {
 
     const checks = Object.values(health.checks);
     return {
-      ok: checks.filter((c) => c.status === 'ok').length,
-      degraded: checks.filter((c) => c.status === 'degraded').length,
-      error: checks.filter((c) => c.status === 'error').length,
+      ok: checks.filter((c: any) => c.status === 'ok').length,
+      degraded: checks.filter((c: any) => c.status === 'degraded').length,
+      error: checks.filter((c: any) => c.status === 'error').length,
     };
   };
 
@@ -198,8 +198,8 @@ export function useSystemHealthStatus() {
     if (!health?.checks) return 0;
 
     const latencies = Object.values(health.checks)
-      .map((c) => c.latencyMs)
-      .filter((l) => l > 0);
+      .map((c: any) => c.latencyMs)
+      .filter((l: number) => l > 0);
 
     return latencies.length > 0
       ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length)

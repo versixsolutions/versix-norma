@@ -394,12 +394,15 @@ export interface CreateFAQInput {
   destaque?: boolean;
 }
 
-export interface UpdateFAQInput extends Partial<CreateFAQInput> {}
+export interface UpdateFAQInput extends Partial<CreateFAQInput> {
+  id: string;
+}
 
 export interface FAQFilters extends BaseFilters {
   categoria?: string;
   ativo?: boolean;
   destaque?: boolean;
+  tags?: string[];
 }
 
 /**

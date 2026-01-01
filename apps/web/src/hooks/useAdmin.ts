@@ -69,13 +69,15 @@ export function useAdmin() {
   // ============================================
   // FETCH USERS - COM TIPAGEM CORRETA
   // ============================================
-  const fetchUsers = useCallback(async (filters?: FetchUsersFilters) => {
-    setLoading(true);
-    setError(null);
-    try {
-      let query = supabase
-        .from('usuarios')
-        .select(`
+  const fetchUsers = useCallback(
+    async (filters?: FetchUsersFilters) => {
+      setLoading(true);
+      setError(null);
+      try {
+        let query = supabase
+          .from('usuarios')
+          .select(
+            `
           id,
           auth_id,
           nome,
@@ -90,65 +92,74 @@ export function useAdmin() {
           unidade_id,
           condominios:condominio_id (nome),
           unidades_habitacionais:unidade_id (identificador)
-        `)
-        .order('created_at', { ascending: false });
+        `
+          )
+          .order('created_at', { ascending: false });
 
-      if (filters?.status) {
-        query = query.eq('status', filters.status);
+        if (filters?.status) {
+          query = query.eq('status', filters.status);
+        }
+        if (filters?.condominio_id) {
+          query = query.eq('condominio_id', filters.condominio_id);
+        }
+        if (filters?.role) {
+          query = query.eq('role', filters.role);
+        }
+
+        const { data, error: fetchError } = await query;
+        if (fetchError) throw fetchError;
+
+        type UsuarioWithRelations = {
+          id: string;
+          auth_id: string | null;
+          nome: string;
+          email: string;
+          telefone: string | null;
+          avatar_url: string | null;
+          status: UserStatus;
+          created_at: string;
+          updated_at: string;
+          role: UserRole;
+          condominio_id: string | null;
+          unidade_id: string | null;
+          condominios: { nome: string } | null;
+          unidades_habitacionais: { identificador: string } | null;
+        };
+
+        const formattedUsers: AdminUser[] = ((data || []) as UsuarioWithRelations[]).map(
+          (user) => ({
+            id: user.id,
+            auth_id: user.auth_id || '',
+            nome: user.nome,
+            email: user.email,
+            telefone: user.telefone,
+            avatar_url: user.avatar_url,
+            status: user.status as StatusType,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+            condominios: user.condominio_id
+              ? [
+                  {
+                    condominio_id: user.condominio_id,
+                    condominio_nome: user.condominios?.nome || '',
+                    role: user.role as RoleType,
+                    unidade_id: user.unidade_id,
+                    unidade_identificador: user.unidades_habitacionais?.identificador || null,
+                  },
+                ]
+              : [],
+          })
+        );
+
+        setUsers(formattedUsers);
+      } catch (err) {
+        setError(getErrorMessage(err));
+      } finally {
+        setLoading(false);
       }
-      if (filters?.condominio_id) {
-        query = query.eq('condominio_id', filters.condominio_id);
-      }
-      if (filters?.role) {
-        query = query.eq('role', filters.role);
-      }
-
-      const { data, error: fetchError } = await query;
-      if (fetchError) throw fetchError;
-
-      type UsuarioWithRelations = {
-        id: string;
-        auth_id: string | null;
-        nome: string;
-        email: string;
-        telefone: string | null;
-        avatar_url: string | null;
-        status: UserStatus;
-        created_at: string;
-        updated_at: string;
-        role: UserRole;
-        condominio_id: string | null;
-        unidade_id: string | null;
-        condominios: { nome: string } | null;
-        unidades_habitacionais: { identificador: string } | null;
-      };
-
-      const formattedUsers: AdminUser[] = ((data || []) as UsuarioWithRelations[]).map((user) => ({
-        id: user.id,
-        auth_id: user.auth_id || '',
-        nome: user.nome,
-        email: user.email,
-        telefone: user.telefone,
-        avatar_url: user.avatar_url,
-        status: user.status as StatusType,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        condominios: user.condominio_id ? [{
-          condominio_id: user.condominio_id,
-          condominio_nome: user.condominios?.nome || '',
-          role: user.role as RoleType,
-          unidade_id: user.unidade_id,
-          unidade_identificador: user.unidades_habitacionais?.identificador || null,
-        }] : [],
-      }));
-
-      setUsers(formattedUsers);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+    },
+    [supabase]
+  );
 
   // ============================================
   // FETCH CONDOMINIOS
@@ -159,7 +170,8 @@ export function useAdmin() {
     try {
       const { data, error: fetchError } = await supabase
         .from('condominios')
-        .select(`
+        .select(
+          `
           id,
           nome,
           cnpj,
@@ -173,7 +185,8 @@ export function useAdmin() {
             nome,
             role
           )
-        `)
+        `
+        )
         .order('nome');
 
       if (fetchError) throw fetchError;
@@ -193,26 +206,29 @@ export function useAdmin() {
         usuarios: Array<{ id: string; nome: string; role: string }> | null;
       };
 
-      const formattedCondominios: AdminCondominio[] = (data || []).map((condo: CondominioWithRelations) => {
-        const totalUnidades = condo.blocos?.reduce(
-          (acc: number, bloco) => acc + (bloco.unidades_habitacionais?.length || 0),
-          0
-        ) || 0;
+      const formattedCondominios: AdminCondominio[] = (data || []).map(
+        (condo: CondominioWithRelations) => {
+          const totalUnidades =
+            condo.blocos?.reduce(
+              (acc: number, bloco) => acc + (bloco.unidades_habitacionais?.length || 0),
+              0
+            ) || 0;
 
-        const sindico = condo.usuarios?.find((u) => u.role === 'sindico');
+          const sindico = condo.usuarios?.find((u) => u.role === 'sindico');
 
-        return {
-          id: condo.id,
-          nome: condo.nome,
-          slug: condo.cnpj || condo.id,
-          endereco: condo.endereco,
-          status: 'ativo' as StatusType,
-          created_at: condo.created_at,
-          total_usuarios: condo.usuarios?.length || 0,
-          total_unidades: totalUnidades,
-          sindico_nome: sindico?.nome || null,
-        };
-      });
+          return {
+            id: condo.id,
+            nome: condo.nome,
+            slug: condo.cnpj || condo.id,
+            endereco: condo.endereco,
+            status: 'ativo' as StatusType,
+            created_at: condo.created_at,
+            total_usuarios: condo.usuarios?.length || 0,
+            total_unidades: totalUnidades,
+            sindico_nome: sindico?.nome || null,
+          };
+        }
+      );
 
       setCondominios(formattedCondominios);
     } catch (err) {
@@ -238,8 +254,14 @@ export function useAdmin() {
       ] = await Promise.all([
         supabase.from('condominios').select('*', { count: 'exact', head: true }),
         supabase.from('usuarios').select('*', { count: 'exact', head: true }),
-        supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase
+          .from('usuarios')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active'),
+        supabase
+          .from('usuarios')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending'),
         supabase.from('unidades_habitacionais').select('*', { count: 'exact', head: true }),
       ]);
 
@@ -260,77 +282,83 @@ export function useAdmin() {
   // ============================================
   // UPDATE USER STATUS
   // ============================================
-  const updateUserStatus = useCallback(async (userId: string, status: StatusType): Promise<boolean> => {
-    setLoading(true);
-    try {
-      // StatusType agora já está em inglês, não precisa mapear
-      const { error: updateError } = await supabase
-        .from('usuarios')
-        .update({ status: status as UserStatus, updated_at: new Date().toISOString() })
-        .eq('id', userId);
+  const updateUserStatus = useCallback(
+    async (userId: string, status: StatusType): Promise<boolean> => {
+      setLoading(true);
+      try {
+        // StatusType agora já está em inglês, não precisa mapear
+        const { error: updateError } = await supabase
+          .from('usuarios')
+          .update({ status: status as UserStatus, updated_at: new Date().toISOString() })
+          .eq('id', userId);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
 
-      setUsers(prev => prev.map(u => u.id === userId ? { ...u, status } : u));
-      return true;
-    } catch (err) {
-      setError(getErrorMessage(err));
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+        setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, status } : u)));
+        return true;
+      } catch (err) {
+        setError(getErrorMessage(err));
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [supabase]
+  );
 
   // ============================================
   // UPDATE USER ROLE
   // ============================================
-  const updateUserRole = useCallback(async (
-    userId: string,
-    condominioId: string,
-    role: RoleType
-  ): Promise<boolean> => {
-    setLoading(true);
-    try {
-      // Atualiza diretamente na tabela usuarios (relação 1:1)
-      const { error: updateError } = await supabase
-        .from('usuarios')
-        .update({ role: role as UserRole })
-        .eq('id', userId)
-        .eq('condominio_id', condominioId);
+  const updateUserRole = useCallback(
+    async (userId: string, condominioId: string, role: RoleType): Promise<boolean> => {
+      setLoading(true);
+      try {
+        // Atualiza diretamente na tabela usuarios (relação 1:1)
+        const { error: updateError } = await supabase
+          .from('usuarios')
+          .update({ role: role as UserRole })
+          .eq('id', userId)
+          .eq('condominio_id', condominioId);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
 
-      setUsers(prev => prev.map(u => {
-        if (u.id === userId) {
-          return {
-            ...u,
-            condominios: u.condominios.map(c =>
-              c.condominio_id === condominioId ? { ...c, role } : c
-            ),
-          };
-        }
-        return u;
-      }));
+        setUsers((prev) =>
+          prev.map((u) => {
+            if (u.id === userId) {
+              return {
+                ...u,
+                condominios: u.condominios.map((c) =>
+                  c.condominio_id === condominioId ? { ...c, role } : c
+                ),
+              };
+            }
+            return u;
+          })
+        );
 
-      return true;
-    } catch (err) {
-      setError(getErrorMessage(err));
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+        return true;
+      } catch (err) {
+        setError(getErrorMessage(err));
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [supabase]
+  );
 
   // ============================================
   // SEARCH USERS
   // ============================================
-  const searchUsers = useCallback(async (query: string): Promise<AdminUser[]> => {
-    if (!query || query.length < 2) return [];
-    try {
-      const buscaSanitizada = sanitizeSearchQuery(query);
-      const { data } = await supabase
-        .from('usuarios')
-        .select(`
+  const searchUsers = useCallback(
+    async (query: string): Promise<AdminUser[]> => {
+      if (!query || query.length < 2) return [];
+      try {
+        const buscaSanitizada = sanitizeSearchQuery(query);
+        const { data } = await supabase
+          .from('usuarios')
+          .select(
+            `
           id,
           auth_id,
           nome,
@@ -342,27 +370,30 @@ export function useAdmin() {
           updated_at,
           role,
           condominio_id
-        `)
-        .or(`nome.ilike.%${buscaSanitizada}%,email.ilike.%${buscaSanitizada}%`)
-        .limit(20);
+        `
+          )
+          .or(`nome.ilike.%${buscaSanitizada}%,email.ilike.%${buscaSanitizada}%`)
+          .limit(20);
 
-      return (data || []).map((user) => ({
-        id: user.id,
-        auth_id: user.auth_id || '',
-        nome: user.nome,
-        email: user.email,
-        telefone: user.telefone,
-        avatar_url: user.avatar_url,
-        status: user.status as StatusType,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        condominios: [],
-      }));
-    } catch (err) {
-      setError(getErrorMessage(err));
-      return [];
-    }
-  }, [supabase]);
+        return (data || []).map((user: any) => ({
+          id: user.id,
+          auth_id: user.auth_id || '',
+          nome: user.nome,
+          email: user.email,
+          telefone: user.telefone,
+          avatar_url: user.avatar_url,
+          status: user.status as StatusType,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+          condominios: [],
+        }));
+      } catch (err) {
+        setError(getErrorMessage(err));
+        return [];
+      }
+    },
+    [supabase]
+  );
 
   return {
     users,
