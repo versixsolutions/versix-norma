@@ -8,12 +8,45 @@
 // ============================================
 
 export type ComunicadoStatus = 'rascunho' | 'publicado' | 'arquivado';
-export type ComunicadoCategoria = 'geral' | 'manutencao' | 'financeiro' | 'seguranca' | 'evento' | 'urgente' | 'obras' | 'assembleia';
+export type ComunicadoCategoria =
+  | 'geral'
+  | 'manutencao'
+  | 'financeiro'
+  | 'seguranca'
+  | 'evento'
+  | 'urgente'
+  | 'obras'
+  | 'assembleia';
 export type OcorrenciaStatus = 'aberta' | 'em_analise' | 'em_andamento' | 'resolvida' | 'arquivada';
-export type OcorrenciaCategoria = 'barulho' | 'vazamento' | 'iluminacao' | 'limpeza' | 'seguranca' | 'area_comum' | 'elevador' | 'portaria' | 'animais' | 'estacionamento' | 'outros';
+export type OcorrenciaCategoria =
+  | 'barulho'
+  | 'vazamento'
+  | 'iluminacao'
+  | 'limpeza'
+  | 'seguranca'
+  | 'area_comum'
+  | 'elevador'
+  | 'portaria'
+  | 'animais'
+  | 'estacionamento'
+  | 'outros';
 export type Prioridade = 'baixa' | 'media' | 'alta' | 'urgente';
-export type ChamadoStatus = 'novo' | 'em_atendimento' | 'aguardando_resposta' | 'resolvido' | 'fechado';
-export type ChamadoCategoria = 'segunda_via_boleto' | 'atualizacao_cadastro' | 'reserva_espaco' | 'autorizacao_obra' | 'mudanca' | 'reclamacao' | 'sugestao' | 'duvida' | 'outros';
+export type ChamadoStatus =
+  | 'novo'
+  | 'em_atendimento'
+  | 'aguardando_resposta'
+  | 'resolvido'
+  | 'fechado';
+export type ChamadoCategoria =
+  | 'segunda_via_boleto'
+  | 'atualizacao_cadastro'
+  | 'reserva_espaco'
+  | 'autorizacao_obra'
+  | 'mudanca'
+  | 'reclamacao'
+  | 'sugestao'
+  | 'duvida'
+  | 'outros';
 
 // ============================================
 // ANEXO (comum para todos os módulos)

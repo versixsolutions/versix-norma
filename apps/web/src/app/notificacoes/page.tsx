@@ -6,7 +6,7 @@ import { AccessibleButton } from '@/components/ui/AccessibleButton';
 import { useAuth } from '@/hooks/useAuth';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { usePreferenciasCanais } from '@/hooks/usePreferenciasCanais';
-import type { UsuarioCanaisPreferencias } from '@versix/shared/types/comunicacao';
+import type { UsuarioCanaisPreferencias } from '@versix/shared';
 import { Bell, CheckCheck, Settings } from 'lucide-react';
 import { useState } from 'react';
 

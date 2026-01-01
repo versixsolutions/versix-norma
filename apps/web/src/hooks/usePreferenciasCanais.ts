@@ -2,12 +2,12 @@
 
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
-import { Database } from '@versix/shared';
 import type {
   UpdateNotificacoesConfigInput,
   UpdatePreferenciasInput,
   UsuarioCanaisPreferencias,
-} from '@versix/shared/types/comunicacao';
+} from '@versix/shared';
+import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 // Tipos do banco
