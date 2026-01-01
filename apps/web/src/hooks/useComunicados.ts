@@ -3,7 +3,7 @@
 import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
-import { parseAnexos } from '@/lib/type-helpers';
+import { parseAnexos, serializeAnexos } from '@/lib/type-helpers';
 import type {
   ComunicadoCategoria,
   ComunicadoComJoins,
@@ -30,31 +30,25 @@ type CategoriaDb =
   | 'assembleia';
 
 interface ComunicadoQueryResult extends ComunicadoRow {
-  autor?: { nome: string; avatar_url: string | null } | null;
+  autor?: { nome: string; avatar_url: string | null; email: string } | null;
   lido?: boolean;
   total_leituras?: number;
 }
 
-// Mapeia categoria do front para o enum do banco
-function mapCategoriaToDb(categoria?: ComunicadoCategoria): CategoriaDb | undefined {
-  if (!categoria) return undefined;
-  if (categoria === 'aviso_geral' || categoria === 'outros') return 'geral';
-  if (categoria === 'eventos') return 'evento';
-  if (
-    [
-      'urgente',
-      'geral',
-      'manutencao',
-      'financeiro',
-      'seguranca',
-      'evento',
-      'obras',
-      'assembleia',
-    ].includes(categoria)
-  ) {
-    return categoria as CategoriaDb;
-  }
-  return 'geral';
+// Validar categoria (já é do tipo correto do banco)
+function validateCategoria(categoria?: ComunicadoCategoria): ComunicadoCategoria {
+  if (!categoria) return 'geral';
+  const validCategorias: ComunicadoCategoria[] = [
+    'urgente',
+    'geral',
+    'manutencao',
+    'financeiro',
+    'seguranca',
+    'evento',
+    'obras',
+    'assembleia',
+  ];
+  return validCategorias.includes(categoria) ? categoria : 'geral';
 }
 
 const toComunicado = (data: ComunicadoQueryResult): ComunicadoComJoins => ({
@@ -97,7 +91,7 @@ export function useComunicados(_options?: {
 
         let query = supabase
           .from('comunicados')
-          .select(`*, autor:autor_id (nome, avatar_url)`, { count: 'exact' })
+          .select(`*, autor:autor_id (nome, avatar_url, email)`, { count: 'exact' })
           .eq('condominio_id', condominioId)
           .is('deleted_at', null)
           .order(filters?.orderBy || 'created_at', { ascending: filters?.orderDir === 'asc' })
@@ -153,7 +147,7 @@ export function useComunicados(_options?: {
       try {
         const { data, error: fetchError } = await supabase
           .from('comunicados')
-          .select(`*, autor:usuarios!comunicados_autor_id_fkey (nome, avatar_url)`)
+          .select(`*, autor:usuarios!comunicados_autor_id_fkey (nome, avatar_url, email)`)
           .eq('id', id)
           .single();
         if (fetchError) throw fetchError;
@@ -179,15 +173,17 @@ export function useComunicados(_options?: {
     ): Promise<ComunicadoComJoins | null> => {
       setLoading(true);
       try {
-        const insertData = { ...input, anexos: input.anexos ? JSON.stringify(input.anexos) : null };
         const { data, error: insertError } = await supabase
           .from('comunicados')
           .insert({
             condominio_id: condominioId,
             autor_id: autorId,
-            ...input,
-            anexos: input.anexos ? JSON.stringify(input.anexos) : null,
-            categoria: mapCategoriaToDb(input.categoria),
+            titulo: input.titulo,
+            conteudo: input.conteudo,
+            categoria: validateCategoria(input.categoria),
+            status: input.status || 'rascunho',
+            fixado: input.fixado || false,
+            anexos: input.anexos ? serializeAnexos(input.anexos) : null,
             published_at: input.status === 'publicado' ? new Date().toISOString() : null,
           })
           .select()
@@ -210,39 +206,36 @@ export function useComunicados(_options?: {
       setLoading(true);
       try {
         const { id, ...updates } = input;
-        // Mapeia categoria para o enum do banco
-        const categoriaDb = mapCategoriaToDb(updates.categoria);
+        const updatePayload: Record<string, any> = { ...updates };
+
+        // Normalizar categoria
+        if (updates.categoria) {
+          updatePayload.categoria = validateCategoria(updates.categoria);
+        }
+
+        // Serializar anexos se fornecidos
+        if (updates.anexos) {
+          updatePayload.anexos = serializeAnexos(updates.anexos);
+        }
+
         // Se publicando agora, definir published_at
         if (updates.status === 'publicado') {
           const current = comunicados.find((c) => c.id === id);
-          type ComunicadoUpdate = Database['public']['Tables']['comunicados']['Update'] & {
-            published_at?: string;
-          };
-          const updatePayload: ComunicadoUpdate = {
-            ...updates,
-            categoria: categoriaDb,
-            ...(current?.status !== 'publicado' && { published_at: new Date().toISOString() }),
-          };
-          const { data, error: updateError } = await supabase
-            .from('comunicados')
-            .update(updatePayload)
-            .eq('id', id)
-            .select()
-            .single();
-          if (updateError) throw updateError;
-          setComunicados((prev) => prev.map((c) => (c.id === id ? data : c)));
-          return data;
-        } else {
-          const { data, error: updateError } = await supabase
-            .from('comunicados')
-            .update({ ...updates, categoria: categoriaDb })
-            .eq('id', id)
-            .select()
-            .single();
-          if (updateError) throw updateError;
-          setComunicados((prev) => prev.map((c) => (c.id === id ? data : c)));
-          return data;
+          if (current?.status !== 'publicado') {
+            updatePayload.published_at = new Date().toISOString();
+          }
         }
+
+        const { data, error: updateError } = await supabase
+          .from('comunicados')
+          .update(updatePayload)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        setComunicados((prev) => prev.map((c) => (c.id === id ? data : c)));
+        return data;
       } catch (err) {
         setError(getErrorMessage(err) || 'Erro ao atualizar comunicado');
         return null;
