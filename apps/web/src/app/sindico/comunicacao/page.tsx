@@ -23,17 +23,19 @@ export default function SindicoComunicacaoPage() {
 
   const [dashboard, setDashboard] = useState<NotificacaoDashboard[]>([]);
   const [tab, setTab] = useState<'enviar' | 'historico' | 'config' | 'emergencias'>('enviar');
-  const [form, setForm] = useState<CreateNotificacaoInput>({
+  const [submitting, setSubmitting] = useState(false);
+
+  const condominioId = profile?.condominio_atual?.id;
+
+  const [form, setForm] = useState<CreateNotificacaoInput>(() => ({
     tipo: 'comunicado',
     titulo: '',
     corpo: '',
     prioridade: 'normal',
     destinatarios_tipo: 'todos',
     gerar_mural: false,
-  });
-  const [submitting, setSubmitting] = useState(false);
-
-  const condominioId = profile?.condominio_atual?.id;
+    condominio_id: condominioId || '',
+  }));
 
   useEffect(() => {
     if (condominioId) {

@@ -12,7 +12,11 @@ export default function SindicoAssembleiasPage() {
   const { profile } = useAuthContext();
   const { assembleias, loading, fetchAssembleias, createAssembleia } = useAssembleias();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<CreateAssembleiaInput>({
+  const [submitting, setSubmitting] = useState(false);
+
+  const condominioId = profile?.condominio_atual?.id;
+
+  const [form, setForm] = useState<CreateAssembleiaInput>(() => ({
     tipo: 'AGO',
     titulo: '',
     descricao: '',
@@ -22,10 +26,8 @@ export default function SindicoAssembleiasPage() {
     quorum_minimo_segunda: 0,
     permite_procuracao: true,
     max_procuracoes_por_pessoa: 2,
-  });
-  const [submitting, setSubmitting] = useState(false);
-
-  const condominioId = profile?.condominio_atual?.id;
+    condominio_id: condominioId || '',
+  }));
 
   useEffect(() => {
     if (condominioId) fetchAssembleias(condominioId);
