@@ -2,7 +2,7 @@
 
 ## Joins e Conversões
 
-**Data de Conclusão:** 02/01/2026  
+**Data de Conclusão:** 02/01/2026
 **Status:** ✅ **CONCLUÍDO COM SUCESSO**
 
 ---
@@ -283,12 +283,12 @@ Com 0 erros TypeScript já alcançado, o Sprint 3 pode focar em:
 
 ---
 
-**Assinatura Digital:**  
-Status: ✅ SPRINT 2 COMPLETO E APROVADO  
-Erros TypeScript: 0/0 (mantido)  
-Build: ✅ Passing  
-Tipos ComJoins: 4/4 ✅  
-Helpers: 3/3 ✅  
+**Assinatura Digital:**
+Status: ✅ SPRINT 2 COMPLETO E APROVADO
+Erros TypeScript: 0/0 (mantido)
+Build: ✅ Passing
+Tipos ComJoins: 4/4 ✅
+Helpers: 3/3 ✅
 Data: 02/01/2026
 
 ---
