@@ -36,7 +36,27 @@ export function serializeAnexos(anexos: Anexo[] | undefined): Json {
   return anexos as unknown as Json;
 }
 
+// Converter mensagem com anexos (helper genérico)
+export function serializeMensagemComAnexos<T extends { anexos?: Anexo[] }>(
+  mensagem: T
+): T & { anexos: Json } {
+  return {
+    ...mensagem,
+    anexos: serializeAnexos(mensagem.anexos),
+  };
+}
+
 // Converter string | null para string | undefined
-export function nullToUndefined(value: string | null): string | undefined {
-  return value ?? undefined;
+export function nullToUndefined<T>(value: T | null): T | undefined {
+  return value === null ? undefined : value;
+}
+
+// Converter string | undefined para string | null
+export function undefinedToNull<T>(value: T | undefined): T | null {
+  return value === undefined ? null : value;
+}
+
+// Safe string para inputs (evita null/undefined)
+export function safeStringValue(value: string | null | undefined): string {
+  return value ?? '';
 }

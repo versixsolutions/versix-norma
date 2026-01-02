@@ -310,6 +310,7 @@ export interface ChamadoComJoins extends Chamado {
 
 export interface ChamadoMensagemComJoins extends ChamadoMensagem {
   autor?: Pick<Usuario, 'nome' | 'avatar_url'>;
+  anexos_parsed?: Anexo[];
 }
 
 export interface ComunicadoComJoins extends Omit<Comunicado, 'anexos'> {
@@ -317,6 +318,10 @@ export interface ComunicadoComJoins extends Omit<Comunicado, 'anexos'> {
   autor?: Pick<Usuario, 'nome' | 'avatar_url' | 'email'>;
   lido?: boolean;
   total_leituras?: number;
+}
+
+export interface ComunicadoLeituraComUsuario extends ComunicadoLeitura {
+  usuario?: Pick<Usuario, 'nome' | 'avatar_url' | 'email'>;
 }
 
 export interface OcorrenciaComJoins extends Omit<Ocorrencia, 'anexos'> {
@@ -613,6 +618,10 @@ export interface NotificacaoUsuario extends Notificacao {
   lida: boolean;
   lida_em?: string;
   entrega_status?: StatusEntrega;
+}
+
+export interface NotificacaoEntregaComUsuario extends NotificacaoEntrega {
+  usuario?: Pick<Usuario, 'nome' | 'email' | 'telefone' | 'avatar_url'>;
 }
 
 // ============================================
