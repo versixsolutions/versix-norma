@@ -34,7 +34,7 @@ export function useNotificacoes() {
 
       if (fetchError) throw fetchError;
 
-      const notificacoesData = data || [];
+      const notificacoesData = (data as unknown as NotificacaoUsuario[]) || [];
       setNotificacoes(notificacoesData);
       setNaoLidas(notificacoesData.filter((n: any) => n.status !== 'lido').length);
       return notificacoesData;
@@ -55,7 +55,7 @@ export function useNotificacoes() {
 
       if (!userId) return 0;
 
-      const { data, error: rpcError } = (await supabase.rpc('get_contagem_nao_lidas', {
+      const { data, error: rpcError } = (await (supabase as any).rpc('get_contagem_nao_lidas', {
         p_usuario_id: userId,
       })) as { data: number | null; error: SupabaseError | null };
 
@@ -78,9 +78,10 @@ export function useNotificacoes() {
 
         if (!userId) return false;
 
-        const { data, error: rpcError } = (await supabase.rpc('confirmar_leitura', {
+        const { data, error: rpcError } = (await (supabase as any).rpc('confirmar_leitura', {
           p_notificacao_id: notificacaoId,
           p_usuario_id: userId,
+          p_canal: 'in_app',
         })) as { data: boolean; error: SupabaseError | null };
 
         if (rpcError) throw rpcError;
@@ -148,9 +149,9 @@ export function useNotificacoes() {
           p_corpo: input.corpo,
           p_prioridade: input.prioridade || 'normal',
           p_destinatarios_tipo: input.destinatarios_tipo || 'todos',
-          p_destinatarios_filtro: input.destinatarios_filtro || null,
-          p_referencia_tipo: input.referencia_tipo || null,
-          p_referencia_id: input.referencia_id || null,
+          p_destinatarios_filtro: input.destinatarios_filtro || undefined,
+          p_referencia_tipo: input.referencia_tipo || undefined,
+          p_referencia_id: input.referencia_id || undefined,
           p_gerar_mural: input.gerar_mural || false,
           p_criado_por: userId,
         })) as { data: string | null; error: SupabaseError | null };
@@ -172,7 +173,7 @@ export function useNotificacoes() {
   const fetchDashboard = useCallback(
     async (condominioId: string): Promise<NotificacaoDashboard[]> => {
       try {
-        const { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await (supabase as any)
           .from('v_notificacoes_dashboard')
           .select('*')
           .eq('condominio_id', condominioId)
@@ -180,7 +181,7 @@ export function useNotificacoes() {
           .limit(20);
 
         if (fetchError) throw fetchError;
-        return data || [];
+        return (data as unknown as NotificacaoDashboard[]) || [];
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Erro ao buscar dashboard de notificações';
@@ -213,8 +214,9 @@ export function useNotificacoes() {
                 .single();
 
               if (data) {
-                onNew(data);
-                setNotificacoes((prev) => [data, ...prev]);
+                const notif = data as unknown as NotificacaoUsuario;
+                onNew(notif);
+                setNotificacoes((prev) => [notif, ...prev]);
                 setNaoLidas((prev) => prev + 1);
               }
             } catch (err) {

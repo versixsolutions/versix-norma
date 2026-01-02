@@ -98,7 +98,7 @@ export function useOcorrencias() {
         const { data, error: fetchError, count } = await query;
         if (fetchError) throw fetchError;
 
-        const transformedData = (data || []).map((item: OcorrenciaQueryResult) =>
+        const transformedData = ((data || []) as unknown as OcorrenciaQueryResult[]).map((item) =>
           toOcorrencia(item)
         );
 
@@ -166,7 +166,7 @@ export function useOcorrencias() {
       try {
         const insertData = {
           ...input,
-          anexos: serializeAnexos(input.anexos),
+          anexos: serializeAnexos(input.anexos as any),
           condominio_id: condominioId,
           reportado_por: reportadoPor,
         };
@@ -194,7 +194,8 @@ export function useOcorrencias() {
       setLoading(true);
       try {
         // Setar user_id para o trigger de histórico
-        if (userId) await supabase.rpc('set_app_user_id', { user_id: userId }).catch(() => {});
+        if (userId)
+          await (supabase as any).rpc('set_app_user_id', { user_id: userId }).catch(() => {});
 
         const { id, ...updates } = input;
         // Se resolvendo, definir campos de resolução
@@ -202,7 +203,7 @@ export function useOcorrencias() {
         type OcorrenciaUpdate = Database['public']['Tables']['ocorrencias']['Update'];
         const updateData: Partial<OcorrenciaUpdate> = {
           ...updates,
-          anexos: updates.anexos ? serializeAnexos(updates.anexos) : undefined,
+          anexos: updates.anexos ? serializeAnexos(updates.anexos as any) : undefined,
         };
         if (updates.status === 'resolvida') {
           updateData.resolvido_em = new Date().toISOString();
@@ -211,7 +212,7 @@ export function useOcorrencias() {
         const { data, error: updateError } = await supabase
           .from('ocorrencias')
           .update(updateData)
-          .eq('id', id)
+          .eq('id', id as string)
           .select()
           .single();
         if (updateError) throw updateError;
@@ -258,6 +259,7 @@ export function useOcorrencias() {
           .eq('condominio_id', condominioId)
           .is('deleted_at', null);
         if (!data) return null;
+        const ocorrenciasData = data as unknown as OcorrenciaComJoins[];
         type EstatisticasOcorrencias = {
           total: number;
           abertas: number;
@@ -268,24 +270,24 @@ export function useOcorrencias() {
           tempo_medio_resolucao_horas: number | null;
         };
         const stats: EstatisticasOcorrencias = {
-          total: data.length,
-          abertas: data.filter((o: OcorrenciaComJoins) => o.status === 'aberta').length,
-          em_andamento: data.filter((o: OcorrenciaComJoins) =>
+          total: ocorrenciasData.length,
+          abertas: ocorrenciasData.filter((o) => o.status === 'aberta').length,
+          em_andamento: ocorrenciasData.filter((o) =>
             ['em_analise', 'em_andamento'].includes(o.status)
           ).length,
-          resolvidas: data.filter((o: OcorrenciaComJoins) => o.status === 'resolvida').length,
+          resolvidas: ocorrenciasData.filter((o) => o.status === 'resolvida').length,
           por_categoria: {},
           por_prioridade: {},
           tempo_medio_resolucao_horas: null,
         };
-        data.forEach((o: OcorrenciaComJoins) => {
+        ocorrenciasData.forEach((o) => {
           stats.por_categoria[o.categoria] = (stats.por_categoria[o.categoria] || 0) + 1;
           stats.por_prioridade[o.prioridade] = (stats.por_prioridade[o.prioridade] || 0) + 1;
         });
-        const resolvidas = data.filter((o: OcorrenciaComJoins) => o.resolvido_em);
+        const resolvidas = ocorrenciasData.filter((o) => o.resolvido_em);
         if (resolvidas.length > 0) {
           const tempos = resolvidas.map(
-            (o: OcorrenciaComJoins) =>
+            (o) =>
               (new Date(o.resolvido_em!).getTime() - new Date(o.created_at).getTime()) / 3600000
           );
           stats.tempo_medio_resolucao_horas =

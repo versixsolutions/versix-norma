@@ -90,14 +90,14 @@ export function useTaxas() {
   const getMinhasTaxas = useCallback(
     async (userId: string, condominioId: string): Promise<TaxaUnidade[]> => {
       try {
-        const { data: unidadesUser } = await supabase
+        const { data: unidadesUser } = await (supabase as any)
           .from('usuarios_unidades')
           .select('unidade_id')
           .eq('usuario_id', userId)
           .eq('ativo', true);
         if (!unidadesUser || unidadesUser.length === 0) return [];
 
-        const unidadeIds = unidadesUser.map((u: { unidade_id: string }) => u.unidade_id);
+        const unidadeIds = (unidadesUser as { unidade_id: string }[]).map((u) => u.unidade_id);
 
         const { data, error: fetchError } = await supabase
           .from('taxas_unidades')
@@ -220,9 +220,9 @@ export function useTaxas() {
 
   const atualizarTaxasAtrasadas = useCallback(async (): Promise<number> => {
     try {
-      const { data, error: rpcError } = await supabase.rpc('atualizar_taxas_atrasadas');
+      const { data, error: rpcError } = await (supabase as any).rpc('atualizar_taxas_atrasadas');
       if (rpcError) throw rpcError;
-      return data || 0;
+      return (data as number) || 0;
     } catch {
       return 0;
     }
@@ -240,18 +240,13 @@ export function useTaxas() {
           .in('status', ['pendente', 'atrasado'])
           .order('data_vencimento');
 
-        const atrasadas = (data || []).filter((t: TaxaUnidade) => t.status === 'atrasado');
-        const pendentes = (data || []).filter((t: TaxaUnidade) => t.status === 'pendente');
+        const taxasData = (data || []) as unknown as TaxaUnidade[];
+        const atrasadas = taxasData.filter((t) => t.status === 'atrasado');
+        const pendentes = taxasData.filter((t) => t.status === 'pendente');
 
         return {
-          total_em_aberto: (data || []).reduce(
-            (sum: number, t: TaxaUnidade) => sum + (t.valor_final ?? 0),
-            0
-          ),
-          total_atrasado: atrasadas.reduce(
-            (sum: number, t: TaxaUnidade) => sum + (t.valor_final ?? 0),
-            0
-          ),
+          total_em_aberto: taxasData.reduce((sum: number, t) => sum + (t.valor_final ?? 0), 0),
+          total_atrasado: atrasadas.reduce((sum: number, t) => sum + (t.valor_final ?? 0), 0),
           qtd_atrasadas: atrasadas.length,
           qtd_pendentes: pendentes.length,
           taxas_atrasadas: atrasadas,
