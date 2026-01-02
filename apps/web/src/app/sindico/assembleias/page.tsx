@@ -3,7 +3,7 @@
 import { AssembleiaCard } from '@/components/assembleias/AssembleiaCard';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useAssembleias } from '@/hooks/useAssembleias';
-import type { AssembleiaTipo, CreateAssembleiaInput } from '@versix/shared';
+import type { AssembleiaFormData, AssembleiaTipo, CreateAssembleiaInput } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -16,7 +16,7 @@ export default function SindicoAssembleiasPage() {
 
   const condominioId = profile?.condominio_atual?.id;
 
-  const [form, setForm] = useState<CreateAssembleiaInput>(() => ({
+  const [form, setForm] = useState<AssembleiaFormData>(() => ({
     tipo: 'AGO',
     titulo: '',
     descricao: '',
@@ -26,7 +26,6 @@ export default function SindicoAssembleiasPage() {
     quorum_minimo_segunda: 0,
     permite_procuracao: true,
     max_procuracoes_por_pessoa: 2,
-    condominio_id: condominioId || '',
   }));
 
   useEffect(() => {
@@ -42,7 +41,16 @@ export default function SindicoAssembleiasPage() {
     }
 
     setSubmitting(true);
-    const result = await createAssembleia(condominioId, profile.id, form);
+
+    // Converter AssembleiaFormData para CreateAssembleiaInput
+    const submitData: CreateAssembleiaInput = {
+      ...form,
+      condominio_id: condominioId,
+      tipo: form.tipo || 'AGO',
+      titulo: form.titulo!,
+    };
+
+    const result = await createAssembleia(condominioId, profile.id, submitData);
     if (result) {
       toast.success('Assembleia criada com sucesso!');
       setShowForm(false);

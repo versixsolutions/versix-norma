@@ -1,18 +1,22 @@
 'use client';
 
 import { getSupabaseClient } from '@/lib/supabase';
-import type { DispararEmergenciaInput, EmergenciaLog, TipoEmergencia } from '@versix/shared';
+import type {
+  DispararEmergenciaInput,
+  EmergenciaLogComDetalhes,
+  TipoEmergencia,
+} from '@versix/shared';
 import { useCallback, useState } from 'react';
 
 export function useEmergencias() {
   const supabase = getSupabaseClient();
-  const [emergencias, setEmergencias] = useState<EmergenciaLog[]>([]);
+  const [emergencias, setEmergencias] = useState<EmergenciaLogComDetalhes[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Buscar histórico de emergências
   const fetchEmergencias = useCallback(
-    async (condominioId: string): Promise<EmergenciaLog[]> => {
+    async (condominioId: string): Promise<EmergenciaLogComDetalhes[]> => {
       setLoading(true);
       try {
         const { data, error: fetchError } = await supabase
@@ -72,7 +76,7 @@ export function useEmergencias() {
 
   // Buscar detalhes de uma emergência
   const getEmergencia = useCallback(
-    async (id: string): Promise<EmergenciaLog | null> => {
+    async (id: string): Promise<EmergenciaLogComDetalhes | null> => {
       try {
         const { data, error: fetchError } = await supabase
           .from('emergencias_log')

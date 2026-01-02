@@ -1,6 +1,7 @@
 'use client';
 
 import { useAnexos } from '@/hooks/useAnexos';
+import { serializeAnexos } from '@/lib/type-helpers';
 import type {
   Anexo,
   ComunicadoCategoria,
@@ -87,7 +88,12 @@ export function ComunicadoForm({
       return;
     }
     setLoading(true);
-    const success = await onSubmit({ ...form, status: status || form.status });
+    const dataToSubmit: CreateComunicadoInput = {
+      ...form,
+      anexos: serializeAnexos(form.anexos),
+      status: status || form.status,
+    };
+    const success = await onSubmit(dataToSubmit);
     setLoading(false);
     if (success)
       toast.success(status === 'publicado' ? 'Comunicado publicado!' : 'Comunicado salvo!');

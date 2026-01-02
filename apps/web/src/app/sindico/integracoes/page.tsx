@@ -4,7 +4,7 @@ import { IntegracaoCard } from '@/components/integracoes/IntegracaoCard';
 import { WebhookEventosSelector } from '@/components/integracoes/WebhookEventosSelector';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useIntegracoes } from '@/hooks/useIntegracoes';
-import type { CreateIntegracaoApiInput, CreateWebhookInput } from '@versix/shared';
+import type { CreateIntegracaoApiInput, CreateWebhookInput, WebhookFormData } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -27,13 +27,11 @@ export default function IntegracoesPage() {
     condominio_id: condominioId || '',
     tipo: 'api',
   }));
-  const [webhookForm, setWebhookForm] = useState<CreateWebhookInput>(() => ({
+  const [webhookForm, setWebhookForm] = useState<WebhookFormData>(() => ({
     nome: '',
     url_destino: '',
     eventos: [],
     headers_custom: {},
-    condominio_id: condominioId || '',
-    integracao_id: '',
   }));
 
   useEffect(() => {
@@ -57,9 +55,28 @@ export default function IntegracoesPage() {
 
   const handleCriarWebhook = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!condominioId || webhookForm.nome.length < 3 || webhookForm.eventos.length === 0) return;
+    if (
+      !condominioId ||
+      !webhookForm.nome ||
+      webhookForm.nome.length < 3 ||
+      !webhookForm.eventos ||
+      webhookForm.eventos.length === 0
+    )
+      return;
     setSubmitting(true);
-    const result = await criarWebhook(condominioId, webhookForm);
+
+    // Converter WebhookFormData para CreateWebhookInput
+    const submitData: CreateWebhookInput = {
+      ...webhookForm,
+      condominio_id: condominioId,
+      integracao_id: '', // Será preenchido pelo hook se necessário
+      nome: webhookForm.nome!,
+      url_destino: webhookForm.url_destino || '',
+      eventos: webhookForm.eventos!,
+      headers_custom: webhookForm.headers_custom || {},
+    };
+
+    const result = await criarWebhook(condominioId, submitData);
     if (result) {
       setNovaChave({ api_key: '', secret_key: result.secret_key });
       toast.success('Webhook criado com sucesso!');

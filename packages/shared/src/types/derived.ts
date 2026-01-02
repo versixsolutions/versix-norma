@@ -532,6 +532,11 @@ export interface DashboardFinanceiro {
   receitas_mes: number;
   despesas_mes: number;
   inadimplencia_percentual: number;
+  saldo_atual?: number;
+  inadimplencia?: number;
+  nome_exibicao?: string;
+  banco_nome?: string;
+  agencia?: string;
   contas: {
     id: string;
     nome: string;
@@ -731,8 +736,9 @@ export interface AssembleiaFormData {
 
 export interface WebhookFormData {
   nome?: string;
-  url?: string;
+  url_destino?: string;
   eventos?: WebhookEvento[];
+  headers_custom?: Record<string, string>;
   ativo?: boolean;
   descricao?: string;
 }
