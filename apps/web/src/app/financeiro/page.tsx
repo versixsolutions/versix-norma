@@ -60,7 +60,7 @@ export default function FinanceiroMoradorPage() {
 
   const prestacaoPublicadas = prestacoes.filter((p) => p.status === 'publicado');
   const taxasPendentes = minhasTaxas.filter((t) => ['pendente', 'atrasado'].includes(t.status));
-  const totalPendente = taxasPendentes.reduce((sum, t) => sum + t.valor_final, 0);
+  const totalPendente = taxasPendentes.reduce((sum, t) => sum + (t.valor_final || 0), 0);
 
   return (
     <AuthGuard>
