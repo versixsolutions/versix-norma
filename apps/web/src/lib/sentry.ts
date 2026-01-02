@@ -253,7 +253,7 @@ export function measureSync<T>(name: string, operation: string, fn: () => T): T 
 // CUSTOM METRICS
 // =====================================================
 
-export function setCustomMetric(name: string, value: number, unit?: Sentry.MeasurementUnit) {
+export function setCustomMetric(name: string, value: number, unit?: string) {
   // Ensure unit matches Sentry MeasurementUnit to satisfy typings
   Sentry.setMeasurement(name, value, unit ?? 'none');
 }

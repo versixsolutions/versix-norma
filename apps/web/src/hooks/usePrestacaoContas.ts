@@ -76,14 +76,18 @@ export function usePrestacaoContas() {
         type LancamentoWithCategoria = LancamentoRow & {
           categoria: { nome: string } | null;
         };
-        (lancamentos || []).forEach((l: LancamentoWithCategoria) => {
+        ((lancamentos as any[]) || []).forEach((l: any) => {
           const cat = l.categoria?.nome || 'Outros';
           if (!porCategoria[cat]) porCategoria[cat] = { receitas: 0, despesas: 0 };
           if (l.tipo === 'receita') porCategoria[cat].receitas += l.valor;
           else if (l.tipo === 'despesa') porCategoria[cat].despesas += l.valor;
         });
 
-        return { ...data, lancamentos: lancamentos || [], lancamentos_por_categoria: porCategoria };
+        return {
+          ...data,
+          lancamentos: lancamentos || [],
+          lancamentos_por_categoria: porCategoria,
+        } as any;
       } catch (err) {
         setError(getErrorMessage(err));
         return null;
@@ -211,7 +215,7 @@ export function usePrestacaoContas() {
         const receitas: Record<string, number> = {};
         const despesas: Record<string, number> = {};
 
-        (lancamentos || []).forEach((l: LancamentoWithCategoria) => {
+        ((lancamentos as any[]) || []).forEach((l: any) => {
           const cat = l.categoria?.nome || 'Outros';
           if (l.tipo === 'receita') receitas[cat] = (receitas[cat] || 0) + l.valor;
           else if (l.tipo === 'despesa') despesas[cat] = (despesas[cat] || 0) + l.valor;
@@ -220,8 +224,14 @@ export function usePrestacaoContas() {
         return {
           mes_referencia: mesReferencia,
           saldo_anterior: saldo?.saldo_anterior || 0,
-          receitas: Object.entries(receitas).map(([categoria, valor]) => ({ categoria, valor })),
-          despesas: Object.entries(despesas).map(([categoria, valor]) => ({ categoria, valor })),
+          receitas: Object.entries(receitas).map(([categoria, valor]) => ({
+            categoria,
+            valor,
+          })) as any,
+          despesas: Object.entries(despesas).map(([categoria, valor]) => ({
+            categoria,
+            valor,
+          })) as any,
           total_receitas: saldo?.total_receitas || 0,
           total_despesas: saldo?.total_despesas || 0,
           saldo_final: saldo?.saldo_atual || 0,

@@ -53,7 +53,7 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
     if (!condominioId || !userId) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('norma_chat_logs')
         .select('*')
         .eq('condominio_id', condominioId)
@@ -206,7 +206,7 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
                   suggestions = generateSuggestions(fullResponse, sources);
 
                   // Log the interaction
-                  await supabase.from('norma_chat_logs').insert({
+                  await (supabase as any).from('norma_chat_logs').insert({
                     condominio_id: condominioId,
                     user_id: userId,
                     message: text.trim(),

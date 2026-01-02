@@ -208,6 +208,7 @@ export type FAQUpdate = Tables['faq']['Update'];
 export type LancamentoFinanceiroUpdate = Tables['lancamentos_financeiros']['Update'];
 export type CategoriaFinanceiraUpdate = Tables['categorias_financeiras']['Update'];
 export type ContaBancariaUpdate = Tables['contas_bancarias']['Update'];
+export type PrestacaoContasUpdate = Tables['prestacao_contas']['Update'];
 export type IntegracaoUpdate = Tables['integracoes']['Update'];
 export type WebhookConfigUpdate = Tables['webhooks_config']['Update'];
 export type NotificacaoConfigUpdate = Tables['notificacoes_config']['Update'];
@@ -452,6 +453,8 @@ export type CreateCategoriaInput = CategoriaFinanceiraInsert;
 export type UpdateCategoriaInput = CategoriaFinanceiraUpdate;
 export type CreateContaBancariaInput = ContaBancariaInsert;
 export type UpdateContaBancariaInput = ContaBancariaUpdate;
+export type CreatePrestacaoInput = PrestacaoContasInsert;
+export type UpdatePrestacaoInput = PrestacaoContasUpdate;
 export type CreateIntegracaoInput = IntegracaoInsert;
 export type UpdateIntegracaoInput = IntegracaoUpdate;
 export type CreateWebhookInput = WebhookConfigInsert;
@@ -660,6 +663,13 @@ export interface Comentario {
   resposta?: string;
   created_at: string;
   usuario?: Pick<Usuario, 'nome' | 'avatar_url'>;
+}
+
+export interface CreateComentarioInput {
+  pauta_id: string;
+  conteudo: string;
+  tipo?: 'comentario' | 'pergunta' | 'resposta' | 'moderacao';
+  parent_id?: string;
 }
 
 // ============================================

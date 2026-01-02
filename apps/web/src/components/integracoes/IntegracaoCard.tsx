@@ -78,9 +78,9 @@ export function IntegracaoCard({ integracao, onClick }: IntegracaoCardProps) {
       {integracao.tipo === 'conector' && integracao.conector && (
         <div className="mb-3">
           <span className="text-sm text-gray-500">
-            {integracao.conector.tipo === 'google_calendar' && '📅 Google Calendar'}
-            {integracao.conector.tipo === 'asaas' && '💳 Asaas'}
-            {integracao.conector.tipo === 's3_backup' && '☁️ S3 Backup'}
+            {integracao.conector === 'google_calendar' && '📅 Google Calendar'}
+            {integracao.conector === 'asaas' && '💳 Asaas'}
+            {integracao.conector === 's3_backup' && '☁️ S3 Backup'}
           </span>
         </div>
       )}

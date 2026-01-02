@@ -68,7 +68,7 @@ export function useWebhooksLog() {
   const retentarWebhook = useCallback(
     async (entregaId: string): Promise<string | null> => {
       try {
-        const { data, error: rpcError } = await supabase.rpc('retentar_webhook', {
+        const { data, error: rpcError } = await (supabase as any).rpc('retentar_webhook', {
           p_entrega_id: entregaId,
         });
         if (rpcError) throw rpcError;
