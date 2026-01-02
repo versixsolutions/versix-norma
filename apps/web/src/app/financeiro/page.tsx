@@ -8,13 +8,17 @@ import type { SaldoPeriodo, TaxaUnidade } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+type TaxaUnidadeComUnidade = TaxaUnidade & {
+  unidade?: { identificador?: string; bloco?: { nome?: string } };
+};
+
 export default function FinanceiroMoradorPage() {
   const { profile } = useAuthContext();
   const { calcularSaldoPeriodo } = useFinanceiro();
   const { getMinhasTaxas } = useTaxas();
   const { fetchPrestacoes, prestacoes } = usePrestacaoContas();
   const [loading, setLoading] = useState(true);
-  const [minhasTaxas, setMinhasTaxas] = useState<TaxaUnidade[]>([]);
+  const [minhasTaxas, setMinhasTaxas] = useState<TaxaUnidadeComUnidade[]>([]);
   const [saldo, setSaldo] = useState<SaldoPeriodo | null>(null);
   const [tabAtiva, setTabAtiva] = useState<'taxas' | 'prestacao'>('taxas');
 
