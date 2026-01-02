@@ -124,7 +124,7 @@ export function useChamados(options?: {
         setLoading(false);
       }
     },
-    [supabase]
+    [supabase, toChamado]
   );
 
   useEffect(() => {
@@ -205,7 +205,7 @@ export function useChamados(options?: {
         setLoading(false);
       }
     },
-    [supabase]
+    [supabase, toChamado]
   );
 
   const updateChamado = useCallback(
@@ -233,7 +233,7 @@ export function useChamados(options?: {
         setLoading(false);
       }
     },
-    [supabase]
+    [supabase, toChamado]
   );
 
   const deleteChamado = useCallback(
