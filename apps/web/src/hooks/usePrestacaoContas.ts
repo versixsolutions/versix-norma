@@ -105,22 +105,23 @@ export function usePrestacaoContas() {
       setLoading(true);
       try {
         // Calcular saldo do período
-        const { data: saldoData } = await supabase.rpc('calcular_saldo_periodo', {
+        const { data: saldoData } = await (supabase as any).rpc('calcular_saldo_periodo', {
           p_condominio_id: condominioId,
           p_mes_referencia: input.mes_referencia,
         });
         const saldo = saldoData?.[0];
 
-        const { data, error: insertError } = await supabase
+        const { condominio_id: _c, criado_por: _p, ...inputRest } = input as any;
+        const { data, error: insertError } = await (supabase as any)
           .from('prestacao_contas')
           .insert({
             condominio_id: condominioId,
             criado_por: criadoPor,
-            ...input,
-            saldo_anterior: saldo?.saldo_anterior || 0,
-            total_receitas: saldo?.total_receitas || 0,
-            total_despesas: saldo?.total_despesas || 0,
-            saldo_atual: saldo?.saldo_atual || 0,
+            ...inputRest,
+            saldo_anterior: (saldo as any)?.saldo_anterior || 0,
+            total_receitas: (saldo as any)?.total_receitas || 0,
+            total_despesas: (saldo as any)?.total_despesas || 0,
+            saldo_atual: (saldo as any)?.saldo_atual || 0,
           })
           .select()
           .single();
@@ -170,7 +171,7 @@ export function usePrestacaoContas() {
           updateData.publicado_em = new Date().toISOString();
         }
 
-        const { data, error: updateError } = await supabase
+        const { data, error: updateError } = await (supabase as any)
           .from('prestacao_contas')
           .update(updateData)
           .eq('id', id)
@@ -193,7 +194,7 @@ export function usePrestacaoContas() {
     async (condominioId: string, mesReferencia: string): Promise<RelatorioMensal | null> => {
       try {
         // Calcular saldo (use calcular_saldo_periodo instead of _otimizado version)
-        const { data: saldoData } = await supabase.rpc('calcular_saldo_periodo', {
+        const { data: saldoData } = await (supabase as any).rpc('calcular_saldo_periodo', {
           p_condominio_id: condominioId,
           p_mes_referencia: mesReferencia,
         });
@@ -203,7 +204,7 @@ export function usePrestacaoContas() {
         mesFim.setMonth(mesFim.getMonth() + 1);
 
         // Buscar lançamentos
-        const { data: lancamentos } = await supabase
+        const { data: lancamentos } = await (supabase as any)
           .from('lancamentos_financeiros')
           .select(`valor, tipo, categoria:categoria_id (nome)`)
           .eq('condominio_id', condominioId)
@@ -223,7 +224,7 @@ export function usePrestacaoContas() {
 
         return {
           mes_referencia: mesReferencia,
-          saldo_anterior: saldo?.saldo_anterior || 0,
+          saldo_anterior: (saldo as any)?.saldo_anterior || 0,
           receitas: Object.entries(receitas).map(([categoria, valor]) => ({
             categoria,
             valor,
@@ -232,10 +233,10 @@ export function usePrestacaoContas() {
             categoria,
             valor,
           })) as any,
-          total_receitas: saldo?.total_receitas || 0,
-          total_despesas: saldo?.total_despesas || 0,
-          saldo_final: saldo?.saldo_atual || 0,
-        };
+          total_receitas: (saldo as any)?.total_receitas || 0,
+          total_despesas: (saldo as any)?.total_despesas || 0,
+          saldo_final: (saldo as any)?.saldo_atual || 0,
+        } as any as RelatorioMensal;
       } catch (err) {
         setError(getErrorMessage(err));
         return null;

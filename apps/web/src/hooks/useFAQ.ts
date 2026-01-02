@@ -34,7 +34,7 @@ export function useFAQ() {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        let query = supabase
+        let query = (supabase as any)
           .from('faq')
           .select('*', { count: 'exact' })
           .eq('condominio_id', condominioId)
@@ -45,6 +45,8 @@ export function useFAQ() {
 
         if (filters?.categoria) query = query.eq('categoria', filters.categoria);
         if (filters?.destaque !== undefined) query = query.eq('destaque', filters.destaque);
+        const tags = (filters as any)?.tags;
+        if (tags && tags.length > 0) query = query.overlaps('tags', tags);
         if (filters?.busca) {
           const buscaSanitizada = sanitizeSearchQuery(filters.busca);
           if (buscaSanitizada)
@@ -52,8 +54,6 @@ export function useFAQ() {
               `pergunta.ilike.%${buscaSanitizada}%,resposta.ilike.%${buscaSanitizada}%`
             );
         }
-        if (filters?.tags && filters.tags.length > 0) query = query.overlaps('tags', filters.tags);
-
         const { data, error: fetchError, count } = await query;
         if (fetchError) throw fetchError;
 
@@ -87,14 +87,14 @@ export function useFAQ() {
   const getFAQ = useCallback(
     async (id: string): Promise<FAQ | null> => {
       try {
-        const { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await (supabase as any)
           .from('faq')
           .select('*')
           .eq('id', id)
           .single();
         if (fetchError) throw fetchError;
         // Incrementar visualização
-        await supabase
+        await (supabase as any)
           .from('faq')
           .update({ visualizacoes: data.visualizacoes + 1 })
           .eq('id', id);
@@ -111,9 +111,10 @@ export function useFAQ() {
     async (condominioId: string, criadoPor: string, input: CreateFAQInput): Promise<FAQ | null> => {
       setLoading(true);
       try {
-        const { data, error: insertError } = await supabase
+        const { condominio_id: _c, criado_por: _p, ...inputRest } = input as any;
+        const { data, error: insertError } = await (supabase as any)
           .from('faq')
-          .insert({ condominio_id: condominioId, criado_por: criadoPor, ...input })
+          .insert({ condominio_id: condominioId, criado_por: criadoPor, ...inputRest })
           .select()
           .single();
         if (insertError) throw insertError;
@@ -134,7 +135,7 @@ export function useFAQ() {
       setLoading(true);
       try {
         const { id, ...updates } = input;
-        const { data, error: updateError } = await supabase
+        const { data, error: updateError } = await (supabase as any)
           .from('faq')
           .update(updates)
           .eq('id', id)
@@ -157,7 +158,7 @@ export function useFAQ() {
     async (id: string): Promise<boolean> => {
       setLoading(true);
       try {
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await (supabase as any)
           .from('faq')
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', id);
@@ -177,7 +178,7 @@ export function useFAQ() {
   const voteUseful = useCallback(
     async (faqId: string, useful: boolean): Promise<boolean> => {
       try {
-        await supabase.rpc('vote_faq_useful', { p_faq_id: faqId, p_util: useful });
+        await (supabase as any).rpc('vote_faq_useful', { p_faq_id: faqId, p_util: useful });
         // Atualizar localmente
         setFaqs((prev) =>
           prev.map((f) => {
@@ -204,7 +205,7 @@ export function useFAQ() {
       setLoading(true);
       try {
         const updates = orderedIds.map((id, index) =>
-          supabase.from('faq').update({ ordem: index }).eq('id', id)
+          (supabase as any).from('faq').update({ ordem: index }).eq('id', id)
         );
         await Promise.all(updates);
         // Reordenar localmente
@@ -227,7 +228,7 @@ export function useFAQ() {
   const getCategorias = useCallback(
     async (condominioId: string): Promise<string[]> => {
       try {
-        const { data } = await supabase
+        const { data } = await (supabase as any)
           .from('faq')
           .select('categoria')
           .eq('condominio_id', condominioId)

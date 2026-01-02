@@ -151,9 +151,10 @@ export function useFinanceiro() {
     ): Promise<LancamentoFinanceiro | null> => {
       setLoading(true);
       try {
-        const { data, error: insertError } = await supabase
+        const { condominio_id: _c, criado_por: _p, ...inputRest } = input as any;
+        const { data, error: insertError } = await (supabase as any)
           .from('lancamentos_financeiros')
-          .insert({ condominio_id: condominioId, criado_por: criadoPor, ...input })
+          .insert({ condominio_id: condominioId, criado_por: criadoPor, ...inputRest })
           .select()
           .single();
         if (insertError) throw insertError;
@@ -176,7 +177,7 @@ export function useFinanceiro() {
       setLoading(true);
       try {
         const { id, ...updates } = input;
-        const { data, error: updateError } = await supabase
+        const { data, error: updateError } = await (supabase as any)
           .from('lancamentos_financeiros')
           .update(updates)
           .eq('id', id)
@@ -201,7 +202,7 @@ export function useFinanceiro() {
     async (id: string): Promise<boolean> => {
       setLoading(true);
       try {
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await (supabase as any)
           .from('lancamentos_financeiros')
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', id);
@@ -223,7 +224,7 @@ export function useFinanceiro() {
   const confirmarLancamento = useCallback(
     async (id: string, aprovadoPor: string): Promise<boolean> => {
       try {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await (supabase as any)
           .from('lancamentos_financeiros')
           .update({
             status: 'confirmado',
@@ -252,12 +253,12 @@ export function useFinanceiro() {
   const calcularSaldoPeriodo = useCallback(
     async (condominioId: string, mesReferencia: string): Promise<SaldoPeriodo | null> => {
       try {
-        const { data, error: rpcError } = await supabase.rpc('calcular_saldo_periodo', {
+        const { data, error: rpcError } = await (supabase as any).rpc('calcular_saldo_periodo', {
           p_condominio_id: condominioId,
           p_mes_referencia: mesReferencia,
         });
         if (rpcError) throw rpcError;
-        return data?.[0] || null;
+        return (data?.[0] as any as SaldoPeriodo) || null;
       } catch (err: unknown) {
         const errorMessage =
           err instanceof Error ? err.message : 'Erro desconhecido ao calcular saldo do período';
@@ -281,7 +282,7 @@ export function useFinanceiro() {
         const contas = await fetchContas(condominioId);
 
         // Buscar últimos lançamentos
-        const { data: ultimos } = await supabase
+        const { data: ultimos } = await (supabase as any)
           .from('lancamentos_financeiros')
           .select(`*, categoria:categoria_id (codigo, nome)`)
           .eq('condominio_id', condominioId)
@@ -291,7 +292,7 @@ export function useFinanceiro() {
           .limit(5);
 
         // Buscar inadimplência
-        const { data: taxas } = await supabase
+        const { data: taxas } = await (supabase as any)
           .from('taxas_unidades')
           .select('status, valor_final')
           .eq('condominio_id', condominioId)
@@ -299,14 +300,14 @@ export function useFinanceiro() {
 
         const inadimplentes =
           taxas?.filter((t: { status: string }) => t.status === 'atrasado') || [];
-        const { count: totalUnidades } = await supabase
+        const { count: totalUnidades } = await (supabase as any)
           .from('unidades_habitacionais')
           .select('*', { count: 'exact', head: true })
           .eq('condominio_id', condominioId)
           .eq('ativo', true);
 
         // Despesas por categoria
-        const { data: despesasCat } = await supabase
+        const { data: despesasCat } = await (supabase as any)
           .from('lancamentos_financeiros')
           .select(`valor, categoria:categoria_id (nome)`)
           .eq('condominio_id', condominioId)
@@ -331,10 +332,13 @@ export function useFinanceiro() {
 
         const totalDespesas = Object.values(despesasPorCategoria).reduce((a, b) => a + b, 0);
 
+        const saldoData = saldo as any;
         return {
-          saldo_atual: saldo?.saldo_atual || contas.reduce((sum, c) => sum + c.saldo_atual, 0),
-          receitas_mes: saldo?.total_receitas || 0,
-          despesas_mes: saldo?.total_despesas || 0,
+          saldo_atual:
+            (saldoData?.saldo_atual as number | undefined) ||
+            contas.reduce((sum, c) => sum + c.saldo_atual, 0),
+          receitas_mes: (saldoData?.total_receitas as number | undefined) || 0,
+          despesas_mes: (saldoData?.total_despesas as number | undefined) || 0,
           inadimplencia: {
             total_unidades: totalUnidades || 0,
             unidades_inadimplentes: inadimplentes.length,

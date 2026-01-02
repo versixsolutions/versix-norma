@@ -48,12 +48,16 @@ export function useChamados(options?: {
     autor?: { nome: string; avatar_url: string | null } | null;
   }
 
-  const toChamado = (data: ChamadoQueryResult): ChamadoComJoins => ({
-    ...data,
-    anexos: parseAnexos(data.anexos),
-    solicitante: data.solicitante ?? undefined,
-    atendente: data.atendente ?? undefined,
-  });
+  const toChamado = useCallback(
+    (data: any): ChamadoComJoins =>
+      ({
+        ...(data as any),
+        anexos: (parseAnexos(data?.anexos) as any) || [],
+        solicitante: (data as ChamadoQueryResult)?.solicitante ?? undefined,
+        atendente: (data as ChamadoQueryResult)?.atendente ?? undefined,
+      }) as ChamadoComJoins,
+    []
+  );
 
   const fetchChamados = useCallback(
     async (
@@ -68,7 +72,7 @@ export function useChamados(options?: {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        let query = supabase
+        let query = (supabase as any)
           .from('chamados')
           .select(
             `*, solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email), atendente:usuarios!chamados_atendente_id_fkey (nome, avatar_url)`,
@@ -142,7 +146,7 @@ export function useChamados(options?: {
   const getChamado = useCallback(
     async (id: string): Promise<ChamadoComJoins | null> => {
       try {
-        const { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await (supabase as any)
           .from('chamados')
           .select(
             `*, solicitante:usuarios!chamados_solicitante_id_fkey (nome, avatar_url, email), atendente:usuarios!chamados_atendente_id_fkey (nome, avatar_url)`
@@ -152,24 +156,24 @@ export function useChamados(options?: {
         if (fetchError) throw fetchError;
 
         // Buscar mensagens
-        const { data: mensagens } = await supabase
+        const { data: mensagens } = await (supabase as any)
           .from('chamados_mensagens')
           .select(`*, autor:usuarios!chamados_mensagens_autor_id_fkey (nome, avatar_url)`)
           .eq('chamado_id', id)
           .order('created_at', { ascending: true });
 
-        const mensagensComAutor = (mensagens || []).map((msg: ChamadoMensagemQueryResult) => ({
+        const mensagensComAutor = ((mensagens as any[]) || []).map((msg: any) => ({
           ...msg,
-          anexos: parseAnexos(msg.anexos),
-          autor: msg.autor ?? undefined,
-        }));
+          anexos: (parseAnexos(msg?.anexos) as any) || [],
+          autor: (msg as ChamadoMensagemQueryResult).autor ?? undefined,
+        })) as any[];
 
         return {
           ...(data as ChamadoRow),
-          anexos: parseAnexos(data.anexos),
+          anexos: (parseAnexos((data as any)?.anexos) as any) || [],
           solicitante: (data as ChamadoQueryResult).solicitante ?? undefined,
           atendente: (data as ChamadoQueryResult).atendente ?? undefined,
-          mensagens: mensagensComAutor,
+          mensagens: mensagensComAutor as any,
           total_mensagens: mensagens?.length || 0,
         };
       } catch (err) {
@@ -188,8 +192,9 @@ export function useChamados(options?: {
     ): Promise<ChamadoComJoins | null> => {
       setLoading(true);
       try {
-        const insertData = { ...input, anexos: serializeAnexos(input.anexos) };
-        const { data, error: insertError } = await supabase
+        const { condominio_id: _c, solicitante_id: _s, ...inputRest } = input as any;
+        const insertData = { ...inputRest, anexos: serializeAnexos(inputRest.anexos) };
+        const { data, error: insertError } = await (supabase as any)
           .from('chamados')
           .insert({ condominio_id: condominioId, solicitante_id: solicitanteId, ...insertData })
           .select()
@@ -216,7 +221,7 @@ export function useChamados(options?: {
         type ChamadoUpdate = Database['public']['Tables']['chamados']['Update'];
         const updateData: Partial<ChamadoUpdate> = { ...updates };
         if (updates.status === 'resolvido') updateData.resolvido_em = new Date().toISOString();
-        const { data, error: updateError } = await supabase
+        const { data, error: updateError } = await (supabase as any)
           .from('chamados')
           .update(updateData)
           .eq('id', id)
@@ -240,7 +245,7 @@ export function useChamados(options?: {
     async (id: string): Promise<boolean> => {
       setLoading(true);
       try {
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await (supabase as any)
           .from('chamados')
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', id);
@@ -263,8 +268,9 @@ export function useChamados(options?: {
       input: CreateMensagemInput
     ): Promise<ChamadoMensagemQueryResult | null> => {
       try {
-        const mensagemData = { ...input, anexos: serializeAnexos(input.anexos) };
-        const { data, error: insertError } = await supabase
+        const { autor_id: _ignoredAutor, ...mensagemInput } = input as any;
+        const mensagemData = { ...mensagemInput, anexos: serializeAnexos(mensagemInput.anexos) };
+        const { data, error: insertError } = await (supabase as any)
           .from('chamados_mensagens')
           .insert({ autor_id: autorId, ...mensagemData })
           .select(`*, autor:usuarios!chamados_mensagens_autor_id_fkey (nome, avatar_url)`)
@@ -305,12 +311,13 @@ export function useChamados(options?: {
   const getStats = useCallback(
     async (condominioId: string): Promise<ChamadoStats | null> => {
       try {
-        const { data } = await supabase
+        const { data } = await (supabase as any)
           .from('chamados')
           .select('status, categoria, avaliacao_nota, created_at, resolvido_em')
           .eq('condominio_id', condominioId)
           .is('deleted_at', null);
         if (!data) return null;
+        const items = data as any[] as ChamadoComJoins[];
         type EstatisticasChamados = {
           por_categoria: Record<string, number>;
           avaliacao_media: number | null;
@@ -321,25 +328,26 @@ export function useChamados(options?: {
           resolvidos: number;
         };
         const stats: EstatisticasChamados = {
-          total: data.length,
-          novos: data.filter((c: ChamadoComJoins) => c.status === 'novo').length,
-          em_atendimento: data.filter((c: ChamadoComJoins) => c.status === 'em_atendimento').length,
-          resolvidos: data.filter((c: ChamadoComJoins) =>
+          total: items.length,
+          novos: items.filter((c: ChamadoComJoins) => c.status === 'novo').length,
+          em_atendimento: items.filter((c: ChamadoComJoins) => c.status === 'em_atendimento')
+            .length,
+          resolvidos: items.filter((c: ChamadoComJoins) =>
             ['resolvido', 'fechado'].includes(c.status)
           ).length,
           por_categoria: {},
           avaliacao_media: null,
           tempo_medio_resolucao_horas: null,
         };
-        data.forEach((c: ChamadoComJoins) => {
+        items.forEach((c: ChamadoComJoins) => {
           stats.por_categoria[c.categoria] = (stats.por_categoria[c.categoria] || 0) + 1;
         });
-        const comNota = data.filter((c: ChamadoComJoins) => c.avaliacao_nota);
+        const comNota = items.filter((c: ChamadoComJoins) => c.avaliacao_nota);
         if (comNota.length > 0)
           stats.avaliacao_media =
             comNota.reduce((a: number, c: ChamadoComJoins) => a + c.avaliacao_nota!, 0) /
             comNota.length;
-        const resolvidos = data.filter((c: ChamadoComJoins) => c.resolvido_em);
+        const resolvidos = items.filter((c: ChamadoComJoins) => c.resolvido_em);
         if (resolvidos.length > 0) {
           const tempos = resolvidos.map(
             (c: ChamadoComJoins) =>

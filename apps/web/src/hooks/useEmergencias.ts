@@ -3,6 +3,7 @@
 import { getSupabaseClient } from '@/lib/supabase';
 import type {
   DispararEmergenciaInput,
+  EmergenciaLog,
   EmergenciaLogComDetalhes,
   TipoEmergencia,
 } from '@versix/shared';

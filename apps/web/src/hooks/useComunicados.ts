@@ -251,7 +251,7 @@ export function useComunicados(_options?: {
     async (id: string): Promise<boolean> => {
       setLoading(true);
       try {
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await (supabase as any)
           .from('comunicados')
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', id);

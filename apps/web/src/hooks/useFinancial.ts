@@ -10,12 +10,7 @@
  */
 
 import { getSupabaseClient } from '@/lib/supabase';
-import type {
-  ContaBancaria,
-  LancamentoFinanceiro,
-  LancamentoStatus,
-  LancamentoTipo,
-} from '@versix/shared';
+import type { LancamentoFinanceiro, LancamentoStatus, LancamentoTipo } from '@versix/shared';
 import { useCallback, useEffect, useState } from 'react';
 
 // ============================================
@@ -162,7 +157,7 @@ export function useFinancial({
   const fetchContas = useCallback(async () => {
     if (!condominioId) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('contas_bancarias')
       .select('id, nome_exibicao, banco_nome, saldo_atual, principal')
       .eq('condominio_id', condominioId)
@@ -171,7 +166,7 @@ export function useFinancial({
 
     if (!error && data) {
       setContas(
-        data.map((c: ContaBancaria) => ({
+        ((data as any[]) || []).map((c: any) => ({
           id: c.id,
           nome: c.nome_exibicao,
           banco: c.banco_nome,
@@ -185,7 +180,7 @@ export function useFinancial({
   const fetchLancamentos = useCallback(async () => {
     if (!condominioId) return;
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('lancamentos_financeiros')
       .select(
         `

@@ -19,17 +19,18 @@ type PresencaRow = Database['public']['Tables']['assembleia_presencas']['Row'];
 interface AssembleiaQueryResult extends AssembleiaRow {
   convocador?: { nome: string } | null;
   secretario?: { nome: string } | null;
-  pautas?: PautaRow[];
-  presencas?: PresencaRow[];
+  pautas?: PautaRow[] | null;
+  presencas?: PresencaRow[] | null;
 }
 
-const toAssembleia = (data: AssembleiaQueryResult): AssembleiaComJoins => ({
-  ...data,
-  convocador: data.convocador,
-  secretario: data.secretario,
-  pautas: data.pautas || [],
-  presencas: data.presencas || [],
-});
+const toAssembleia = (data: any): AssembleiaComJoins =>
+  ({
+    ...data,
+    convocador: (data?.convocador as any) || undefined,
+    secretario: (data?.secretario as any) || undefined,
+    pautas: ((data?.pautas as any[]) || []) as any,
+    presencas: ((data?.presencas as any[]) || []) as any,
+  }) as AssembleiaComJoins;
 
 /**
  * Hook para gerenciamento de assembleias condominiais
@@ -46,7 +47,7 @@ export function useAssembleias() {
     async (condominioId: string, filters?: AssembleiaFilters): Promise<AssembleiaComJoins[]> => {
       setLoading(true);
       try {
-        let query = supabase
+        let query = (supabase as any)
           .from('assembleias')
           .select(
             '*, convocador:usuarios!assembleias_convocador_id_fkey(nome), secretario:usuarios!assembleias_secretario_id_fkey(nome), pautas:assembleia_pautas(*)'
@@ -78,7 +79,7 @@ export function useAssembleias() {
   const getAssembleia = useCallback(
     async (id: string): Promise<AssembleiaComJoins | null> => {
       try {
-        const { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await (supabase as any)
           .from('assembleias')
           .select(
             `*, convocador:usuarios!assembleias_convocador_id_fkey(nome), secretario:usuarios!assembleias_secretario_id_fkey(nome), pautas:assembleia_pautas(*, opcoes:assembleia_pauta_opcoes(*)), presencas:assembleia_presencas(*, usuario:usuarios!assembleia_presencas_usuario_id_fkey(nome, avatar_url), unidades_habitacionais:unidades_habitacionais!assembleia_presencas_unidade_id_fkey(identificador, bloco:blocos!unidades_habitacionais_bloco_id_fkey(nome)))`
@@ -88,14 +89,14 @@ export function useAssembleias() {
         if (fetchError) throw fetchError;
 
         // Buscar quorum
-        const { data: quorum } = await supabase
+        const { data: quorum } = await (supabase as any)
           .from('v_assembleia_quorum')
           .select('*')
           .eq('assembleia_id', id)
           .single();
 
         return {
-          ...toAssembleia(data as AssembleiaQueryResult),
+          ...toAssembleia(data as any),
           quorum,
         } as unknown as AssembleiaComJoins;
       } catch (err: unknown) {
@@ -115,9 +116,10 @@ export function useAssembleias() {
     ): Promise<AssembleiaComJoins | null> => {
       setLoading(true);
       try {
-        const { data, error: insertError } = await supabase
+        const { condominio_id: _ignored, ...safeInput } = input as any;
+        const { data, error: insertError } = await (supabase as any)
           .from('assembleias')
-          .insert({ condominio_id: condominioId, criado_por: criadoPor, ...input })
+          .insert({ condominio_id: condominioId, criado_por: criadoPor, ...safeInput })
           .select()
           .single();
         if (insertError) throw insertError;
@@ -140,7 +142,7 @@ export function useAssembleias() {
       setLoading(true);
       try {
         const { id, ...updates } = input;
-        const { data, error: updateError } = await supabase
+        const { data, error: updateError } = await (supabase as any)
           .from('assembleias')
           .update(updates)
           .eq('id', id)
@@ -164,7 +166,10 @@ export function useAssembleias() {
   const deleteAssembleia = useCallback(
     async (id: string): Promise<boolean> => {
       try {
-        const { error: deleteError } = await supabase.from('assembleias').delete().eq('id', id);
+        const { error: deleteError } = await (supabase as any)
+          .from('assembleias')
+          .delete()
+          .eq('id', id);
         if (deleteError) throw deleteError;
         setAssembleias((prev) => prev.filter((a) => a.id !== id));
         return true;
@@ -181,7 +186,7 @@ export function useAssembleias() {
   const convocarAssembleia = useCallback(
     async (id: string): Promise<boolean> => {
       try {
-        const { data, error: rpcError } = await supabase.rpc('convocar_assembleia' as any, {
+        const { data, error: rpcError } = await (supabase as any).rpc('convocar_assembleia', {
           p_assembleia_id: id,
         });
         if (rpcError) throw rpcError;
@@ -200,7 +205,7 @@ export function useAssembleias() {
   const iniciarAssembleia = useCallback(
     async (id: string): Promise<boolean> => {
       try {
-        const { data, error: rpcError } = await supabase.rpc('iniciar_assembleia' as any, {
+        const { data, error: rpcError } = await (supabase as any).rpc('iniciar_assembleia', {
           p_assembleia_id: id,
         });
         if (rpcError) throw rpcError;
@@ -219,7 +224,7 @@ export function useAssembleias() {
   const encerrarAssembleia = useCallback(
     async (id: string): Promise<boolean> => {
       try {
-        const { data, error: rpcError } = await supabase.rpc('encerrar_assembleia', {
+        const { data, error: rpcError } = await (supabase as any).rpc('encerrar_assembleia', {
           p_assembleia_id: id,
         });
         if (rpcError) throw rpcError;
@@ -239,9 +244,10 @@ export function useAssembleias() {
   const addPauta = useCallback(
     async (assembleiaId: string, input: CreatePautaInput): Promise<PautaRow | null> => {
       try {
-        const { data, error: insertError } = await supabase
+        const { assembleia_id: _pautaAsmId, ...pautaInput } = input as any;
+        const { data, error: insertError } = await (supabase as any)
           .from('assembleia_pautas')
-          .insert({ assembleia_id: assembleiaId, ...input })
+          .insert({ assembleia_id: assembleiaId, ...pautaInput })
           .select()
           .single();
         if (insertError) throw insertError;

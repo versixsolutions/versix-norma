@@ -398,6 +398,65 @@ cd apps/web && npx tsc --noEmit 2>&1 | grep -E "(null.*undefined|undefined.*null
 - [ ] Helpers de null/undefined implementados
 - [ ] Erros TypeScript < 30
 - [ ] Build passa completamente
+
+* +---
+* +## 🎯 Sprint 3 (Semanas 5-6): Estabilidade e Cobertura
+* +### Objetivo: Zerar erros críticos restantes e chegar a 50%+ de cobertura
+* +**Data:** 30/01/2026 - 12/02/2026 +**Responsável:** QA Lead + Frontend Sênior +**Prioridade:** 🔴 ALTA
+* +### 📋 Tarefas
+* +#### 3.1 Limpeza final de tipos e Lint [8h]
+* +- Eliminar erros residuais (<30 -> <10) priorizando regressões de runtime.
+  +- Validar `any` temporários e converter para tipos seguros ou `unknown` com narrowing.
+  +- Rodar `pnpm lint` + `pnpm --filter web type-check` em CI gate.
+* +#### 3.2 Cobertura de testes críticos [12h]
+* +- Adicionar unit/integration em hooks sensíveis: `useChamados`, `usePrestacaoContas`, `useIntegracoes` (mocks Supabase).
+  +- Cobrir componentes-chave de fluxo de cobrança e comunicados com testes de render e ações principais.
+  +- Meta: 50%+ branches nos pacotes `apps/web/src/hooks` e `apps/web/src/components` mais críticos.
+* +#### 3.3 Observabilidade e degradação controlada [6h]
+* +- Garantir captura de erros no cliente (Sentry) com tags de condominio/usuário e feature flag ativa.
+  +- Adicionar fallback UI para rotas principais (comunicados, financeiro, integrações) e estados offline.
+  +- Validar logs de Web Vitals e alertas de performance >= P75.
+* +### 📊 Métricas Sprint 3
+* +| Métrica | Antes | Depois | Melhoria |
+  +| ----------------------- | ----- | ------ | ----------------- |
+  +| Erros TypeScript | ~30 | < 10 | -20 erros (-66%) |
+  +| Cobertura de Testes | ~5% | 50%+ | +45 p.p. |
+  +| Hooks com testes críticos | 0 | 5+ | +5 hooks |
+* +### ✅ Definition of Done
+* +- [ ] Erros TypeScript < 10
+  +- [ ] Cobertura global 50%+ e suites verdes em CI
+  +- [ ] Rotas críticas com fallback e captura de erros ativa
+  +- [ ] Alertas de performance configurados
+  +- [ ] Checklist de qualidade validado (QA + Eng)
+* +---
+* +## 🎯 Sprint 4 (Semanas 7-8): Hardening e Go-Live
+* +### Objetivo: Production Readiness 5.0/5.0 e rollout seguro
+* +**Data:** 13/02/2026 - 26/02/2026 +**Responsável:** Tech Lead + SRE +**Prioridade:** 🔴 CRÍTICA
+* +### 📋 Tarefas
+* +#### 4.1 Auditoria final e segurança [8h]
+* +- Revisar permissões Supabase/RLS e escopos de API keys regeneradas.
+  +- Executar `security-audit.sql` e corrigir findings.
+  +- Validar política de segredo/rotacionamento (webhooks, integrações API).
+* +#### 4.2 Confiabilidade e runbooks [8h]
+* +- Criar runbooks de incidentes para integrações, pagamentos e notificações.
+  +- Adicionar healthchecks e circuit breakers simples em chamadas externas.
+  +- Ensaiar rollback/feature flags para lançamentos críticos.
+* +#### 4.3 Cutover e monitoramento [6h]
+* +- Fazer canary/gradual rollout (10% -> 50% -> 100%) com métricas de erro/perf.
+  +- Ativar alertas de SLO e canais de on-call.
+  +- Validação final de lighthouse PWA + AA de acessibilidade.
+* +### 📊 Métricas Sprint 4
+* +| Métrica | Antes | Depois | Melhoria |
+  +| ----------------------- | ----- | ------ | ------------- |
+  +| Production Readiness | 4.8 | 5.0 | +0.2 |
+  +| SLO Erro (P99) | 0.8% | <0.3% | -0.5 p.p. |
+  +| Incidentes sem runbook | 5 | 0 | -5 |
+* +### ✅ Definition of Done
+* +- [ ] PRR 5.0/5.0 aprovado
+  +- [ ] Rollout concluído com SLOs dentro do alvo
+  +- [ ] Runbooks publicados e time on-call treinado
+  +- [ ] Auditoria de segurança sem findings críticos
+
 - [ ] Testes unitários para type-helpers
 - [ ] PR revisado e aprovado
 

@@ -159,7 +159,7 @@ export function useNormaChat({ condominioId, userId }: UseNormaChatOptions): Use
         }
 
         // Call Edge Function with streaming
-        const response = await fetch(`${supabase.supabaseUrl}/functions/v1/ask-norma`, {
+        const response = await fetch(`${(supabase as any).supabaseUrl}/functions/v1/ask-norma`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${session.access_token}`,

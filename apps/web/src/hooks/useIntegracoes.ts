@@ -12,18 +12,29 @@ import type {
 } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
+const toIntegracaoDashboard = (row: any): IntegracaoDashboard => ({
+  id: row.id ?? row.integracao_id ?? '',
+  nome: row.nome ?? '',
+  tipo: (row.tipo as IntegracaoDashboard['tipo']) ?? 'api',
+  status: row.status ?? 'ativa',
+  ultimo_uso: row.ultimo_uso ?? null,
+  total_requests: row.total_requests ?? 0,
+  total_erros: row.total_erros ?? 0,
+  eventos: row.eventos_webhook ?? row.eventos ?? [],
+  conector: row.conector ?? null,
+});
+
 export function useIntegracoes() {
   const supabase = getSupabaseClient();
   const [integracoes, setIntegracoes] = useState<IntegracaoDashboard[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Buscar integrações do condomínio
   const fetchIntegracoes = useCallback(
     async (condominioId: string, filters?: IntegracoesFilters): Promise<IntegracaoDashboard[]> => {
       setLoading(true);
       try {
-        let query = supabase
+        let query = (supabase as any)
           .from('v_integracoes_resumo')
           .select('*')
           .eq('condominio_id', condominioId);
@@ -32,8 +43,9 @@ export function useIntegracoes() {
 
         const { data, error: fetchError } = await query.order('created_at', { ascending: false });
         if (fetchError) throw fetchError;
-        setIntegracoes(data || []);
-        return data || [];
+        const mapped = ((data as any[]) || []).map(toIntegracaoDashboard);
+        setIntegracoes(mapped);
+        return mapped;
       } catch (err) {
         setError(getErrorMessage(err));
         return [];
@@ -44,17 +56,16 @@ export function useIntegracoes() {
     [supabase]
   );
 
-  // Buscar integração específica
   const getIntegracao = useCallback(
     async (id: string): Promise<Integracao | null> => {
       try {
-        const { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await (supabase as any)
           .from('integracoes')
           .select('*, webhook_config:webhooks_config(*), conector_config:conectores_config(*)')
           .eq('id', id)
           .single();
         if (fetchError) throw fetchError;
-        return data;
+        return data as Integracao;
       } catch (err) {
         setError(getErrorMessage(err));
         return null;
@@ -63,7 +74,6 @@ export function useIntegracoes() {
     [supabase]
   );
 
-  // Criar integração API
   const criarIntegracaoApi = useCallback(
     async (
       condominioId: string,
@@ -71,14 +81,14 @@ export function useIntegracoes() {
     ): Promise<{ id: string; api_key: string; secret_key: string } | null> => {
       setLoading(true);
       try {
-        const { data, error: rpcError } = await supabase.rpc('criar_integracao_api', {
+        const { data, error: rpcError } = await (supabase as any).rpc('criar_integracao_api', {
           p_condominio_id: condominioId,
           p_nome: input.nome,
           p_descricao: input.descricao || null,
           p_scopes: input.scopes || [],
         });
         if (rpcError) throw rpcError;
-        return data?.[0] || null;
+        return (data as any)?.[0] || null;
       } catch (err) {
         setError(getErrorMessage(err));
         return null;
@@ -89,7 +99,6 @@ export function useIntegracoes() {
     [supabase]
   );
 
-  // Criar webhook
   const criarWebhook = useCallback(
     async (
       condominioId: string,
@@ -97,7 +106,7 @@ export function useIntegracoes() {
     ): Promise<{ id: string; secret_key: string } | null> => {
       setLoading(true);
       try {
-        const { data, error: rpcError } = await supabase.rpc('criar_webhook', {
+        const { data, error: rpcError } = await (supabase as any).rpc('criar_webhook', {
           p_condominio_id: condominioId,
           p_nome: input.nome || '',
           p_url: input.url_destino || '',
@@ -105,7 +114,7 @@ export function useIntegracoes() {
           p_headers_custom: input.headers_custom || {},
         });
         if (rpcError) throw rpcError;
-        return data?.[0] || null;
+        return (data as any)?.[0] || null;
       } catch (err) {
         setError(getErrorMessage(err));
         return null;
@@ -116,11 +125,10 @@ export function useIntegracoes() {
     [supabase]
   );
 
-  // Atualizar status da integração
   const atualizarStatus = useCallback(
     async (id: string, status: 'ativa' | 'pausada' | 'desativada'): Promise<boolean> => {
       try {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await (supabase as any)
           .from('integracoes')
           .update({ status })
           .eq('id', id);
@@ -135,17 +143,16 @@ export function useIntegracoes() {
     [supabase]
   );
 
-  // Regenerar API key
   const regenerarApiKey = useCallback(
     async (id: string): Promise<string | null> => {
       try {
-        const { data: newKey } = await supabase.rpc('gerar_api_key');
-        const { error: updateError } = await supabase
+        const { data: newKey } = await (supabase as any).rpc('gerar_api_key');
+        const { error: updateError } = await (supabase as any)
           .from('integracoes')
           .update({ api_key: newKey })
           .eq('id', id);
         if (updateError) throw updateError;
-        return newKey;
+        return newKey as string | null;
       } catch (err) {
         setError(getErrorMessage(err));
         return null;
@@ -154,11 +161,13 @@ export function useIntegracoes() {
     [supabase]
   );
 
-  // Deletar integração
   const deletarIntegracao = useCallback(
     async (id: string): Promise<boolean> => {
       try {
-        const { error: deleteError } = await supabase.from('integracoes').delete().eq('id', id);
+        const { error: deleteError } = await (supabase as any)
+          .from('integracoes')
+          .delete()
+          .eq('id', id);
         if (deleteError) throw deleteError;
         setIntegracoes((prev) => prev.filter((i) => i.id !== id));
         return true;
