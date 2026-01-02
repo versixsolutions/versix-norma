@@ -3,7 +3,11 @@
 import { DashboardFinanceiroCards } from '@/components/financeiro/DashboardFinanceiroCards';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useFinanceiro } from '@/hooks/useFinanceiro';
-import type { CategoriaFinanceira, ContaBancaria, DashboardFinanceiro } from '@versix/shared';
+import type {
+  CategoriaFinanceiraComFilhos,
+  ContaBancaria,
+  DashboardFinanceiro,
+} from '@versix/shared';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -13,7 +17,7 @@ export default function FinanceiroDashboardPage() {
   const { loading, getDashboard, createLancamento, fetchCategorias, fetchContas } = useFinanceiro();
   const [dashboard, setDashboard] = useState<DashboardFinanceiro | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [categorias, setCategorias] = useState<CategoriaFinanceira[]>([]);
+  const [categorias, setCategorias] = useState<CategoriaFinanceiraComFilhos[]>([]);
   const [contas, setContas] = useState<ContaBancaria[]>([]);
   const [form, setForm] = useState({
     tipo: 'despesa',
@@ -65,11 +69,16 @@ export default function FinanceiroDashboardPage() {
     }
 
     const result = await createLancamento(condominioId, profile.id, {
-      ...form,
+      condominio_id: condominioId,
+      data_lancamento: new Date().toISOString(),
       tipo: form.tipo as 'receita' | 'despesa',
       valor: parseFloat(form.valor),
       status: form.status as 'pendente' | 'confirmado',
+      categoria_id: form.categoria_id || undefined,
       conta_bancaria_id: form.conta_bancaria_id || undefined,
+      data_competencia: form.data_competencia,
+      descricao: form.descricao,
+      fornecedor: form.fornecedor || undefined,
     });
 
     if (result) {

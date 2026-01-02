@@ -311,13 +311,15 @@ export interface ChamadoMensagemComJoins extends ChamadoMensagem {
   autor?: Pick<Usuario, 'nome' | 'avatar_url'>;
 }
 
-export interface ComunicadoComJoins extends Comunicado {
+export interface ComunicadoComJoins extends Omit<Comunicado, 'anexos'> {
+  anexos: Anexo[] | null;
   autor?: Pick<Usuario, 'nome' | 'avatar_url' | 'email'>;
   lido?: boolean;
   total_leituras?: number;
 }
 
-export interface OcorrenciaComJoins extends Ocorrencia {
+export interface OcorrenciaComJoins extends Omit<Ocorrencia, 'anexos'> {
+  anexos: Anexo[] | null;
   reportado_por_info?: Pick<Usuario, 'nome' | 'avatar_url'>;
   responsavel?: Pick<Usuario, 'nome' | 'avatar_url'>;
   resolvido_por_info?: Pick<Usuario, 'nome'>;
@@ -342,13 +344,13 @@ export interface ContaBancariaComHistorico extends ContaBancaria {
 
 export interface IntegracaoDashboard {
   id: string;
-  integracao: Integracao;
-  stats: {
-    total_requests: number;
-    success_rate: number;
-    last_request: string | null;
-  };
-  eventos?: WebhookEvento[];
+  nome: string;
+  tipo: 'api' | 'webhook' | 'conector';
+  status: IntegracaoStatus | string;
+  ultimo_uso?: string | null;
+  total_requests: number;
+  total_erros: number;
+  eventos?: WebhookEvento[] | WebhookEvento[][];
   conector?: Conector | null;
 }
 
@@ -528,22 +530,18 @@ export interface OcorrenciaStats {
 }
 
 export interface DashboardFinanceiro {
-  saldo_total: number;
+  saldo_atual: number;
   receitas_mes: number;
   despesas_mes: number;
-  inadimplencia_percentual: number;
-  saldo_atual?: number;
-  inadimplencia?: number;
-  nome_exibicao?: string;
-  banco_nome?: string;
-  agencia?: string;
-  contas: {
-    id: string;
-    nome: string;
-    banco: string;
-    saldo_atual: number;
-    principal: boolean;
-  }[];
+  inadimplencia: {
+    total_unidades: number;
+    unidades_inadimplentes: number;
+    valor_em_aberto: number;
+    percentual: number;
+  };
+  contas: ContaBancaria[];
+  ultimos_lancamentos: LancamentoFinanceiro[];
+  despesas_por_categoria: { categoria: string; valor: number; percentual: number }[];
 }
 
 export interface AssembleiaStats {
@@ -672,6 +670,8 @@ export interface ApiLogsFilters extends BaseFilters {
   integracao_id?: string;
   status_code?: number;
   metodo?: string;
+  method?: string;
+  erro?: boolean;
   data_inicio?: string;
   data_fim?: string;
 }
@@ -754,11 +754,16 @@ export interface IntegracaoFormData {
 
 export interface ComunicadoFormData {
   titulo?: string;
+  conteudo?: string;
   corpo?: string;
+  resumo?: string;
   categoria?: ComunicadoCategoria;
   prioridade?: PrioridadeComunicado;
   fixado?: boolean;
   destaque?: boolean;
+  publicar_em?: string;
+  expirar_em?: string;
+  status?: ComunicadoStatus;
   anexos?: Anexo[];
   tags?: string[];
 }

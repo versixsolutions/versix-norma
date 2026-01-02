@@ -9,6 +9,7 @@ import type {
   AlertasResumo,
   DashboardObservabilidade,
   FiltroAlertas,
+  MetricasGlobais,
   MetricasPerformance,
   MetricasUso,
   ResolverAlertaInput,
@@ -37,7 +38,7 @@ export function useObservabilidadeDashboard() {
       ]);
 
       return {
-        status: statusRes.data as SystemStatus,
+        status: normalizeSystemStatus(statusRes.data),
         alertas: alertasRes,
         metricas: metricasRes,
         performance: performanceRes,
@@ -61,7 +62,7 @@ export function useSystemStatus() {
         .single();
 
       if (error) throw error;
-      return data as SystemStatus;
+      return normalizeSystemStatus(data);
     },
     refetchInterval: 15000,
   });
@@ -234,7 +235,7 @@ export function useResolverAlerta() {
       const { data, error } = await getSupabaseClient().rpc('resolver_alerta', {
         p_alerta_id: alerta_id,
         p_resolvido_por: user.id,
-        p_notas: notas || null,
+        p_notas: notas ?? undefined,
       });
 
       if (error) throw error;
@@ -324,34 +325,69 @@ async function fetchMetricasGlobais() {
       .gte('periodo', semanaAtras.toISOString().split('T')[0]),
   ]);
 
-  // Calcular tendência
-  const tendencia = (semanaRes.data || []).reduce(
-    (acc: { data: string; metrica: string; valor: number }[], m: MetricasUso) => {
+  const semanaData = (semanaRes.data as MetricasUso[]) || [];
+
+  // Calcular tendência com dados de uso
+  const tendencia = semanaData.reduce<{ data: string; metrica: string; valor: number }[]>(
+    (acc, m) => {
       acc.push(
         { data: m.periodo, metrica: 'usuarios', valor: m.usuarios_ativos },
         { data: m.periodo, metrica: 'requests', valor: m.sessoes_totais }
       );
       return acc;
     },
-    [] as { data: string; metrica: string; valor: number }[]
+    []
+  );
+
+  const semanaAgg = semanaData.reduce(
+    (acc, m) => ({
+      total_condominios_ativos: acc.total_condominios_ativos + 1,
+      total_usuarios_ativos: acc.total_usuarios_ativos + (m.usuarios_ativos || 0),
+      total_requisicoes: acc.total_requisicoes + (m.sessoes_totais || 0),
+      total_erros: acc.total_erros, // não há campo de erro em MetricasUso
+      custo_total_centavos: acc.custo_total_centavos + (m.custo_total_centavos || 0),
+    }),
+    {
+      total_condominios_ativos: 0,
+      total_usuarios_ativos: 0,
+      total_requisicoes: 0,
+      total_erros: 0,
+      custo_total_centavos: 0,
+    }
   );
 
   return {
-    hoje: hojeRes.data || {
-      total_condominios_ativos: 0,
-      total_usuarios_ativos: 0,
-      total_requisicoes: 0,
-      total_erros: 0,
-      custo_total_centavos: 0,
-    },
-    semana: {
-      total_condominios_ativos: 0,
-      total_usuarios_ativos: 0,
-      total_requisicoes: 0,
-      total_erros: 0,
-      custo_total_centavos: 0,
-    },
+    hoje: normalizeMetricasGlobais(hojeRes.data as Partial<MetricasGlobais> | null),
+    semana: semanaAgg,
     tendencia,
+  };
+}
+
+function normalizeSystemStatus(data: any): SystemStatus {
+  return {
+    status_geral: (data?.status_geral as SystemStatus['status_geral']) ?? 'healthy',
+    taxa_erro_1h: data?.taxa_erro_1h ?? 0,
+    alertas_criticos: data?.alertas_criticos ?? 0,
+    endpoints: Array.isArray(data?.endpoints)
+      ? (data.endpoints as any[]).map((e) => ({
+          nome: e?.nome ?? 'endpoint',
+          status: (e?.status as any) ?? 'ok',
+          latencia: e?.latencia ?? null,
+          critico: Boolean(e?.critico),
+        }))
+      : [],
+  };
+}
+
+function normalizeMetricasGlobais(
+  row: Partial<MetricasGlobais> | null | undefined
+): MetricasGlobais {
+  return {
+    total_condominios_ativos: row?.total_condominios_ativos ?? 0,
+    total_usuarios_ativos: row?.total_usuarios_ativos ?? 0,
+    total_requisicoes: row?.total_requisicoes ?? 0,
+    total_erros: row?.total_erros ?? 0,
+    custo_total_centavos: row?.custo_total_centavos ?? 0,
   };
 }
 

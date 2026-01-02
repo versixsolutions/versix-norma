@@ -151,13 +151,14 @@ export default function SindicoComunicacaoPage() {
                     <label className="text-sm font-medium">Tipo</label>
                     <select
                       value={form.tipo}
-                      onChange={(e) => setForm({ ...form, tipo: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, tipo: e.target.value as NotificacaoFormData['tipo'] })
+                      }
                       className="mt-1 w-full rounded-xl border-none bg-gray-100 px-4 py-3 dark:bg-gray-800"
                     >
                       <option value="comunicado">Comunicado</option>
                       <option value="cobranca">Cobrança</option>
                       <option value="assembleia">Assembleia</option>
-                      <option value="manutencao">Manutenção</option>
                       <option value="aviso">Aviso</option>
                     </select>
                   </div>
@@ -253,46 +254,49 @@ export default function SindicoComunicacaoPage() {
                 <p className="text-gray-500">Nenhuma notificação enviada ainda</p>
               ) : (
                 <div className="grid gap-4">
-                  {dashboard.map((n) => (
-                    <div
-                      key={n.id}
-                      className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-card-dark"
-                    >
-                      <div className="mb-2 flex items-start justify-between">
-                        <div>
-                          <h3 className="font-medium">{n.titulo}</h3>
-                          <p className="text-sm text-gray-500">
-                            {n.tipo} • {new Date(n.created_at).toLocaleDateString('pt-BR')}
-                          </p>
+                  {dashboard.map((n) => {
+                    const leituraPercentual = n.percentual_leitura ?? 0;
+                    return (
+                      <div
+                        key={n.id}
+                        className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-card-dark"
+                      >
+                        <div className="mb-2 flex items-start justify-between">
+                          <div>
+                            <h3 className="font-medium">{n.titulo}</h3>
+                            <p className="text-sm text-gray-500">
+                              {n.tipo} • {new Date(n.created_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-bold ${leituraPercentual >= 80 ? 'bg-green-100 text-green-700' : leituraPercentual >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}
+                          >
+                            {leituraPercentual}% leram
+                          </span>
                         </div>
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-bold ${n.percentual_leitura >= 80 ? 'bg-green-100 text-green-700' : n.percentual_leitura >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}
-                        >
-                          {n.percentual_leitura}% leram
-                        </span>
+                        <div className="grid grid-cols-4 gap-2 text-center text-sm">
+                          <div>
+                            <p className="font-bold text-gray-800 dark:text-white">
+                              {n.total_destinatarios}
+                            </p>
+                            <p className="text-xs text-gray-500">Destino</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-green-600">{n.total_lidos}</p>
+                            <p className="text-xs text-gray-500">Lidos</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-blue-600">{n.total_entregues}</p>
+                            <p className="text-xs text-gray-500">Entregues</p>
+                          </div>
+                          <div>
+                            <p className="font-bold text-red-600">{n.total_falhas}</p>
+                            <p className="text-xs text-gray-500">Falhas</p>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-4 gap-2 text-center text-sm">
-                        <div>
-                          <p className="font-bold text-gray-800 dark:text-white">
-                            {n.total_destinatarios}
-                          </p>
-                          <p className="text-xs text-gray-500">Destino</p>
-                        </div>
-                        <div>
-                          <p className="font-bold text-green-600">{n.total_lidos}</p>
-                          <p className="text-xs text-gray-500">Lidos</p>
-                        </div>
-                        <div>
-                          <p className="font-bold text-blue-600">{n.total_entregues}</p>
-                          <p className="text-xs text-gray-500">Entregues</p>
-                        </div>
-                        <div>
-                          <p className="font-bold text-red-600">{n.total_falhas}</p>
-                          <p className="text-xs text-gray-500">Falhas</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -368,7 +372,9 @@ export default function SindicoComunicacaoPage() {
                           </span>
                           <p className="mt-2 font-medium">{e.descricao}</p>
                           <p className="mt-1 text-sm text-gray-500">
-                            {new Date(e.disparado_em).toLocaleString('pt-BR')}
+                            {e.disparado_em
+                              ? new Date(e.disparado_em).toLocaleString('pt-BR')
+                              : 'Data indisponível'}
                           </p>
                         </div>
                         <div className="text-right text-sm">

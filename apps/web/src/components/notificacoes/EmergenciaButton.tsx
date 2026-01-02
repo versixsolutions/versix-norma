@@ -9,10 +9,10 @@ interface EmergenciaButtonProps {
 
 const TIPOS_EMERGENCIA: { tipo: TipoEmergencia; label: string; icon: string; color: string }[] = [
   { tipo: 'incendio', label: 'Incêndio', icon: 'local_fire_department', color: 'bg-red-600' },
-  { tipo: 'gas', label: 'Vazamento de Gás', icon: 'propane', color: 'bg-amber-600' },
+  { tipo: 'vazamento', label: 'Vazamento de Gás', icon: 'propane', color: 'bg-amber-600' },
   { tipo: 'seguranca', label: 'Segurança', icon: 'shield', color: 'bg-blue-600' },
   { tipo: 'medica', label: 'Emergência Médica', icon: 'medical_services', color: 'bg-green-600' },
-  { tipo: 'outro', label: 'Outra Emergência', icon: 'warning', color: 'bg-gray-600' },
+  { tipo: 'geral', label: 'Outra Emergência', icon: 'warning', color: 'bg-gray-600' },
 ];
 
 export function EmergenciaButton({ onDisparar }: EmergenciaButtonProps) {

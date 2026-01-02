@@ -1,4 +1,3 @@
-
 import { logger } from '@/lib/logger';
 // ============================================
 // VERSIX NORMA - PWA UTILITIES
@@ -6,6 +5,24 @@ import { logger } from '@/lib/logger';
 // ============================================
 
 import { useCallback, useEffect, useState } from 'react';
+
+// Minimal ambient interfaces for optional browser features used in this file
+interface ServiceWorkerRegistrationWithPeriodicSync extends ServiceWorkerRegistration {
+  periodicSync?: {
+    register(tag: string, options?: { minInterval?: number }): Promise<void>;
+  };
+}
+
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
+}
+
+interface NetworkInformation {
+  effectiveType?: string;
+  downlink?: number;
+  rtt?: number;
+  saveData?: boolean;
+}
 
 // ============================================
 // SERVICE WORKER REGISTRATION
@@ -19,7 +36,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   try {
     const registration = await navigator.serviceWorker.register('/sw.js', {
       scope: '/',
-      updateViaCache: 'none'
+      updateViaCache: 'none',
     });
 
     // Verificar atualizações
@@ -38,7 +55,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       try {
         const regWithSync = registration as ServiceWorkerRegistrationWithPeriodicSync;
         await regWithSync.periodicSync?.register('update-critical-data', {
-          minInterval: 12 * 60 * 60 * 1000 // 12 horas
+          minInterval: 12 * 60 * 60 * 1000, // 12 horas
         });
       } catch {
         logger.log('Periodic sync não disponível');
@@ -63,7 +80,9 @@ export function updateServiceWorker(registration: ServiceWorkerRegistration): vo
 // HOOK: useOnlineStatus
 // ============================================
 export function useOnlineStatus(): boolean {
-  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -145,7 +164,7 @@ export function useInstallPrompt() {
     canInstall: !!deferredPrompt,
     isInstalled,
     isIOS,
-    promptInstall
+    promptInstall,
   };
 }
 
@@ -199,11 +218,14 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   return Notification.permission;
 }
 
-export async function subscribeToPush(registration: ServiceWorkerRegistration, vapidPublicKey: string): Promise<PushSubscription | null> {
+export async function subscribeToPush(
+  registration: ServiceWorkerRegistration,
+  vapidPublicKey: string
+): Promise<PushSubscription | null> {
   try {
     const subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
     });
     return subscription;
   } catch (error) {
@@ -226,7 +248,11 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 // ============================================
 // STORAGE ESTIMATE
 // ============================================
-export async function getStorageEstimate(): Promise<{ used: number; quota: number; percent: number }> {
+export async function getStorageEstimate(): Promise<{
+  used: number;
+  quota: number;
+  percent: number;
+}> {
   if ('storage' in navigator && 'estimate' in navigator.storage) {
     const estimate = await navigator.storage.estimate();
     const used = estimate.usage || 0;
@@ -240,16 +266,26 @@ export async function getStorageEstimate(): Promise<{ used: number; quota: numbe
 // ============================================
 // NETWORK INFORMATION
 // ============================================
-export function getNetworkInfo(): { effectiveType: string; downlink: number; rtt: number; saveData: boolean } {
-  const navigator_ = navigator as Navigator & { connection?: NetworkInformation; mozConnection?: NetworkInformation; webkitConnection?: NetworkInformation };
-  const connection = navigator_.connection || navigator_.mozConnection || navigator_.webkitConnection;
+export function getNetworkInfo(): {
+  effectiveType: string;
+  downlink: number;
+  rtt: number;
+  saveData: boolean;
+} {
+  const navigator_ = navigator as Navigator & {
+    connection?: NetworkInformation;
+    mozConnection?: NetworkInformation;
+    webkitConnection?: NetworkInformation;
+  };
+  const connection =
+    navigator_.connection || navigator_.mozConnection || navigator_.webkitConnection;
 
   if (connection) {
     return {
       effectiveType: connection.effectiveType || 'unknown',
       downlink: connection.downlink || 0,
       rtt: connection.rtt || 0,
-      saveData: connection.saveData || false
+      saveData: connection.saveData || false,
     };
   }
 
@@ -263,7 +299,9 @@ export async function requestBackgroundSync(tag: string): Promise<boolean> {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     try {
       const registration = await navigator.serviceWorker.ready;
-      const regWithSync = registration as ServiceWorkerRegistrationWithPeriodicSync & { sync?: { register(tag: string): Promise<void> } };
+      const regWithSync = registration as ServiceWorkerRegistrationWithPeriodicSync & {
+        sync?: { register(tag: string): Promise<void> };
+      };
       await regWithSync.sync?.register(tag);
       return true;
     } catch {

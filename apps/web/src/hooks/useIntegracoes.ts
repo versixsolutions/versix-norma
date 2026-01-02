@@ -2,13 +2,13 @@
 
 import { getErrorMessage } from '@/lib/errors';
 import { getSupabaseClient } from '@/lib/supabase';
-import type { Integracao } from '@versix/shared';
 import type {
   CreateIntegracaoApiInput,
-  CreateWebhookInput,
+  Integracao,
   IntegracaoDashboard,
   IntegracoesFilters,
   WebhookEvento,
+  WebhookFormData,
 } from '@versix/shared';
 import { useCallback, useState } from 'react';
 
@@ -93,15 +93,15 @@ export function useIntegracoes() {
   const criarWebhook = useCallback(
     async (
       condominioId: string,
-      input: CreateWebhookInput
+      input: WebhookFormData
     ): Promise<{ id: string; secret_key: string } | null> => {
       setLoading(true);
       try {
         const { data, error: rpcError } = await supabase.rpc('criar_webhook', {
           p_condominio_id: condominioId,
-          p_nome: input.nome,
-          p_url: input.url_destino,
-          p_eventos: input.eventos,
+          p_nome: input.nome || '',
+          p_url: input.url_destino || '',
+          p_eventos: input.eventos || [],
           p_headers_custom: input.headers_custom || {},
         });
         if (rpcError) throw rpcError;
@@ -186,8 +186,8 @@ export function useIntegracoes() {
 
 export type {
   CreateIntegracaoApiInput,
-  CreateWebhookInput,
   Integracao,
   IntegracaoDashboard,
   WebhookEvento,
+  WebhookFormData,
 };

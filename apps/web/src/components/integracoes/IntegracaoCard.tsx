@@ -26,6 +26,10 @@ export function IntegracaoCard({ integracao, onClick }: IntegracaoCardProps) {
   const tipo = TIPO_CONFIG[integracao.tipo] || TIPO_CONFIG.api;
   const status = STATUS_CONFIG[integracao.status] || STATUS_CONFIG.ativa;
 
+  const eventos = Array.isArray(integracao.eventos)
+    ? (integracao.eventos as (string | string[])[]).flat().filter(Boolean)
+    : [];
+
   const ultimoUso = integracao.ultimo_uso
     ? formatDistanceToNow(new Date(integracao.ultimo_uso), { addSuffix: true, locale: ptBR })
     : 'Nunca usado';
@@ -54,9 +58,9 @@ export function IntegracaoCard({ integracao, onClick }: IntegracaoCardProps) {
       </div>
 
       {/* Eventos (webhook) */}
-      {integracao.tipo === 'webhook' && integracao.eventos && (
+      {integracao.tipo === 'webhook' && eventos.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-1">
-          {(integracao.eventos.flat().slice(0, 3) as string[]).map((ev, i) => (
+          {eventos.slice(0, 3).map((ev, i) => (
             <span
               key={i}
               className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -64,8 +68,8 @@ export function IntegracaoCard({ integracao, onClick }: IntegracaoCardProps) {
               {ev.split('.')[0]}
             </span>
           ))}
-          {integracao.eventos.flat().length > 3 && (
-            <span className="text-xs text-gray-500">+{integracao.eventos.flat().length - 3}</span>
+          {eventos.length > 3 && (
+            <span className="text-xs text-gray-500">+{eventos.length - 3}</span>
           )}
         </div>
       )}

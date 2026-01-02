@@ -8,10 +8,9 @@ import type {
   ComunicadoCategoria,
   ComunicadoComJoins,
   ComunicadoFilters,
+  ComunicadoFormData,
   ComunicadoStatus,
-  CreateComunicadoInput,
   PaginatedResponse,
-  UpdateComunicadoInput,
 } from '@versix/shared';
 import { Database } from '@versix/shared';
 import { useCallback, useState } from 'react';
@@ -169,7 +168,7 @@ export function useComunicados(_options?: {
     async (
       condominioId: string,
       autorId: string,
-      input: CreateComunicadoInput
+      input: ComunicadoFormData
     ): Promise<ComunicadoComJoins | null> => {
       setLoading(true);
       try {
@@ -178,8 +177,8 @@ export function useComunicados(_options?: {
           .insert({
             condominio_id: condominioId,
             autor_id: autorId,
-            titulo: input.titulo,
-            conteudo: input.conteudo,
+            titulo: input.titulo || '',
+            conteudo: input.conteudo || '',
             categoria: validateCategoria(input.categoria),
             status: input.status || 'rascunho',
             fixado: input.fixado || false,
@@ -189,8 +188,9 @@ export function useComunicados(_options?: {
           .select()
           .single();
         if (insertError) throw insertError;
-        setComunicados((prev) => [data, ...prev]);
-        return data;
+        const parsed = toComunicado(data as ComunicadoQueryResult);
+        setComunicados((prev) => [parsed, ...prev]);
+        return parsed;
       } catch (err) {
         setError(getErrorMessage(err) || 'Erro ao criar comunicado');
         return null;
@@ -202,7 +202,7 @@ export function useComunicados(_options?: {
   );
 
   const updateComunicado = useCallback(
-    async (input: UpdateComunicadoInput): Promise<Comunicado | null> => {
+    async (input: ComunicadoFormData & { id: string }): Promise<ComunicadoComJoins | null> => {
       setLoading(true);
       try {
         const { id, ...updates } = input;
@@ -234,8 +234,9 @@ export function useComunicados(_options?: {
           .single();
 
         if (updateError) throw updateError;
-        setComunicados((prev) => prev.map((c) => (c.id === id ? data : c)));
-        return data;
+        const parsed = toComunicado(data as ComunicadoQueryResult);
+        setComunicados((prev) => prev.map((c) => (c.id === id ? parsed : c)));
+        return parsed;
       } catch (err) {
         setError(getErrorMessage(err) || 'Erro ao atualizar comunicado');
         return null;
@@ -353,7 +354,6 @@ export type {
   Comunicado,
   ComunicadoCategoria,
   ComunicadoFilters,
+  ComunicadoFormData,
   ComunicadoStatus,
-  CreateComunicadoInput,
-  UpdateComunicadoInput,
 };

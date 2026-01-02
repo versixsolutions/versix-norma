@@ -4,7 +4,7 @@ import { IntegracaoCard } from '@/components/integracoes/IntegracaoCard';
 import { WebhookEventosSelector } from '@/components/integracoes/WebhookEventosSelector';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useIntegracoes } from '@/hooks/useIntegracoes';
-import type { CreateIntegracaoApiInput, CreateWebhookInput, WebhookFormData } from '@versix/shared';
+import type { CreateIntegracaoApiInput, WebhookFormData } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -24,8 +24,7 @@ export default function IntegracoesPage() {
     nome: '',
     descricao: '',
     scopes: [],
-    condominio_id: condominioId || '',
-    tipo: 'api',
+    tipo: 'api_entrada',
   }));
   const [webhookForm, setWebhookForm] = useState<WebhookFormData>(() => ({
     nome: '',
@@ -66,13 +65,10 @@ export default function IntegracoesPage() {
     setSubmitting(true);
 
     // Converter WebhookFormData para CreateWebhookInput
-    const submitData: CreateWebhookInput = {
-      ...webhookForm,
-      condominio_id: condominioId,
-      integracao_id: '', // Será preenchido pelo hook se necessário
-      nome: webhookForm.nome!,
+    const submitData: WebhookFormData = {
+      nome: webhookForm.nome || '',
       url_destino: webhookForm.url_destino || '',
-      eventos: webhookForm.eventos!,
+      eventos: webhookForm.eventos || [],
       headers_custom: webhookForm.headers_custom || {},
     };
 
@@ -282,13 +278,15 @@ export default function IntegracoesPage() {
                   />
                 </div>
                 <WebhookEventosSelector
-                  selected={webhookForm.eventos}
+                  selected={webhookForm.eventos || []}
                   onChange={(eventos) => setWebhookForm({ ...webhookForm, eventos })}
                 />
                 <button
                   type="submit"
                   disabled={
-                    submitting || webhookForm.nome.length < 3 || webhookForm.eventos.length === 0
+                    submitting ||
+                    (webhookForm.nome?.length ?? 0) < 3 ||
+                    (webhookForm.eventos?.length ?? 0) === 0
                   }
                   className="w-full rounded-xl bg-purple-600 py-4 font-bold text-white disabled:opacity-50"
                 >

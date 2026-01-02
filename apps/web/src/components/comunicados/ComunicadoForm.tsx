@@ -1,13 +1,12 @@
 'use client';
 
 import { useAnexos } from '@/hooks/useAnexos';
-import { serializeAnexos } from '@/lib/type-helpers';
 import type {
   Anexo,
   ComunicadoCategoria,
   ComunicadoComJoins,
+  ComunicadoFormData,
   ComunicadoStatus,
-  CreateComunicadoInput,
 } from '@versix/shared';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -15,7 +14,7 @@ import { toast } from 'sonner';
 interface ComunicadoFormProps {
   comunicado?: ComunicadoComJoins;
   condominioId: string;
-  onSubmit: (data: CreateComunicadoInput) => Promise<boolean>;
+  onSubmit: (data: ComunicadoFormData) => Promise<boolean>;
   onCancel: () => void;
 }
 
@@ -52,7 +51,7 @@ export function ComunicadoForm({
   const { uploadMultiple, uploading } = useAnexos();
   const [loading, setLoading] = useState(false);
   const initialAnexos: Anexo[] = normalizeAnexos(comunicado?.anexos);
-  const [form, setForm] = useState<CreateComunicadoInput>({
+  const [form, setForm] = useState<ComunicadoFormData>({
     titulo: comunicado?.titulo || '',
     conteudo: comunicado?.conteudo || '',
     resumo: comunicado?.resumo || '',
@@ -79,19 +78,18 @@ export function ComunicadoForm({
 
   const handleSubmit = async (e: React.FormEvent, status?: ComunicadoStatus) => {
     e.preventDefault();
-    if (form.titulo.length < 5) {
+    if (!form.titulo || form.titulo.length < 5) {
       toast.error('Título deve ter pelo menos 5 caracteres');
       return;
     }
-    if (form.conteudo.length < 10) {
+    if (!form.conteudo || form.conteudo.length < 10) {
       toast.error('Conteúdo deve ter pelo menos 10 caracteres');
       return;
     }
     setLoading(true);
-    const dataToSubmit: CreateComunicadoInput = {
+    const dataToSubmit: ComunicadoFormData = {
       ...form,
-      anexos: serializeAnexos(form.anexos),
-      status: status || form.status,
+      status: status || form.status || 'rascunho',
     };
     const success = await onSubmit(dataToSubmit);
     setLoading(false);

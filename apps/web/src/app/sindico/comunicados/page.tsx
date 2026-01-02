@@ -4,7 +4,7 @@ import { ComunicadoCard } from '@/components/comunicados/ComunicadoCard';
 import { ComunicadoForm } from '@/components/comunicados/ComunicadoForm';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useComunicados } from '@/hooks/useComunicados';
-import type { ComunicadoLeitura, ComunicadoStatus, CreateComunicadoInput } from '@versix/shared';
+import type { ComunicadoFormData, ComunicadoLeitura, ComunicadoStatus } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -35,7 +35,7 @@ export default function SindicoComunicadosPage() {
       fetchComunicados(condominioId, { status: (statusFilter as ComunicadoStatus) || undefined });
   }, [condominioId, statusFilter, fetchComunicados]);
 
-  const handleCreate = async (data: CreateComunicadoInput): Promise<boolean> => {
+  const handleCreate = async (data: ComunicadoFormData): Promise<boolean> => {
     if (!condominioId || !profile?.id) return false;
     const result = await createComunicado(condominioId, profile.id, data);
     if (result) {
@@ -45,7 +45,7 @@ export default function SindicoComunicadosPage() {
     return false;
   };
 
-  const handleUpdate = async (data: CreateComunicadoInput): Promise<boolean> => {
+  const handleUpdate = async (data: ComunicadoFormData): Promise<boolean> => {
     if (!editingId) return false;
     const result = await updateComunicado({ id: editingId, ...data });
     if (result) {
@@ -225,19 +225,21 @@ export default function SindicoComunicadosPage() {
                   <p className="py-8 text-center text-gray-500">Nenhuma leitura registrada</p>
                 ) : (
                   <div className="space-y-2">
-                    {viewingLeituras.leituras.map((l: ComunicadoLeitura) => (
-                      <div
-                        key={l.id}
-                        className="flex items-center justify-between border-b border-gray-100 py-2 dark:border-gray-700"
-                      >
-                        <span className="text-gray-800 dark:text-white">
-                          {l.usuario?.nome || 'Usuário'}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {new Date(l.lido_em).toLocaleString('pt-BR')}
-                        </span>
-                      </div>
-                    ))}
+                    {viewingLeituras.leituras.map(
+                      (l: ComunicadoLeitura & { usuario?: { nome?: string } }) => (
+                        <div
+                          key={l.id}
+                          className="flex items-center justify-between border-b border-gray-100 py-2 dark:border-gray-700"
+                        >
+                          <span className="text-gray-800 dark:text-white">
+                            {l.usuario?.nome || 'Usuário'}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(l.lido_em).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                      )
+                    )}
                   </div>
                 )}
               </div>
