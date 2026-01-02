@@ -4,7 +4,7 @@ import { ChamadoCard } from '@/components/chamados/ChamadoCard';
 import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useChamados, type CreateChamadoInput } from '@/hooks/useChamados';
 import { serializeAnexos } from '@/lib/type-helpers';
-import type { ChamadoFormData } from '@versix/shared';
+import type { ChamadoFormData, ChamadoMensagemComJoins } from '@versix/shared';
 import { ChamadoCategoria } from '@versix/shared';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
