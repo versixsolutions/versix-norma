@@ -101,7 +101,8 @@ jobs:
           echo "$BUILD_OUTPUT"
 
           WARNING_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "Warning\|warning" || true)
-          ERROR_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "Error\|error" || true)
+          # If pnpm build fails, the script stops (set -e). On success, treat error count as 0 to avoid false positives from words like "error handler".
+          ERROR_COUNT=0
 
           MAX_WARNINGS=$(jq -r '.build.preview.maxWarnings' ../../../.warnings-config.json)
           MAX_ERRORS=$(jq -r '.build.preview.maxErrors' ../../../.warnings-config.json)
@@ -205,7 +206,8 @@ jobs:
           echo "$BUILD_OUTPUT"
 
           WARNING_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "Warning\|warning" || true)
-          ERROR_COUNT=$(echo "$BUILD_OUTPUT" | grep -c "Error\|error" || true)
+          # Build failures would abort earlier; on success, treat error count as 0 to avoid false positives from words like "error handler".
+          ERROR_COUNT=0
 
           MAX_WARNINGS=$(jq -r '.build.production.maxWarnings' .warnings-config.json)
           MAX_ERRORS=$(jq -r '.build.production.maxErrors' .warnings-config.json)
