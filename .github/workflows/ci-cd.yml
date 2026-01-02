@@ -41,8 +41,11 @@ jobs:
 
       - name: Check ESLint warnings
         run: |
-          WARNING_COUNT=$(pnpm lint 2>&1 | grep -c "warning\|Warning" || true)
-          ERROR_COUNT=$(pnpm lint 2>&1 | grep -c "error\|Error" || true)
+          LINT_OUTPUT=$(pnpm lint 2>&1)
+          
+          # Extract error and warning counts from the summary line (e.g., "✖ 3 problems (0 errors, 3 warnings)")
+          ERROR_COUNT=$(echo "$LINT_OUTPUT" | grep -oP '\d+ errors?' | grep -oP '^\d+' || echo "0")
+          WARNING_COUNT=$(echo "$LINT_OUTPUT" | grep -oP '\d+ warnings?' | grep -oP '^\d+' || echo "0")
 
           MAX_WARNINGS=$(jq -r '.eslint.maxWarnings' .warnings-config.json)
           MAX_ERRORS=$(jq -r '.eslint.maxErrors' .warnings-config.json)
