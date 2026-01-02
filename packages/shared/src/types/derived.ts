@@ -593,6 +593,7 @@ export interface NotificacaoDashboard {
 }
 
 export interface NotificacaoUsuario extends Notificacao {
+  notificacao_id: string;
   lida: boolean;
   lida_em?: string;
   entrega_status?: StatusEntrega;

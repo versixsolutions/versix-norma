@@ -167,7 +167,7 @@ export default function FinanceiroMoradorPage() {
                         <p
                           className={`text-xl font-bold ${taxa.status === 'pago' ? 'text-green-600' : 'text-gray-800 dark:text-white'}`}
                         >
-                          {formatCurrency(taxa.valor_final)}
+                          {formatCurrency(taxa.valor_final ?? 0)}
                         </p>
                       </div>
                       {taxa.status === 'pago' && taxa.data_pagamento && (
@@ -204,15 +204,15 @@ export default function FinanceiroMoradorPage() {
                     <div>
                       <p className="text-sm text-gray-500">Saldo Anterior</p>
                       <p className="text-lg font-bold text-gray-800 dark:text-white">
-                        {formatCurrency(saldo.saldo_anterior)}
+                        {formatCurrency(saldo.saldo_inicial)}
                       </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Saldo Atual</p>
                       <p
-                        className={`text-lg font-bold ${saldo.saldo_atual >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                        className={`text-lg font-bold ${saldo.saldo_final >= 0 ? 'text-green-600' : 'text-red-600'}`}
                       >
-                        {formatCurrency(saldo.saldo_atual)}
+                        {formatCurrency(saldo.saldo_final)}
                       </p>
                     </div>
                     <div>
