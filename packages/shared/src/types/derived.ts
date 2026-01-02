@@ -582,6 +582,10 @@ export interface RelatorioMensal {
 // ============================================
 
 export interface NotificacaoDashboard {
+  id: string;
+  titulo: string;
+  tipo: TipoNotificacao;
+  created_at: string;
   notificacao: Notificacao;
   stats: {
     total_enviadas: number;
@@ -590,6 +594,12 @@ export interface NotificacaoDashboard {
     taxa_abertura: number;
   };
   entregas?: NotificacaoEntrega[];
+  // Campos flat da view (compatibilidade)
+  percentual_leitura?: number;
+  total_destinatarios?: number;
+  total_lidos?: number;
+  total_entregues?: number;
+  total_falhas?: number;
 }
 
 export interface NotificacaoUsuario extends Notificacao {
@@ -687,6 +697,8 @@ export interface OcorrenciaFormData {
   descricao?: string;
   prioridade?: Prioridade;
   localizacao?: string;
+  local_descricao?: string;
+  anonimo?: boolean;
   unidade_id?: string;
   anexos?: Anexo[];
 }
@@ -704,10 +716,17 @@ export interface AssembleiaFormData {
   tipo?: AssembleiaTipo;
   titulo?: string;
   data_inicio?: string;
+  data_primeira_convocacao?: string;
+  data_segunda_convocacao?: string;
   data_fim?: string;
   descricao?: string;
   local?: string;
+  local_presencial?: string;
   quorum_percentual?: number;
+  quorum_minimo_primeira?: number;
+  quorum_minimo_segunda?: number;
+  permite_procuracao?: boolean;
+  max_procuracoes_por_pessoa?: number;
 }
 
 export interface WebhookFormData {
@@ -725,4 +744,29 @@ export interface IntegracaoFormData {
   chave_api?: string;
   ativo?: boolean;
   ambiente?: IntegracaoAmbiente;
+}
+
+export interface ComunicadoFormData {
+  titulo?: string;
+  corpo?: string;
+  categoria?: ComunicadoCategoria;
+  prioridade?: PrioridadeComunicado;
+  fixado?: boolean;
+  destaque?: boolean;
+  anexos?: Anexo[];
+  tags?: string[];
+}
+
+export interface LancamentoFormData {
+  tipo?: 'receita' | 'despesa';
+  valor?: number;
+  status?: LancamentoStatus;
+  conta_bancaria_id?: string;
+  categoria_id?: string;
+  data_competencia?: string;
+  data_vencimento?: string;
+  descricao?: string;
+  fornecedor?: string;
+  numero_documento?: string;
+  anexos?: Anexo[];
 }

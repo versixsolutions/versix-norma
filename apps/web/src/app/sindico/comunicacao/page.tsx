@@ -5,6 +5,7 @@ import { AuthGuard, useAuthContext } from '@/contexts/AuthContext';
 import { useEmergencias } from '@/hooks/useEmergencias';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { usePreferenciasCanais } from '@/hooks/usePreferenciasCanais';
+import { serializeAnexos } from '@/lib/type-helpers';
 import type {
   CreateNotificacaoInput,
   NotificacaoDashboard,

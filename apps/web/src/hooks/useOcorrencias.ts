@@ -3,7 +3,7 @@
 import { getErrorMessage } from '@/lib/errors';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getSupabaseClient } from '@/lib/supabase';
-import { parseAnexos } from '@/lib/type-helpers';
+import { parseAnexos, serializeAnexos } from '@/lib/type-helpers';
 import type {
   CreateOcorrenciaInput,
   OcorrenciaComJoins,
@@ -164,9 +164,15 @@ export function useOcorrencias() {
     ): Promise<OcorrenciaComJoins | null> => {
       setLoading(true);
       try {
+        const insertData = {
+          ...input,
+          anexos: serializeAnexos(input.anexos),
+          condominio_id: condominioId,
+          reportado_por: reportadoPor,
+        };
         const { data, error: insertError } = await supabase
           .from('ocorrencias')
-          .insert({ condominio_id: condominioId, reportado_por: reportadoPor, ...input })
+          .insert(insertData)
           .select()
           .single();
         if (insertError) throw insertError;
@@ -194,7 +200,10 @@ export function useOcorrencias() {
         // Se resolvendo, definir campos de resolução
         if (updates.status === 'resolvida' && !updates.resolucao) updates.resolucao = 'Resolvida';
         type OcorrenciaUpdate = Database['public']['Tables']['ocorrencias']['Update'];
-        const updateData: Partial<OcorrenciaUpdate> = { ...updates };
+        const updateData: Partial<OcorrenciaUpdate> = {
+          ...updates,
+          anexos: updates.anexos ? serializeAnexos(updates.anexos) : undefined,
+        };
         if (updates.status === 'resolvida') {
           updateData.resolvido_em = new Date().toISOString();
           updateData.resolvido_por = userId;

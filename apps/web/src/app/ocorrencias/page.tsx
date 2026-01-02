@@ -82,7 +82,7 @@ export default function OcorrenciasPage() {
       descricao: form.descricao,
       categoria: form.categoria || 'outros',
       prioridade: form.prioridade || 'media',
-      localizacao: form.localizacao,
+      unidade_relacionada_id: form.unidade_id || null,
       anexos: serializeAnexos(form.anexos),
       condominio_id: condominioId,
       reportado_por: profile.id,
